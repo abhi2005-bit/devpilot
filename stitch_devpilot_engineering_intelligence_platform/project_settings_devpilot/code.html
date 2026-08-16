@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevPilot - Project Members Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface": "#121315",
+                      "surface-container-high": "#292a2c",
+                      "secondary-fixed-dim": "#4edea3",
+                      "surface-dim": "#121315",
+                      "on-tertiary-fixed": "#2a1700",
+                      "primary": "#adc6ff",
+                      "secondary-container": "#00a572",
+                      "on-secondary-container": "#00311f",
+                      "on-surface-variant": "#c2c6d6",
+                      "error": "#ffb4ab",
+                      "surface-variant": "#343537",
+                      "on-error": "#690005",
+                      "surface-container-low": "#1b1c1e",
+                      "on-secondary-fixed": "#002113",
+                      "on-surface": "#e3e2e5",
+                      "surface-bright": "#38393b",
+                      "on-background": "#e3e2e5",
+                      "outline": "#8c909f",
+                      "tertiary-container": "#ca8100",
+                      "inverse-on-surface": "#303033",
+                      "on-tertiary-container": "#3e2400",
+                      "inverse-primary": "#005ac2",
+                      "surface-container-highest": "#343537",
+                      "on-primary-container": "#00285d",
+                      "background": "#121315",
+                      "tertiary": "#ffb95f",
+                      "on-primary-fixed-variant": "#004395",
+                      "on-secondary-fixed-variant": "#005236",
+                      "on-tertiary": "#472a00",
+                      "on-primary": "#002e6a",
+                      "tertiary-fixed": "#ffddb8",
+                      "on-error-container": "#ffdad6",
+                      "inverse-surface": "#e3e2e5",
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "surface-tint": "#adc6ff",
+                      "secondary": "#4edea3",
+                      "surface-container-lowest": "#0d0e10",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "error-container": "#93000a",
+                      "on-secondary": "#003824",
+                      "outline-variant": "#424754",
+                      "primary-fixed": "#d8e2ff",
+                      "secondary-fixed": "#6ffbbe",
+                      "surface-container": "#1f2022",
+                      "on-primary-fixed": "#001a42",
+                      "primary-container": "#4d8eff",
+                      "primary-fixed-dim": "#adc6ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "md": "16px",
+                      "gutter": "16px",
+                      "sm": "8px",
+                      "xs": "4px",
+                      "unit": "4px",
+                      "lg": "24px",
+                      "margin": "24px"
+              },
+              "fontFamily": {
+                      "body-sm": [
+                              "Geist"
+                      ],
+                      "headline-md": [
+                              "Geist"
+                      ],
+                      "body-md": [
+                              "Geist"
+                      ],
+                      "title-sm": [
+                              "Geist"
+                      ],
+                      "code-label": [
+                              "JetBrains Mono"
+                      ],
+                      "display-lg": [
+                              "Geist"
+                      ],
+                      "caption": [
+                              "Geist"
+                      ]
+              },
+              "fontSize": {
+                      "body-sm": [
+                              "13px",
+                              {
+                                      "lineHeight": "18px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "title-sm": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "code-label": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "caption": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: #0B0C0E;
+            color: #e3e2e5;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md h-screen overflow-hidden flex flex-col antialiased">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full h-16 px-6 sticky top-0 z-50 ml-64 bg-surface dark:bg-surface border-b border-outline-variant font-body-sm text-body-sm hidden md:flex">
+<div class="flex items-center gap-4">
+<span class="font-title-sm text-title-sm font-black text-on-surface">DevPilot</span>
+</div>
+<div class="flex items-center gap-6">
+<nav class="flex gap-6">
+<a class="text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">Docs</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">Support</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">API</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-on-surface transition-colors duration-200 scale-98 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors duration-200 scale-98 transition-transform">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded font-medium scale-98 transition-transform">Deploy</button>
+<img alt="User Profile" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A small, circular avatar image of a user profile in a modern web application, high contrast, dark mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmPjK2dQGmURICtjBHtfpxSRSCkHLOS0SgownVC9rO017LGVJmxGf-uwVVxsklRH5-g3-clcxTSZsBfFjufEXjUcDTvMzSIxltzgooMkMfVreuSJ8M3-bFpN4nSJvj_gQv5nmD-Ri9eWe8j3K2Bxg4CX86rw6U3ZIzE5e7344CVBm_bdA-fj1T445f3KjbhUpDfLtz-nz5UgakBhzIoa5N9IBTTMrCiifeLXsKmzzhHkMcdxdPgS03"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar -->
+<nav class="bg-surface dark:bg-surface fixed left-0 top-0 h-full w-64 border-r border-outline-variant flex flex-col overflow-y-auto hidden md:flex font-body-md text-body-md z-40">
+<div class="p-6 border-b border-outline-variant flex items-center gap-3">
+<img alt="DevPilot Logo" class="w-8 h-8 rounded" data-alt="A minimalist logo for a developer tool named DevPilot, utilizing sharp geometric shapes in electric blue on a deep charcoal background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6boWMoTgk-RJkrnNmBUxvHbZOhvnfPHzNT1u2JDYD34n9d8pWU12zfh9lINMhy1-tqXGa87QcvWytXU68oaTVD5nR9upsT_j1V4zOSAKKrbopyEhoU8R_RliRB0ftByJYaE9h5mc0TeuSM7QU55UwjLkFRW4ibqkpR48kHubUaKoKkcVYfq1ztZ7OLMLYufi28zIs4qc8rp1leOTt8yQwmBZ0_Do0Qj3-qG8DZDd2VxVysy2z9zpw"/>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary">DevPilot</h1>
+<p class="font-caption text-caption text-on-surface-variant">Engineering Intel</p>
+</div>
+</div>
+<div class="p-4">
+<button class="w-full bg-primary-container text-on-primary-container py-2 rounded flex justify-center items-center gap-2 font-medium hover:bg-opacity-90 transition-colors duration-200 ease-in-out">
+<span class="material-symbols-outlined">add</span> New Sprint
+                </button>
+</div>
+<div class="flex-1 overflow-y-auto py-2">
+<ul class="space-y-1 px-3">
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+                        </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">folder_open</span> Projects
+                        </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">list_alt</span> Issues
+                        </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out relative" href="#">
+<span class="material-symbols-outlined text-secondary">smart_toy</span> AI Assistant
+                            <span class="absolute right-3 w-2 h-2 rounded-full bg-secondary"></span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">analytics</span> Analytics
+                        </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">description</span> Documents
+                        </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">group</span> Team
+                        </a>
+</li>
+<li>
+<!-- Settings mapped here as it's a settings page -->
+<a class="flex items-center gap-3 px-3 py-2 rounded text-secondary border-l-2 border-secondary font-bold bg-surface-container-high transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined filled">settings</span> Settings
+                        </a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 bg-background overflow-y-auto">
+<div class="max-w-6xl mx-auto p-8">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-8 border-b border-outline-variant pb-4">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface mb-2">Project Settings</h2>
+<p class="text-on-surface-variant font-body-md text-body-md">Manage configurations, members, and integrations for 'Core Platform V2'.</p>
+</div>
+</div>
+<!-- Settings Layout: Sidebar + Canvas -->
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Settings Sub-nav -->
+<aside class="w-full lg:w-64 shrink-0">
+<nav class="flex flex-col space-y-1">
+<a class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded transition-colors flex items-center justify-between" href="#">
+                                General
+                            </a>
+<!-- Active Member Tab -->
+<a class="px-4 py-2 bg-surface-container-highest text-primary font-medium rounded transition-colors flex items-center justify-between border-l-2 border-primary" href="#">
+                                Members
+                                <span class="bg-primary/10 text-primary font-code-label text-code-label px-2 py-0.5 rounded">12</span>
+</a>
+<a class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded transition-colors flex items-center justify-between" href="#">
+                                Permissions
+                            </a>
+<a class="px-4 py-2 text-on-surface-variant hover:bg-surface-container-low rounded transition-colors flex items-center justify-between group" href="#">
+                                AI Settings
+                                <span class="material-symbols-outlined text-secondary opacity-0 group-hover:opacity-100 transition-opacity" style="font-size: 16px;">arrow_back_ios_new</span>
+</a>
+<a class="px-4 py-2 text-error hover:bg-error/10 rounded transition-colors flex items-center justify-between mt-4 border border-transparent hover:border-error/20" href="#">
+                                Danger Zone
+                            </a>
+</nav>
+</aside>
+<!-- Settings Canvas: Members -->
+<div class="flex-1">
+<!-- Actions Header -->
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-title-sm text-title-sm text-on-surface font-medium">Manage Members</h3>
+<div class="flex gap-3">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 18px;">search</span>
+<input class="bg-surface border border-outline-variant rounded pl-9 pr-4 py-1.5 text-body-sm font-body-sm text-on-surface focus:outline-none focus:border-primary transition-colors placeholder:text-on-surface-variant/50 w-64" placeholder="Search users..." type="text"/>
+</div>
+<button class="bg-primary-container text-on-primary-container hover:bg-primary-container/90 px-4 py-1.5 rounded font-medium text-body-sm font-body-sm flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">person_add</span>
+                                    Invite Member
+                                </button>
+</div>
+</div>
+<!-- Members Table Card -->
+<div class="bg-surface border border-outline-variant rounded-lg overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant bg-surface-container-low">
+<th class="px-6 py-3 font-code-label text-code-label text-on-surface-variant uppercase tracking-wider">User</th>
+<th class="px-6 py-3 font-code-label text-code-label text-on-surface-variant uppercase tracking-wider">Role</th>
+<th class="px-6 py-3 font-code-label text-code-label text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="px-6 py-3 font-code-label text-code-label text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1: Owner -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded object-cover border border-outline-variant" data-alt="A portrait of a software engineer, confident expression, neon blue lighting accents, dark modern background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBI3hoGMBuBqCiJrSscy8OIIEPzsOMCzkV-udC3DN7iTr6JI9cZ6-TnWmAQochz04A6DsDxBdfcPb6oTXykBqR1CVkfZHcdJ395klM6Lkt2nNzzLRFhhzX1574-bOqQHmP9a8dECLa-ka2T8T-_Fra3diErhwTS4pQ7Ufs3wk6H7gTc8U1VKggDxLwKpI3gnwFV3OGwEpb1EV4LQM2BJGX6Llk70OuhCRW6QzsT1El4sohNV1mMy-tw"/>
+<div>
+<div class="font-medium text-on-surface">Elena Rodriguez</div>
+<div class="text-caption font-caption text-on-surface-variant">elena.r@devpilot.io</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-surface-variant text-on-surface text-caption font-code-label">
+<span class="material-symbols-outlined" style="font-size: 14px;">admin_panel_settings</span> Owner
+                                            </span>
+</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-2 text-caption font-caption text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span> Active
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-on-surface-variant hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2: Member -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded object-cover border border-outline-variant" data-alt="A close up shot of a developer at their desk, focused, dark theme aesthetic with subtle green ambient light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAK9fYYay3icK_jF4SGrMYZLdmxeoeWjvtJN2FpExcHc9O24bg67aoYVc2B5LIu7L2pMojsvUFd5AP0MCJLL4J2j6nXihutMGIlpVF1Wh7bCbh3SbTfpFJ3F_w-iSyym3_39YQPRfe3Mm5HQI6-Kx22fiD_PTG8ckCHZ5DqU5VLyzjBK3DUEvgBUZOzIPQ10LMzZ_BR_cV4FLkBgczljH9IWeaJg0u969NN03Vy_Ux2P9SqKjJJUmmP"/>
+<div>
+<div class="font-medium text-on-surface">David Chen</div>
+<div class="text-caption font-caption text-on-surface-variant">d.chen@devpilot.io</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<button class="flex items-center gap-1 text-on-surface-variant hover:text-on-surface text-body-sm font-body-sm border border-transparent hover:border-outline-variant rounded px-2 py-0.5 -ml-2 transition-colors">
+                                                Member <span class="material-symbols-outlined" style="font-size: 14px;">expand_more</span>
+</button>
+</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-2 text-caption font-caption text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span> Active
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-opacity mr-2" title="Remove User">
+<span class="material-symbols-outlined" style="font-size: 20px;">person_remove</span>
+</button>
+<button class="text-on-surface-variant hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3: Pending -->
+<tr class="hover:bg-surface-container-lowest transition-colors group bg-surface-container-lowest/50">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-variant border border-outline-variant flex items-center justify-center text-on-surface-variant font-code-label">
+                                                    SJ
+                                                </div>
+<div>
+<div class="font-medium text-on-surface">Sarah Jenkins</div>
+<div class="text-caption font-caption text-on-surface-variant">s.jenkins@devpilot.io</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<button class="flex items-center gap-1 text-on-surface-variant hover:text-on-surface text-body-sm font-body-sm border border-transparent hover:border-outline-variant rounded px-2 py-0.5 -ml-2 transition-colors">
+                                                Member <span class="material-symbols-outlined" style="font-size: 14px;">expand_more</span>
+</button>
+</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-2 text-caption font-caption text-tertiary">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span> Pending
+                                            </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-body-sm font-body-sm text-primary hover:text-primary-fixed transition-colors mr-4 opacity-0 group-hover:opacity-100">Resend</button>
+<button class="text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-opacity mr-2" title="Revoke Invite">
+<span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="p-4 border-t border-outline-variant bg-surface-container-lowest flex justify-between items-center text-caption font-caption text-on-surface-variant">
+<span>Showing 3 of 12 members</span>
+<div class="flex gap-2">
+<button class="p-1 rounded hover:bg-surface-variant transition-colors disabled:opacity-50" disabled=""><span class="material-symbols-outlined" style="font-size: 18px;">chevron_left</span></button>
+<button class="p-1 rounded hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

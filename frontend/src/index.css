@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+@theme {
+  /* =========================
+     Colors
+     ========================= */
+
+  --color-primary: #adc6ff;
+  --color-primary-container: #4d8eff;
+  --color-on-primary: #002e6a;
+
+  --color-secondary: #4edea3;
+  --color-secondary-container: #00a572;
+  --color-on-secondary: #003824;
+
+  --color-tertiary: #ffb95f;
+  --color-tertiary-container: #ca8100;
+  --color-on-tertiary: #472a00;
+
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error: #690005;
+
+  --color-background: #121315;
+  --color-on-background: #e3e2e5;
+
+  --color-surface: #121315;
+  --color-surface-container-lowest: #0d0e10;
+  --color-surface-container-low: #1b1c1e;
+  --color-surface-container: #1f2022;
+  --color-surface-container-high: #292a2c;
+  --color-surface-container-highest: #343537;
+  --color-surface-bright: #38393b;
+  --color-surface-variant: #343537;
+
+  --color-on-surface: #e3e2e5;
+  --color-on-surface-variant: #c2c6d6;
+
+  --color-outline: #8c909f;
+  --color-outline-variant: #424754;
+
+  /* =========================
+     Font Families
+     ========================= */
+
+  --font-geist: "Geist", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* These allow classes like:
+     font-body-sm
+     font-body-md
+     font-display-lg
+     font-title-sm
+     font-headline-md
+     font-caption
+     font-code-label
+  */
+
+  --font-body-sm: "Geist", sans-serif;
+  --font-body-md: "Geist", sans-serif;
+  --font-display-lg: "Geist", sans-serif;
+  --font-title-sm: "Geist", sans-serif;
+  --font-headline-md: "Geist", sans-serif;
+  --font-caption: "Geist", sans-serif;
+  --font-code-label: "JetBrains Mono", monospace;
+
+  /* =========================
+     Font Sizes
+     ========================= */
+
+  --text-body-sm: 13px;
+  --text-body-md: 14px;
+  --text-caption: 11px;
+  --text-display-lg: 32px;
+  --text-headline-md: 24px;
+  --text-title-sm: 18px;
+  --text-code-label: 12px;
+
+  /* =========================
+     Spacing
+     ========================= */
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  --spacing-gutter: 16px;
+  --spacing-margin: 24px;
+  --spacing-unit: 4px;
+
+  /* =========================
+     Border Radius
+     ========================= */
+
+  --radius-default: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+  --radius-full: 0.75rem;
+}
+
+/* =========================
+   Global
+   ========================= */
+
+html {
+  background: #0b0c0e;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+
+  background: #0b0c0e;
+  color: #e3e2e5;
+
+  font-family: "Geist", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* =========================
+   Material Symbols
+   ========================= */
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+
+  font-weight: 400;
+  font-style: normal;
+
+  font-size: 24px;
+  line-height: 1;
+
+  letter-spacing: normal;
+  text-transform: none;
+
+  display: inline-block;
+
+  white-space: nowrap;
+  word-wrap: normal;
+
+  direction: ltr;
+
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
+
+  -webkit-font-smoothing: antialiased;
+
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}

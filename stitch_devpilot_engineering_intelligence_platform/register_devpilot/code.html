@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevPilot - Create Account</title>
+<!-- Material Symbols exactly as requested -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Geist and JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface": "#121315",
+                      "surface-container-high": "#292a2c",
+                      "secondary-fixed-dim": "#4edea3",
+                      "surface-dim": "#121315",
+                      "on-tertiary-fixed": "#2a1700",
+                      "primary": "#adc6ff",
+                      "secondary-container": "#00a572",
+                      "on-secondary-container": "#00311f",
+                      "on-surface-variant": "#c2c6d6",
+                      "error": "#ffb4ab",
+                      "surface-variant": "#343537",
+                      "on-error": "#690005",
+                      "surface-container-low": "#1b1c1e",
+                      "on-secondary-fixed": "#002113",
+                      "on-surface": "#e3e2e5",
+                      "surface-bright": "#38393b",
+                      "on-background": "#e3e2e5",
+                      "outline": "#8c909f",
+                      "tertiary-container": "#ca8100",
+                      "inverse-on-surface": "#303033",
+                      "on-tertiary-container": "#3e2400",
+                      "inverse-primary": "#005ac2",
+                      "surface-container-highest": "#343537",
+                      "on-primary-container": "#00285d",
+                      "background": "#121315",
+                      "tertiary": "#ffb95f",
+                      "on-primary-fixed-variant": "#004395",
+                      "on-secondary-fixed-variant": "#005236",
+                      "on-tertiary": "#472a00",
+                      "on-primary": "#002e6a",
+                      "tertiary-fixed": "#ffddb8",
+                      "on-error-container": "#ffdad6",
+                      "inverse-surface": "#e3e2e5",
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "surface-tint": "#adc6ff",
+                      "secondary": "#4edea3",
+                      "surface-container-lowest": "#0d0e10",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "error-container": "#93000a",
+                      "on-secondary": "#003824",
+                      "outline-variant": "#424754",
+                      "primary-fixed": "#d8e2ff",
+                      "secondary-fixed": "#6ffbbe",
+                      "surface-container": "#1f2022",
+                      "on-primary-fixed": "#001a42",
+                      "primary-container": "#4d8eff",
+                      "primary-fixed-dim": "#adc6ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "md": "16px",
+                      "gutter": "16px",
+                      "sm": "8px",
+                      "xs": "4px",
+                      "unit": "4px",
+                      "lg": "24px",
+                      "margin": "24px"
+              },
+              "fontFamily": {
+                      "body-sm": ["Geist"],
+                      "headline-md": ["Geist"],
+                      "body-md": ["Geist"],
+                      "title-sm": ["Geist"],
+                      "code-label": ["JetBrains Mono"],
+                      "display-lg": ["Geist"],
+                      "caption": ["Geist"]
+              },
+              "fontSize": {
+                      "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                      "code-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "caption": ["11px", {"lineHeight": "14px", "fontWeight": "500"}]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for deep dark theme */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #121315; }
+        ::-webkit-scrollbar-thumb { background: #343537; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #424754; }
+        
+        /* High-fidelity input autofill override */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px #1b1c1e inset !important;
+            -webkit-text-fill-color: #e3e2e5 !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex antialiased">
+<!-- Left Conceptual Column (Hidden on mobile) -->
+<div class="hidden lg:flex lg:w-1/2 bg-surface-container-lowest relative overflow-hidden flex-col justify-between p-12 border-r border-outline-variant">
+<!-- Abstract Tech Background -->
+<div class="absolute inset-0 opacity-40 mix-blend-screen" data-alt="Abstract 3D digital art featuring glowing, interconnected geometric wireframes floating in a deep charcoal void. Electric blue and subtle emerald green data streams course through the lines, representing high-speed data intelligence. The lighting is moody, high-contrast, and cinematic, evoking a sense of advanced, AI-driven engineering power. The composition is sleek and minimal." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCl5Q8MXapZfL0xNygyhpDSZYg7W6pwV3F-EChZ7InncDoeLhmS2wCOEgBLMrGfB4HAt22Av2cLXCwL7y_CaWien1MWRA3nnPOuIWmYrO3HDw3ai_Qwl3ngELJ5ZzhRECeCXwWFcg6tlY0l29Sp19wjFsH9SA7CSg3Ym9fccc3BmsIUN1ID5wfZpHy-NlZryhREU8b5f91l3QXGdvZlF__AR4dX7j_aQksmnQJTT82tRlIllzwRMPxk')">
+</div>
+<!-- Gradient Overlay -->
+<div class="absolute inset-0 bg-gradient-to-br from-surface-container-lowest/80 via-surface-container-lowest/90 to-background z-0"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-16">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary font-bold" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<span class="font-headline-md text-headline-md text-primary tracking-tight">DevPilot</span>
+</div>
+<div class="space-y-6 max-w-md">
+<h1 class="font-display-lg text-display-lg text-on-surface">Engineering intelligence, <br/><span class="text-primary">amplified.</span></h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Join the platform built for elite engineering teams. Connect your repositories, analyze velocity, and let AI-driven insights accelerate your sprint.</p>
+</div>
+</div>
+<div class="relative z-10 flex gap-4">
+<div class="bg-surface-container-high/50 backdrop-blur-sm border border-outline-variant rounded-lg p-4 max-w-xs flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary mt-1" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<div>
+<h3 class="font-title-sm text-title-sm text-on-surface mb-1">Instant Telemetry</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Real-time mapping of your entire microservice architecture.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Registration Column -->
+<div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
+<div class="w-full max-w-[440px]">
+<!-- Mobile Header Logo -->
+<div class="lg:hidden flex items-center gap-3 mb-8">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary font-bold" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<span class="font-title-sm text-title-sm font-bold text-on-surface">DevPilot</span>
+</div>
+<div class="mb-8">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-2">Create your account</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Start optimizing your engineering workflows today.</p>
+</div>
+<form class="space-y-5">
+<!-- Full Name -->
+<div class="space-y-1.5">
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase" for="fullName">Full Name</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">person</span>
+</span>
+<input class="w-full bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md rounded-DEFAULT py-2.5 pl-10 pr-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-outline/50" id="fullName" placeholder="Ada Lovelace" type="text"/>
+</div>
+</div>
+<!-- Email (Showing focused/valid state implicitly through clean design) -->
+<div class="space-y-1.5">
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase" for="email">Work Email</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">mail</span>
+</span>
+<input class="w-full bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md rounded-DEFAULT py-2.5 pl-10 pr-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-outline/50" id="email" placeholder="ada@company.com" type="email"/>
+</div>
+</div>
+<!-- Password with Strength Indicator -->
+<div class="space-y-1.5">
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase" for="password">Password</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">lock</span>
+</span>
+<input class="w-full bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md rounded-DEFAULT py-2.5 pl-10 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-outline/50" id="password" placeholder="••••••••" type="password" value="Tr0ub4dor&amp;3"/>
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center text-outline hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+<!-- Password Strength Segment (Simulating "Strong" state) -->
+<div class="flex items-center gap-1 mt-2">
+<div class="h-1 flex-1 bg-secondary rounded-full"></div>
+<div class="h-1 flex-1 bg-secondary rounded-full"></div>
+<div class="h-1 flex-1 bg-secondary rounded-full"></div>
+<div class="h-1 flex-1 bg-surface-container-highest rounded-full"></div>
+<span class="ml-2 font-caption text-caption text-secondary">Strong</span>
+</div>
+</div>
+<!-- Confirm Password (Showing Error State Example) -->
+<div class="space-y-1.5">
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase" for="confirmPassword">Confirm Password</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-error">lock_reset</span>
+</span>
+<!-- Error classes applied: border-error, text-error on focus ring -->
+<input class="w-full bg-surface-container-low border border-error text-on-surface font-body-md text-body-md rounded-DEFAULT py-2.5 pl-10 pr-4 focus:outline-none focus:border-error focus:ring-1 focus:ring-error transition-colors" id="confirmPassword" placeholder="••••••••" type="password" value="Tr0ub4dor"/>
+<span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-error">error</span>
+</span>
+</div>
+<p class="font-caption text-caption text-error mt-1">Passwords do not match.</p>
+</div>
+<!-- T&C Checkbox -->
+<div class="flex items-start gap-3 pt-2 pb-4">
+<div class="flex items-center h-5">
+<input class="w-4 h-4 rounded-DEFAULT bg-surface-container-low border-outline-variant text-primary focus:ring-primary focus:ring-offset-background transition-colors cursor-pointer" id="terms" type="checkbox"/>
+</div>
+<label class="font-body-sm text-body-sm text-on-surface-variant cursor-pointer" for="terms">
+                        I agree to the <a class="text-primary hover:underline" href="#">Terms of Service</a> and <a class="text-primary hover:underline" href="#">Privacy Policy</a>.
+                    </label>
+</div>
+<!-- Actions -->
+<div class="space-y-4">
+<button class="w-full bg-primary hover:bg-primary-fixed text-on-primary font-title-sm text-title-sm rounded-lg py-2.5 transition-colors flex items-center justify-center gap-2" type="submit">
+                        Create Account
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<button class="w-full bg-transparent border border-outline-variant hover:bg-surface-container-high text-on-surface font-title-sm text-title-sm rounded-lg py-2.5 transition-colors flex items-center justify-center gap-2" type="button">
+<!-- Simulating an external SSO option common in dev tools -->
+<svg class="w-4 h-4 fill-current" viewbox="0 0 24 24"><path d="M12.00 12.00m-12.00 0a12.00 12.00 0 1 0 24.00 0a12.00 12.00 0 1 0 -24.00 0M12.43 5.43c2.42 0 4.31.81 5.7 2.12l-2.02 2.02c-.93-.84-2.2-1.37-3.68-1.37-2.77 0-5.1 1.83-5.96 4.34h-2.92v-2.22c1.47-2.92 4.48-4.89 7.88-4.89m7.87 6.57c0 .48-.06.94-.14 1.39h-7.73v2.66h4.53c-.22 1.25-.97 2.3-2.05 3.01l2.84 2.15c1.66-1.54 2.65-3.85 2.65-6.55m-7.87 7.73c-3.4 0-6.41-1.97-7.88-4.89h2.92v-2.22c.86 2.51 3.19 4.34 5.96 4.34 1.48 0 2.76-.5 3.73-1.3l2.84 2.15c-1.63 1.54-3.89 2.53-6.57 2.53"></path></svg>
+                        Sign up with Google
+                    </button>
+</div>
+</form>
+<div class="mt-8 text-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                    Already have an account? <a class="text-primary font-medium hover:underline" href="#">Log in to DevPilot</a>
+</p>
+</div>
+</div>
+</div>
+</body></html>

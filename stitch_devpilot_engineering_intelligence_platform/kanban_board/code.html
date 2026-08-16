@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevPilot - Kanban Board</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#adc6ff",
+                        "surface-container": "#1f2022",
+                        "surface-container-high": "#292a2c",
+                        "on-primary": "#002e6a",
+                        "on-tertiary": "#472a00",
+                        "surface-container-lowest": "#0d0e10",
+                        "on-primary-container": "#00285d",
+                        "secondary": "#4edea3",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-bright": "#38393b",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed": "#001a42",
+                        "on-secondary-container": "#00311f",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-secondary-fixed": "#002113",
+                        "outline": "#8c909f",
+                        "surface": "#121315",
+                        "tertiary-container": "#ca8100",
+                        "on-secondary": "#003824",
+                        "surface-dim": "#121315",
+                        "surface-variant": "#343537",
+                        "on-tertiary-container": "#3e2400",
+                        "on-tertiary-fixed": "#2a1700",
+                        "error-container": "#93000a",
+                        "on-surface": "#e3e2e5",
+                        "on-surface-variant": "#c2c6d6",
+                        "tertiary": "#ffb95f",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-error": "#690005",
+                        "inverse-primary": "#005ac2",
+                        "on-background": "#e3e2e5",
+                        "primary-container": "#4d8eff",
+                        "inverse-on-surface": "#303033",
+                        "background": "#121315",
+                        "surface-container-highest": "#343537",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-secondary-fixed-variant": "#005236",
+                        "inverse-surface": "#e3e2e5",
+                        "secondary-fixed": "#6ffbbe",
+                        "secondary-container": "#00a572",
+                        "primary": "#adc6ff",
+                        "tertiary-fixed": "#ffddb8",
+                        "outline-variant": "#424754",
+                        "surface-container-low": "#1b1c1e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin": "24px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "xl": "32px",
+                        "unit": "4px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Geist"],
+                        "caption": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "body-md": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "title-sm": ["Geist"],
+                        "code-label": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "caption": ["11px", { "lineHeight": "14px", "fontWeight": "500" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "title-sm": ["18px", { "lineHeight": "24px", "fontWeight": "500" }],
+                        "code-label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #0B0C0E; }
+        .card-border { border: 1px solid #242830; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0B0C0E; }
+        ::-webkit-scrollbar-thumb { background: #343537; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #424754; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased overflow-hidden flex h-screen">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container dark:bg-surface-container border-r border-outline-variant dark:border-outline-variant flex flex-col h-full py-lg px-md z-50">
+<div class="mb-xl">
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary tracking-tight">DevPilot</h1>
+<p class="font-caption text-caption text-on-surface-variant mt-xs">Engineering Intelligence</p>
+</div>
+<button class="w-full bg-primary-container text-on-primary-container font-title-sm text-title-sm py-sm px-md rounded-lg mb-lg hover:bg-primary transition-colors flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined" style="font-size: 20px;">add</span>
+            New Project
+        </button>
+<nav class="flex-1 overflow-y-auto">
+<ul class="space-y-unit">
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">folder_open</span>
+<span class="font-body-md text-body-md">Projects</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-md border-l-2 border-primary bg-surface-container-high text-primary font-bold hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">bug_report</span>
+<span class="font-body-md text-body-md">Issues</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined text-secondary">auto_awesome</span>
+<span class="font-body-md text-body-md">AI Assistant</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-md text-body-md">Analytics</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-body-md text-body-md">Documents</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-md text-body-md">Team</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md py-sm px-md rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</li>
+</ul>
+</nav>
+<div class="mt-auto pt-md border-t card-border flex items-center gap-md">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="A small, circular avatar image of a developer in a modern, dark-themed coding environment. Professional headshot, sharp focus, cinematic lighting, corporate modern style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4Sjm-Lpvc0ns-qeskluMQqym1vLsTORznya2fkhGPrSHc2MryjkwhNOkogfZWdOCsySZURNFYglKXAr9WgLUQvhGgp2cpS1NH8Ybew3iyPAjzpjGCdNMqjizn1EPSKx4aEofgsfMMGzvHeuUvkVPoK_BCNPOZlTb_OsmtTujuANUflQ6Ypk_1fhArQQkzoS56jhCwg-Atu2svPENjxGt8SSlZdtWBJ9vPGW1-6Eqvs4RXfqWD_CQ4"/>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface">Alex Developer</p>
+<p class="font-caption text-caption text-on-surface-variant">alex@devpilot.ai</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="ml-64 flex-1 flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-surface h-16 border-b border-outline-variant dark:border-outline-variant flex items-center justify-between px-lg z-40 shrink-0">
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="hover:text-on-surface cursor-pointer transition-colors">Projects</span>
+<span class="material-symbols-outlined" style="font-size: 16px;">chevron_right</span>
+<span class="hover:text-on-surface cursor-pointer transition-colors">E-Commerce Platform</span>
+<span class="material-symbols-outlined" style="font-size: 16px;">chevron_right</span>
+<span class="text-primary font-bold">Board</span>
+</div>
+</div>
+<div class="flex items-center gap-md flex-1 max-w-md mx-xl">
+<div class="relative w-full focus-within:border-primary transition-all">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">search</span>
+<input class="w-full bg-surface-container border card-border rounded-lg py-sm pl-[36px] pr-sm font-body-sm text-body-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:border-primary focus:ring-0 h-8" placeholder="Search issues, epics, or labels..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-all rounded-full p-xs">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-all rounded-full p-xs">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<img class="w-8 h-8 rounded-full border border-outline-variant object-cover cursor-pointer hover:border-primary transition-colors" data-alt="A secondary avatar image for user profile in top navigation, professional developer portrait, dark mode UI style, subtle rim lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8VF2NkPzKRYCotIRfHuWBvuGGXEpRHbCbO5rz8cX1ky-X2A54p2I5Y5cBrCqCLnjJo4YCOR9O-5zvP84TK494igHk86z_OVbpEXZmgwX9uPTUcSe7iP0Y9XkgfAV94lZ_blgTU4EFOEQk8OIzolA2-uk81fyC6z5p50N6b4DPilleP93rpI8HImW6Qhsg48to-iaIYn_A-Qk3Kxj8QRkOogBdeyADT9AOPDvZvpiEZpWs0ZkT1ZBK"/>
+</div>
+</header>
+<!-- Board Toolbar -->
+<div class="px-margin py-md flex items-center justify-between shrink-0 bg-background">
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface flex items-center gap-sm">
+                E-Commerce Platform
+                <span class="material-symbols-outlined text-secondary" style="font-size: 20px;" title="AI Insights Active">auto_awesome</span>
+</h2>
+<div class="flex items-center gap-md">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-background z-30" data-alt="Avatar 1 for team member, developer portrait, dark background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBPzCZhZf_ijXlMzBBfezIJHSfaa0OaIF09_HDNE8HwWlts1uz3xQ7IEuaXxHTYse0Ulo34MeUDX0Gdb4ClRfPJ6cEYrgWL0hAjjtJiOwObtmdD38HAjJr8NI74BwW3I0mutYOQxRjVj0PZgngqNWFMcvH2fpG7Gky5SVzyy77wsHtcDsKIEgjPIhjSHWYRVNSHI7su6bBB5i678t3XV_hytiai9X54pCA3azr2iJ9WFyFu1q1w7EW"/>
+<img class="w-8 h-8 rounded-full border-2 border-background z-20" data-alt="Avatar 2 for team member, developer portrait, dark background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByT9IzpD8HsKcjMIVrCsQErIbMTCd4yzUzQRqNDXdicwkM-bHPV134Fo-0Tpp49Er7r5HIwdWqI5sUkdv9rL5BalVDDXCr4X0yuTRbvWi6b2-j20CRgpBVJAapRNeCKfm56gD-gnlulp16MMDjVLvHmrCgYxTX_gKY4hSxfdHvhazPYoJD81A3In2i4prDGPBVl2uDJ6FK4nwjvmOhNWT9Hyzg8s3mlRWyql9D3we30V41pv0nshHh"/>
+<img class="w-8 h-8 rounded-full border-2 border-background z-10" data-alt="Avatar 3 for team member, developer portrait, dark background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeeLriYNO1aoHfHS6aJ1pCau3DiGej62mPGXA24FnrZtm-W8VJk469Eepqe3obS2s4Y_PuYvQjsY-y4BthX4uHbMaSbl54bWYXzs_dUScSNiqskmzKMMCuNd_-6y3nvcuRTsao5Q-tvD9n8YnerNhpwjP3BQLax9PKeBM-PXVMYoNbiUMrfSrSVQ8Oz95QLbcjHOQbTbvvOGDCDj5hgNI6IXlAkv8KqivVfEjCFIrD3WlsBXOQHYt9"/>
+<div class="w-8 h-8 rounded-full border-2 border-background bg-surface-container flex items-center justify-center font-caption text-caption text-on-surface-variant z-0">+4</div>
+</div>
+<div class="h-6 w-px bg-outline-variant"></div>
+<button class="flex items-center gap-xs font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface bg-surface-container px-sm py-[4px] rounded border card-border">
+<span class="material-symbols-outlined" style="font-size: 16px;">filter_list</span>
+                    Filter
+                </button>
+<button class="bg-primary-container text-on-primary-container font-title-sm text-title-sm py-[4px] px-md rounded hover:bg-primary transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                    Create Issue
+                </button>
+</div>
+</div>
+<!-- Kanban Board Canvas -->
+<div class="flex-1 overflow-x-auto overflow-y-hidden px-margin pb-margin">
+<div class="flex h-full gap-gutter items-start w-max">
+<!-- BACKLOG Column -->
+<div class="w-[320px] bg-[#16181D] rounded-lg border card-border flex flex-col max-h-full">
+<div class="p-sm border-b card-border flex justify-between items-center bg-[#16181D] rounded-t-lg sticky top-0">
+<h3 class="font-title-sm text-title-sm text-on-surface-variant flex items-center gap-sm">
+                            BACKLOG <span class="bg-surface-container-high px-[6px] py-[2px] rounded text-caption font-caption">3</span>
+</h3>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined" style="font-size: 18px;">more_horiz</span></button>
+</div>
+<div class="p-sm flex-1 overflow-y-auto space-y-sm">
+<!-- Card 1 -->
+<div class="bg-surface p-sm rounded border card-border hover:border-outline transition-colors cursor-grab active:cursor-grabbing">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-code-label text-code-label text-on-surface-variant">PROJ-142</span>
+<img class="w-5 h-5 rounded-full opacity-50" data-alt="Small avatar for unassigned user, generic placeholder, dark minimalist style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAx9P1fRObZNvKVPxETXFxTAZbqnMDJG1Ezks9oL_G_wHSMRwCY4P8-e8BIZ0U_QXCsnYFAuCugBi-XUwVEOgBWLS0ujwzksy9AT-J2KTuyoiHn39KOi2qeBpl2lLapk5KBu8x2QMiE1rd9ehx00DDQA8ZPptjwE5yy6PH7Pbt6vARuTj4tK_e53s9KJCrMoPOwBOfzWoC51lh_UGQKYcxGnV2YCpGN5NyAozsouyv5I4Ww1rB_cnGl"/>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-sm line-clamp-2">Implement new payment gateway integration (Stripe)</p>
+<div class="flex items-center gap-xs flex-wrap">
+<span class="bg-[#ca8100]/15 text-[#ca8100] font-code-label text-code-label px-[6px] py-[2px] rounded uppercase border border-[#ca8100]/30">High</span>
+<span class="bg-surface-container-highest text-on-surface-variant font-code-label text-code-label px-[6px] py-[2px] rounded border card-border">Backend</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface p-sm rounded border card-border hover:border-outline transition-colors cursor-grab active:cursor-grabbing">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-code-label text-code-label text-on-surface-variant">PROJ-145</span>
+<img class="w-5 h-5 rounded-full border border-background" data-alt="Avatar of user assigned to issue, dark UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAj8AZOQELgyfAdYhJoRQuUbyoXkjKvZaWxIj-sCulV46-D8pfJY8CNxUDc6U9P9xxjWKGkZSuX4eHHEOKF_EYat0KSYbi57na2sVo3wNHRP4q1Z3gXct8CjcQ4_pTRfJ1cZGunxcohRXFRJ7XPsj1p_xVm6VndfnkRKuHfYCxMGXJCvCNoSQEXpT70BW9_LaRYb0fGfYn5DhYmr5ilxhqwREvO3yC0JhvS1DEHTasrQtiOyzC6Fj7r"/>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-sm line-clamp-2">Update product listing layout for mobile</p>
+<div class="flex items-center gap-xs flex-wrap">
+<span class="bg-primary/15 text-primary font-code-label text-code-label px-[6px] py-[2px] rounded uppercase border border-primary/30">Low</span>
+<span class="bg-surface-container-highest text-on-surface-variant font-code-label text-code-label px-[6px] py-[2px] rounded border card-border">UI/UX</span>
+</div>
+</div>
+</div>
+</div>
+<!-- TODO Column -->
+<div class="w-[320px] bg-[#16181D] rounded-lg border card-border flex flex-col max-h-full">
+<div class="p-sm border-b card-border flex justify-between items-center bg-[#16181D] rounded-t-lg sticky top-0">
+<h3 class="font-title-sm text-title-sm text-on-surface-variant flex items-center gap-sm">
+                            TODO <span class="bg-surface-container-high px-[6px] py-[2px] rounded text-caption font-caption">2</span>
+</h3>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined" style="font-size: 18px;">more_horiz</span></button>
+</div>
+<div class="p-sm flex-1 overflow-y-auto space-y-sm">
+<!-- Card 3 -->
+<div class="bg-surface p-sm rounded border border-error/50 relative overflow-hidden cursor-grab active:cursor-grabbing shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+<div class="absolute top-0 left-0 w-1 h-full bg-error"></div>
+<div class="flex justify-between items-start mb-xs pl-xs">
+<span class="font-code-label text-code-label text-on-surface-variant">PROJ-138</span>
+<img class="w-5 h-5 rounded-full border border-background" data-alt="Avatar for assigned developer working on critical issue." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDT5dAKTI_D-K8ktbXKYfSvanuPt1ISyvF409YAiEP5T15JndnPBNSt3abUlCx-86FDfg2n6gwM9RAQRSixSWNjOxJCY6b1BhDy-mCxtO5UWefBxq6pEuYn2j_ccLfCCVowQTyCS01898BuIa_obppRhgp583qjI6mW1-gaApE58DNhb91INlLqaqJrIc8fi2MlyvZMpnPCR7oFeqHSOD2CDJ-ienn6xOpDafqnNd0-TyR9m_Roo0p"/>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-sm pl-xs">Fix checkout session timeout bug</p>
+<div class="flex items-center gap-xs flex-wrap pl-xs">
+<span class="bg-error/15 text-error font-code-label text-code-label px-[6px] py-[2px] rounded uppercase border border-error/30 flex items-center gap-[2px]">
+<span class="material-symbols-outlined" style="font-size: 12px;">warning</span>
+                                    Critical
+                                </span>
+<span class="bg-surface-container-highest text-on-surface-variant font-code-label text-code-label px-[6px] py-[2px] rounded border card-border">Bug</span>
+</div>
+</div>
+</div>
+</div>
+<!-- IN PROGRESS Column -->
+<div class="w-[320px] bg-[#16181D] rounded-lg border card-border flex flex-col max-h-full">
+<div class="p-sm border-b card-border flex justify-between items-center bg-[#16181D] rounded-t-lg sticky top-0">
+<h3 class="font-title-sm text-title-sm text-primary flex items-center gap-sm">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                            IN PROGRESS <span class="bg-primary/20 text-primary px-[6px] py-[2px] rounded text-caption font-caption">1</span>
+</h3>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined" style="font-size: 18px;">more_horiz</span></button>
+</div>
+<div class="p-sm flex-1 overflow-y-auto space-y-sm bg-surface-container-lowest/50">
+<!-- Card 4 (AI Assisted) -->
+<div class="bg-surface p-sm rounded border border-secondary/30 relative cursor-grab active:cursor-grabbing">
+<div class="absolute top-sm right-sm text-secondary" title="AI Suggested Optimizations Available">
+<span class="material-symbols-outlined" style="font-size: 16px;">auto_awesome</span>
+</div>
+<div class="flex justify-between items-start mb-xs">
+<span class="font-code-label text-code-label text-on-surface-variant">PROJ-120</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-sm pr-6">Optimize database query for user history</p>
+<div class="mb-sm">
+<div class="w-full bg-surface-container-highest rounded-full h-1 mb-1">
+<div class="bg-primary h-1 rounded-full" style="width: 60%"></div>
+</div>
+<div class="text-caption font-caption text-on-surface-variant text-right">60%</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-xs flex-wrap">
+<span class="bg-tertiary/15 text-tertiary font-code-label text-code-label px-[6px] py-[2px] rounded uppercase border border-tertiary/30">Medium</span>
+<span class="bg-surface-container-highest text-on-surface-variant font-code-label text-code-label px-[6px] py-[2px] rounded border card-border">DB</span>
+</div>
+<img class="w-5 h-5 rounded-full border border-background" data-alt="Avatar of database engineer actively working." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKcbVAFosH14BcJAfzAocM2PTcL_e7MwbFhI_1jCj3JcDTGZ2_YYpLaEHKpHxHfPDNLk532L_Wgpt_PzIGtB0BGkC6gYPSEkOCkjZNfyfWHjKHS0JPbcpVjJLVx_gcyLTnoCeAnJMbq3tox-CLzRodkmZH2W80s6BNTslv1j2mCGqCjupspyCfrLJJAzbwO721IXdAQt-CmSBBXfuGFrQefFJiYC_xIsJeO3qNbC8x-T2mBzAOOGm1"/>
+</div>
+</div>
+</div>
+</div>
+<!-- IN REVIEW Column -->
+<div class="w-[320px] bg-[#16181D] rounded-lg border card-border flex flex-col max-h-full">
+<div class="p-sm border-b card-border flex justify-between items-center bg-[#16181D] rounded-t-lg sticky top-0">
+<h3 class="font-title-sm text-title-sm text-tertiary-fixed flex items-center gap-sm">
+                            IN REVIEW <span class="bg-tertiary-fixed/20 text-tertiary-fixed px-[6px] py-[2px] rounded text-caption font-caption">2</span>
+</h3>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined" style="font-size: 18px;">more_horiz</span></button>
+</div>
+<div class="p-sm flex-1 overflow-y-auto space-y-sm">
+<!-- Cards... -->
+<div class="bg-surface p-sm rounded border card-border cursor-grab active:cursor-grabbing opacity-80 hover:opacity-100 transition-opacity">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-code-label text-code-label text-on-surface-variant">PROJ-115</span>
+<div class="flex -space-x-1">
+<img class="w-5 h-5 rounded-full border border-background z-10" data-alt="Reviewer 1 avatar, dark theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVfsAZqzYqYua2RUdUFqXwcGe0OPQs2-YmF-Qqa6_r-ivERHykShrdqrWRJsGDsgt2y8_o-gUv1MjvPztmvqYG7LnlHQ287ylA0esdMgM0rCtzKtEN-ge8ZsG8kI0gaG2dwWuwDiV9Suk5khLkPGtIMLP5RIfIQcWiW0SARikooCFnRVkzuZIML9coMHNiwleNtMsoFWFjwoiOdpV1CxUiETTuCGO6TLUKY0yNzPWnJISV8YKUkCdE"/>
+<img class="w-5 h-5 rounded-full border border-background" data-alt="Author avatar, dark theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCg9IM7sKhNpGtKnFWSi9Gdf8j4Br_TedbLU3-_7cBpHWV1AIQOLkMpH43ZL2y4tlliFK37KjZvbcsgFkEABvWMAA9lz7ciV-Y8IaVx7zJVdovLkTwF7pHSYxeYa3qb3NgtrPHRh3bz0N7q1Z0g9PY-wsNnGc3K3x-SLCGk1zKkgpjDW3ctQbbgem496nJeF491GWbaDZodQ4GsjIZE8RkQOyMgUchtuJ-bTFi6muP-DRdXgIU_xMIP"/>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-sm">Migrate auth service to OAuth2</p>
+<div class="flex items-center gap-xs flex-wrap">
+<span class="bg-[#ca8100]/15 text-[#ca8100] font-code-label text-code-label px-[6px] py-[2px] rounded uppercase border border-[#ca8100]/30">High</span>
+<span class="bg-surface-container-highest text-on-surface-variant font-code-label text-code-label px-[6px] py-[2px] rounded border card-border">Security</span>
+</div>
+</div>
+</div>
+</div>
+<!-- DONE Column -->
+<div class="w-[320px] bg-[#16181D] rounded-lg border card-border flex flex-col max-h-full opacity-60">
+<div class="p-sm border-b card-border flex justify-between items-center bg-[#16181D] rounded-t-lg sticky top-0">
+<h3 class="font-title-sm text-title-sm text-on-surface-variant flex items-center gap-sm">
+                            DONE <span class="bg-surface-container-high px-[6px] py-[2px] rounded text-caption font-caption">24</span>
+</h3>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined" style="font-size: 18px;">more_horiz</span></button>
+</div>
+<div class="p-sm flex-1 overflow-y-auto space-y-sm">
+<!-- Done Cards (simplified) -->
+<div class="bg-surface p-sm rounded border card-border line-through text-on-surface-variant">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-code-label text-code-label">PROJ-099</span>
+<span class="material-symbols-outlined text-secondary" style="font-size: 16px;">check_circle</span>
+</div>
+<p class="font-body-md text-body-md mb-sm">Initial repository setup</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

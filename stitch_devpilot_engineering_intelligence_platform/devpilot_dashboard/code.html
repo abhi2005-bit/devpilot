@@ -1,0 +1,606 @@
+<!doctype html>
+
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>DevPilot Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#adc6ff",
+              "surface-container": "#1f2022",
+              "surface-container-high": "#292a2c",
+              "on-primary": "#002e6a",
+              "on-tertiary": "#472a00",
+              "surface-container-lowest": "#0d0e10",
+              "on-primary-container": "#00285d",
+              secondary: "#4edea3",
+              "on-error-container": "#ffdad6",
+              "on-tertiary-fixed-variant": "#653e00",
+              "surface-bright": "#38393b",
+              "primary-fixed": "#d8e2ff",
+              "on-primary-fixed": "#001a42",
+              "on-secondary-container": "#00311f",
+              error: "#ffb4ab",
+              "primary-fixed-dim": "#adc6ff",
+              "on-secondary-fixed": "#002113",
+              outline: "#8c909f",
+              surface: "#121315",
+              "tertiary-container": "#ca8100",
+              "on-secondary": "#003824",
+              "surface-dim": "#121315",
+              "surface-variant": "#343537",
+              "on-tertiary-container": "#3e2400",
+              "on-tertiary-fixed": "#2a1700",
+              "error-container": "#93000a",
+              "on-surface": "#e3e2e5",
+              "on-surface-variant": "#c2c6d6",
+              tertiary: "#ffb95f",
+              "tertiary-fixed-dim": "#ffb95f",
+              "secondary-fixed-dim": "#4edea3",
+              "on-error": "#690005",
+              "inverse-primary": "#005ac2",
+              "on-background": "#e3e2e5",
+              "primary-container": "#4d8eff",
+              "inverse-on-surface": "#303033",
+              background: "#121315",
+              "surface-container-highest": "#343537",
+              "on-primary-fixed-variant": "#004395",
+              "on-secondary-fixed-variant": "#005236",
+              "inverse-surface": "#e3e2e5",
+              "secondary-fixed": "#6ffbbe",
+              "secondary-container": "#00a572",
+              primary: "#adc6ff",
+              "tertiary-fixed": "#ffddb8",
+              "outline-variant": "#424754",
+              "surface-container-low": "#1b1c1e",
+            },
+            borderRadius: {
+              DEFAULT: "0.125rem",
+              lg: "0.25rem",
+              xl: "0.5rem",
+              full: "0.75rem",
+            },
+            spacing: {
+              xs: "4px",
+              margin: "24px",
+              gutter: "16px",
+              sm: "8px",
+              md: "16px",
+              xl: "32px",
+              unit: "4px",
+              lg: "24px",
+            },
+            fontFamily: {
+              "body-sm": ["Geist", "sans-serif"],
+              caption: ["Geist", "sans-serif"],
+              "display-lg": ["Geist", "sans-serif"],
+              "body-md": ["Geist", "sans-serif"],
+              "headline-md": ["Geist", "sans-serif"],
+              "title-sm": ["Geist", "sans-serif"],
+              "code-label": ["JetBrains Mono", "monospace"],
+            },
+            fontSize: {
+              "body-sm": ["13px", { lineHeight: "18px", fontWeight: "400" }],
+              caption: ["11px", { lineHeight: "14px", fontWeight: "500" }],
+              "display-lg": [
+                "32px",
+                {
+                  lineHeight: "40px",
+                  letterSpacing: "-0.02em",
+                  fontWeight: "600",
+                },
+              ],
+              "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+              "headline-md": [
+                "24px",
+                {
+                  lineHeight: "32px",
+                  letterSpacing: "-0.01em",
+                  fontWeight: "600",
+                },
+              ],
+              "title-sm": ["18px", { lineHeight: "24px", fontWeight: "500" }],
+              "code-label": [
+                "12px",
+                {
+                  lineHeight: "16px",
+                  letterSpacing: "0.02em",
+                  fontWeight: "500",
+                },
+              ],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background-color: #0b0c0e;
+        color: #e3e2e5;
+        font-family: "Geist", sans-serif;
+      }
+      .ai-glow {
+        box-shadow: inset 0 0 8px rgba(16, 185, 129, 0.2);
+        border-color: #10b981;
+      }
+    </style>
+  </head>
+  <body class="flex min-h-screen">
+    <!-- SideNavBar -->
+    <aside
+      class="bg-surface-container dark:bg-surface-container h-screen w-64 fixed left-0 top-0 border-r border-outline-variant dark:border-outline-variant flex flex-col h-full py-lg px-md z-50"
+    >
+      <div class="mb-xl flex items-center justify-between">
+        <div>
+          <h1
+            class="font-headline-md text-headline-md font-bold text-primary dark:text-primary"
+          >
+            DevPilot
+          </h1>
+          <p class="font-caption text-caption text-on-surface-variant">
+            Engineering Intelligence
+          </p>
+        </div>
+        <img
+          alt="User profile"
+          class="w-8 h-8 rounded-full object-cover"
+          data-alt="A professional headshot of a software engineer in a dark, high-tech environment with subtle blue and green neon lighting accents reflecting on their glasses."
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1O649DpUGgxk5UUFnfz-sB5oGDi5TW-cv5jFXKdvOxATRdhvRqLP_fJIuXmz3Ba3R50B_qsUym2gcMXcD6bjD3kDhhPpWBR70lnEziyw1v59XqnItR_BiHbmdakPOoTEiP61x4ZodqHQUH3bLiAM7Wg4znmij19s8Rr8gYCEf47iSsLAVXjCydvJhGVJhqQyA8BszKlzEhYqEdPUZesEd4nCqT-3UhgojlWyBplUNwZ9d9x_QvWui"
+        />
+      </div>
+      <nav class="flex-1 space-y-sm">
+        <a
+          class="flex items-center space-x-md p-sm rounded-DEFAULT border-l-2 border-primary bg-surface-container-high text-primary font-bold cursor-pointer active:scale-95 transition-colors duration-200"
+          href="#"
+        >
+          <span class="material-symbols-outlined font-body-md text-body-md"
+            >dashboard</span
+          >
+          <span class="font-body-md text-body-md">Dashboard</span>
+        </a>
+        <a
+          class="flex items-center space-x-md p-sm rounded-DEFAULT text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95"
+          href="#"
+        >
+          <span class="material-symbols-outlined font-body-md text-body-md"
+            >folder_open</span
+          >
+          <span class="font-body-md text-body-md">Projects</span>
+        </a>
+        <a
+          class="flex items-center space-x-md p-sm rounded-DEFAULT text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95"
+          href="#"
+        >
+          <span class="material-symbols-outlined font-body-md text-body-md"
+            >bug_report</span
+          >
+          <span class="font-body-md text-body-md">Issues</span>
+        </a>
+        <a
+          class="flex items-center space-x-md p-sm rounded-DEFAULT text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95 group"
+          href="#"
+        >
+          <span
+            class="material-symbols-outlined font-body-md text-body-md group-hover:text-secondary transition-colors"
+            >auto_awesome</span
+          >
+          <span class="font-body-md text-body-md">AI Assistant</span>
+        </a>
+        <a
+          class="flex items-center space-x-md p-sm rounded-DEFAULT text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95"
+          href="#"
+        >
+          <span class="material-symbols-outlined font-body-md text-body-md"
+            >analytics</span
+          >
+          <span class="font-body-md text-body-md">Analytics</span>
+        </a>
+        <a
+          class="flex items-center space-x-md p-sm rounded-DEFAULT text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95"
+          href="#"
+        >
+          <span class="material-symbols-outlined font-body-md text-body-md"
+            >description</span
+          >
+          <span class="font-body-md text-body-md">Documents</span>
+        </a>
+        <a
+          class="flex items-center space-x-md p-sm rounded-DEFAULT text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95"
+          href="#"
+        >
+          <span class="material-symbols-outlined font-body-md text-body-md"
+            >group</span
+          >
+          <span class="font-body-md text-body-md">Team</span>
+        </a>
+        <a
+          class="flex items-center space-x-md p-sm rounded-DEFAULT text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95"
+          href="#"
+        >
+          <span class="material-symbols-outlined font-body-md text-body-md"
+            >settings</span
+          >
+          <span class="font-body-md text-body-md">Settings</span>
+        </a>
+      </nav>
+      <button
+        class="mt-auto bg-primary text-on-primary w-full py-sm rounded-lg font-body-md text-body-md font-bold hover:bg-primary-container transition-colors"
+      >
+        New Project
+      </button>
+    </aside>
+    <!-- Main Content Area -->
+    <div class="flex-1 ml-64 flex flex-col min-h-screen relative">
+      <!-- TopNavBar -->
+      <header
+        class="bg-surface dark:bg-surface fixed top-0 right-0 w-[calc(100%-16rem)] h-16 border-b border-outline-variant dark:border-outline-variant flex items-center justify-between px-lg z-40"
+      >
+        <div class="flex items-center space-x-sm">
+          <div
+            class="relative focus-within:border-primary border border-transparent rounded-lg transition-all flex items-center bg-surface-container-highest px-sm py-[6px]"
+          >
+            <span
+              class="material-symbols-outlined text-on-surface-variant text-[18px] mr-xs"
+              >search</span
+            >
+            <input
+              class="bg-transparent border-none focus:ring-0 text-body-sm font-body-sm text-on-surface placeholder-on-surface-variant w-48 p-0"
+              placeholder="Search..."
+              type="text"
+            />
+          </div>
+          <div
+            class="text-on-surface-variant font-body-sm text-body-sm flex items-center ml-md"
+          >
+            <span class="text-primary font-bold cursor-pointer hover:underline"
+              >Dashboard</span
+            >
+            <span class="mx-xs">/</span>
+            <span>Abhijit</span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-md">
+          <button
+            class="text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+          >
+            <span class="material-symbols-outlined">notifications</span>
+          </button>
+          <button
+            class="text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+          >
+            <span class="material-symbols-outlined">help_outline</span>
+          </button>
+          <img
+            alt="User avatar"
+            class="w-8 h-8 rounded-full border border-outline-variant object-cover"
+            data-alt="A professional headshot of a software engineer in a dark, high-tech environment with subtle blue and green neon lighting accents reflecting on their glasses."
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAS_0MqhbKuc52Zyvw3xEnK6GKbjpP3dJS4Zf8sR_bemgZUfGDTnjTgMYiOBCsYeBXCzf3zY8KjaRk4FWerTP_-IFri5ybTF759P1BnestRSTmux5cwpO9keoYeYvWg-152lLHgohmbGf6l7iX34TD36OUCCiFnSeRedF9AMxDNKMOdwjxEekuF66NMYcyrYgsLDjigF-7LH4qOwt7B1jLTFx5_g4X7CKZejVUsp00Xu7MRq3Hy8F99"
+          />
+        </div>
+      </header>
+      <!-- Main Canvas -->
+      <main class="flex-1 pt-24 px-margin pb-margin overflow-y-auto">
+        <!-- Summary Cards (Bento Grid Top Row) -->
+        <div class="grid grid-cols-4 gap-gutter mb-margin">
+          <div
+            class="bg-surface-container border border-outline-variant p-md rounded-lg hover:border-primary transition-colors"
+          >
+            <div class="flex justify-between items-start mb-sm">
+              <span
+                class="font-body-sm text-body-sm text-on-surface-variant uppercase tracking-wider"
+                >Active Projects</span
+              >
+              <span class="material-symbols-outlined text-primary">folder</span>
+            </div>
+            <div class="font-display-lg text-display-lg text-on-surface">
+              12
+            </div>
+            <div
+              class="font-caption text-caption text-secondary mt-xs flex items-center"
+            >
+              <span class="material-symbols-outlined text-[14px] mr-[2px]"
+                >trending_up</span
+              >
+              +2 this week
+            </div>
+          </div>
+          <div
+            class="bg-surface-container border border-outline-variant p-md rounded-lg hover:border-error transition-colors"
+          >
+            <div class="flex justify-between items-start mb-sm">
+              <span
+                class="font-body-sm text-body-sm text-on-surface-variant uppercase tracking-wider"
+                >Open Issues</span
+              >
+              <span class="material-symbols-outlined text-error"
+                >bug_report</span
+              >
+            </div>
+            <div class="font-display-lg text-display-lg text-on-surface">
+              47
+            </div>
+            <div
+              class="font-caption text-caption text-error mt-xs flex items-center"
+            >
+              <span class="material-symbols-outlined text-[14px] mr-[2px]"
+                >warning</span
+              >
+              5 critical
+            </div>
+          </div>
+          <div
+            class="bg-surface-container border border-outline-variant p-md rounded-lg hover:border-primary transition-colors"
+          >
+            <div class="flex justify-between items-start mb-sm">
+              <span
+                class="font-body-sm text-body-sm text-on-surface-variant uppercase tracking-wider"
+                >Completed</span
+              >
+              <span class="material-symbols-outlined text-secondary"
+                >task_alt</span
+              >
+            </div>
+            <div class="font-display-lg text-display-lg text-on-surface">
+              128
+            </div>
+            <div
+              class="font-caption text-caption text-on-surface-variant mt-xs"
+            >
+              Last 30 days
+            </div>
+          </div>
+          <div
+            class="bg-surface-container border border-outline-variant p-md rounded-lg hover:border-tertiary transition-colors"
+          >
+            <div class="flex justify-between items-start mb-sm">
+              <span
+                class="font-body-sm text-body-sm text-on-surface-variant uppercase tracking-wider"
+                >Blocked</span
+              >
+              <span class="material-symbols-outlined text-tertiary">block</span>
+            </div>
+            <div class="font-display-lg text-display-lg text-on-surface">3</div>
+            <div
+              class="font-caption text-caption text-on-surface-variant mt-xs"
+            >
+              Requires attention
+            </div>
+          </div>
+        </div>
+        <!-- Bento Grid Main Content -->
+        <div class="grid grid-cols-12 gap-gutter">
+          <!-- Project Health & AI Insights Column -->
+          <div class="col-span-8 flex flex-col gap-gutter">
+            <!-- AI Insights Card -->
+            <div
+              class="bg-surface-container border border-[#10B981] ai-glow p-md rounded-lg relative overflow-hidden"
+            >
+              <div class="absolute top-0 right-0 p-sm">
+                <span
+                  class="material-symbols-outlined text-[#10B981] animate-pulse"
+                  >auto_awesome</span
+                >
+              </div>
+              <div class="border-b border-[#242830] pb-sm mb-md">
+                <h2
+                  class="font-title-sm text-title-sm text-on-surface flex items-center"
+                >
+                  AI Insights
+                </h2>
+              </div>
+              <div class="flex items-start gap-md">
+                <div
+                  class="bg-[#93000a] bg-opacity-20 border border-error rounded-DEFAULT p-sm"
+                >
+                  <span class="material-symbols-outlined text-error"
+                    >gpp_maybe</span
+                  >
+                </div>
+                <div class="flex-1">
+                  <h3
+                    class="font-body-md text-body-md font-bold text-on-surface mb-xs"
+                  >
+                    Authentication is high-risk
+                  </h3>
+                  <p
+                    class="font-body-sm text-body-sm text-on-surface-variant mb-md"
+                  >
+                    Pattern analysis indicates recent commits to `auth-service`
+                    have introduced potential race conditions. 3 dependent
+                    microservices are currently degraded.
+                  </p>
+                  <button
+                    class="border border-[#10B981] text-[#10B981] px-md py-xs rounded-lg font-code-label text-code-label hover:bg-[#10B981] hover:bg-opacity-10 transition-colors flex items-center"
+                  >
+                    <span class="material-symbols-outlined text-[16px] mr-xs"
+                      >troubleshoot</span
+                    >
+                    Analyze Project
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- Project Health -->
+            <div
+              class="bg-surface-container border border-outline-variant rounded-lg p-md"
+            >
+              <div
+                class="border-b border-[#242830] pb-sm mb-md flex justify-between items-center"
+              >
+                <h2 class="font-title-sm text-title-sm text-on-surface">
+                  Project Health
+                </h2>
+                <button
+                  class="text-primary font-body-sm text-body-sm hover:underline"
+                >
+                  View All
+                </button>
+              </div>
+              <div class="space-y-md">
+                <!-- Project 1 -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-sm">
+                    <div class="w-2 h-2 rounded-full bg-secondary"></div>
+                    <span class="font-body-md text-body-md text-on-surface"
+                      >Core API v2</span
+                    >
+                  </div>
+                  <div class="flex items-center gap-md w-1/2">
+                    <div
+                      class="flex-1 bg-[#242830] h-2 rounded-full overflow-hidden"
+                    >
+                      <div class="bg-secondary h-full w-[85%]"></div>
+                    </div>
+                    <span
+                      class="font-code-label text-code-label text-on-surface-variant w-12 text-right"
+                      >85%</span
+                    >
+                    <span
+                      class="font-code-label text-code-label bg-[#00311f] text-secondary px-xs py-[2px] rounded-DEFAULT"
+                      >LOW RISK</span
+                    >
+                  </div>
+                </div>
+                <!-- Project 2 -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-sm">
+                    <div class="w-2 h-2 rounded-full bg-error"></div>
+                    <span class="font-body-md text-body-md text-on-surface"
+                      >Auth Migration</span
+                    >
+                  </div>
+                  <div class="flex items-center gap-md w-1/2">
+                    <div
+                      class="flex-1 bg-[#242830] h-2 rounded-full overflow-hidden"
+                    >
+                      <div class="bg-error h-full w-[42%]"></div>
+                    </div>
+                    <span
+                      class="font-code-label text-code-label text-on-surface-variant w-12 text-right"
+                      >42%</span
+                    >
+                    <span
+                      class="font-code-label text-code-label bg-[#93000a] text-error px-xs py-[2px] rounded-DEFAULT"
+                      >HIGH RISK</span
+                    >
+                  </div>
+                </div>
+                <!-- Project 3 -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-sm">
+                    <div class="w-2 h-2 rounded-full bg-tertiary"></div>
+                    <span class="font-body-md text-body-md text-on-surface"
+                      >Payment Gateway</span
+                    >
+                  </div>
+                  <div class="flex items-center gap-md w-1/2">
+                    <div
+                      class="flex-1 bg-[#242830] h-2 rounded-full overflow-hidden"
+                    >
+                      <div class="bg-tertiary h-full w-[68%]"></div>
+                    </div>
+                    <span
+                      class="font-code-label text-code-label text-on-surface-variant w-12 text-right"
+                      >68%</span
+                    >
+                    <span
+                      class="font-code-label text-code-label bg-[#ca8100] bg-opacity-20 text-tertiary px-xs py-[2px] rounded-DEFAULT"
+                      >MED RISK</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Right Column: My Work & Recent Activity -->
+          <div class="col-span-4 flex flex-col gap-gutter">
+            <!-- My Work -->
+            <div
+              class="bg-surface-container border border-outline-variant rounded-lg p-md flex-1"
+            >
+              <div
+                class="border-b border-[#242830] pb-sm mb-md flex justify-between items-center"
+              >
+                <h2 class="font-title-sm text-title-sm text-on-surface">
+                  My Work
+                </h2>
+                <span
+                  class="font-caption text-caption text-on-surface-variant bg-[#242830] px-sm py-xs rounded-full"
+                  >3 Due</span
+                >
+              </div>
+              <div class="space-y-sm">
+                <div
+                  class="p-sm bg-surface-container-highest border border-outline-variant rounded-DEFAULT hover:border-primary transition-colors cursor-pointer"
+                >
+                  <div class="flex justify-between items-start mb-xs">
+                    <span class="font-code-label text-code-label text-primary"
+                      >DEV-4092</span
+                    >
+                    <span
+                      class="font-caption text-caption text-error bg-[#93000a] bg-opacity-20 px-xs rounded-DEFAULT"
+                      >P0</span
+                    >
+                  </div>
+                  <p class="font-body-sm text-body-sm text-on-surface">
+                    Fix JWT token expiration bug
+                  </p>
+                </div>
+                <div
+                  class="p-sm bg-surface-container-highest border border-outline-variant rounded-DEFAULT hover:border-primary transition-colors cursor-pointer"
+                >
+                  <div class="flex justify-between items-start mb-xs">
+                    <span class="font-code-label text-code-label text-primary"
+                      >DEV-4105</span
+                    >
+                    <span
+                      class="font-caption text-caption text-tertiary bg-[#ca8100] bg-opacity-20 px-xs rounded-DEFAULT"
+                      >P1</span
+                    >
+                  </div>
+                  <p class="font-body-sm text-body-sm text-on-surface">
+                    Update Redis cache configuration
+                  </p>
+                </div>
+                <div
+                  class="p-sm bg-surface-container-highest border border-outline-variant rounded-DEFAULT hover:border-primary transition-colors cursor-pointer"
+                >
+                  <div class="flex justify-between items-start mb-xs">
+                    <span class="font-code-label text-code-label text-primary"
+                      >DEV-4112</span
+                    >
+                    <span
+                      class="font-caption text-caption text-on-surface-variant bg-[#242830] px-xs rounded-DEFAULT"
+                      >P2</span
+                    >
+                  </div>
+                  <p class="font-body-sm text-body-sm text-on-surface">
+                    Refactor user settings endpoint
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

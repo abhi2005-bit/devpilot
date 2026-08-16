@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevPilot - Workspace Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#121315",
+                    "surface-container-high": "#292a2c",
+                    "secondary-fixed-dim": "#4edea3",
+                    "surface-dim": "#121315",
+                    "on-tertiary-fixed": "#2a1700",
+                    "primary": "#adc6ff",
+                    "secondary-container": "#00a572",
+                    "on-secondary-container": "#00311f",
+                    "on-surface-variant": "#c2c6d6",
+                    "error": "#ffb4ab",
+                    "surface-variant": "#343537",
+                    "on-error": "#690005",
+                    "surface-container-low": "#1b1c1e",
+                    "on-secondary-fixed": "#002113",
+                    "on-surface": "#e3e2e5",
+                    "surface-bright": "#38393b",
+                    "on-background": "#e3e2e5",
+                    "outline": "#8c909f",
+                    "tertiary-container": "#ca8100",
+                    "inverse-on-surface": "#303033",
+                    "on-tertiary-container": "#3e2400",
+                    "inverse-primary": "#005ac2",
+                    "surface-container-highest": "#343537",
+                    "on-primary-container": "#00285d",
+                    "background": "#121315",
+                    "tertiary": "#ffb95f",
+                    "on-primary-fixed-variant": "#004395",
+                    "on-secondary-fixed-variant": "#005236",
+                    "on-tertiary": "#472a00",
+                    "on-primary": "#002e6a",
+                    "tertiary-fixed": "#ffddb8",
+                    "on-error-container": "#ffdad6",
+                    "inverse-surface": "#e3e2e5",
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "surface-tint": "#adc6ff",
+                    "secondary": "#4edea3",
+                    "surface-container-lowest": "#0d0e10",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "error-container": "#93000a",
+                    "on-secondary": "#003824",
+                    "outline-variant": "#424754",
+                    "primary-fixed": "#d8e2ff",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface-container": "#1f2022",
+                    "on-primary-fixed": "#001a42",
+                    "primary-container": "#4d8eff",
+                    "primary-fixed-dim": "#adc6ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "md": "16px",
+                    "gutter": "16px",
+                    "sm": "8px",
+                    "xs": "4px",
+                    "unit": "4px",
+                    "lg": "24px",
+                    "margin": "24px"
+            },
+            "fontFamily": {
+                    "body-sm": [
+                            "Geist"
+                    ],
+                    "headline-md": [
+                            "Geist"
+                    ],
+                    "body-md": [
+                            "Geist"
+                    ],
+                    "title-sm": [
+                            "Geist"
+                    ],
+                    "code-label": [
+                            "JetBrains Mono"
+                    ],
+                    "display-lg": [
+                            "Geist"
+                    ],
+                    "caption": [
+                            "Geist"
+                    ]
+            },
+            "fontSize": {
+                    "body-sm": [
+                            "13px",
+                            {
+                                    "lineHeight": "18px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "title-sm": [
+                            "18px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "code-label": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.02em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "display-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "caption": [
+                            "11px",
+                            {
+                                    "lineHeight": "14px",
+                                    "fontWeight": "500"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0B0C0E;
+            color: #e3e2e5;
+        }
+        .card-border {
+            border: 1px solid #242830;
+        }
+        .card-bg {
+            background-color: #16181D;
+        }
+        .glow-hover:hover {
+            box-shadow: 0 0 15px rgba(173, 198, 255, 0.1);
+            border-color: #4d8eff;
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center font-body-md text-body-md p-gutter">
+<div class="w-full max-w-4xl">
+<header class="text-center mb-10">
+<h1 class="font-display-lg text-display-lg text-on-surface mb-2">Select Workspace</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Choose an engineering workspace to continue to DevPilot.</p>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-gutter">
+<!-- Personal Workspace -->
+<button class="card-bg card-border rounded-lg p-lg text-left glow-hover group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded bg-primary-container/20 flex items-center justify-center border border-primary/30 text-primary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<h2 class="font-title-sm text-title-sm text-on-surface group-hover:text-primary transition-colors">Personal Workspace</h2>
+<span class="font-code-label text-code-label text-on-surface-variant uppercase">Owner</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-6 border-t border-[#242830] pt-4">
+<div>
+<span class="font-caption text-caption text-on-surface-variant block mb-1">Projects</span>
+<span class="font-body-sm text-body-sm text-on-surface">3 Active</span>
+</div>
+<div>
+<span class="font-caption text-caption text-on-surface-variant block mb-1">Last Active</span>
+<span class="font-body-sm text-body-sm text-on-surface">Just now</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-[#16181D] object-cover" data-alt="A small, professional avatar portrait of a software engineer. The image is a close-up headshot optimized for a tiny circular UI element. Lighting is studio quality, neutral background, deep charcoal tones. High contrast, sharp focus, modern corporate aesthetic suitable for a developer tool." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQZ_0Tn_xTujrelnty9UZaU-1pmFYLVMBmlu3HXtU2HQ0MtCURJJa4i-5n4fIJR-AoM77ncIqfY-YwAVTV2dOWYC4Gvi0O95eWY3pLsIHAK2O_ptoZLdDADkv3wh8yPgwqFdWyp5gECjHdFg138bshqwtoEcM6VTiGuNENoUh3ZyMHCNLqj8PZOvgQxRgWLgZK1vY8e5IA8Fgk3k-VdMDjCM2uL5RQFI30kYUPhbUX7Fv9ngiTwx0-"/>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+</button>
+<!-- Startup Team -->
+<button class="card-bg card-border rounded-lg p-lg text-left glow-hover group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded bg-tertiary-container/20 flex items-center justify-center border border-tertiary/30 text-tertiary">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<h2 class="font-title-sm text-title-sm text-on-surface group-hover:text-primary transition-colors">Startup Team</h2>
+<span class="font-code-label text-code-label text-on-surface-variant uppercase">Member</span>
+</div>
+</div>
+<div class="bg-secondary/10 border border-secondary/20 rounded px-2 py-1">
+<span class="font-caption text-caption text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                            AI Enabled
+                        </span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-6 border-t border-[#242830] pt-4">
+<div>
+<span class="font-caption text-caption text-on-surface-variant block mb-1">Projects</span>
+<span class="font-body-sm text-body-sm text-on-surface">12 Active</span>
+</div>
+<div>
+<span class="font-caption text-caption text-on-surface-variant block mb-1">Last Active</span>
+<span class="font-body-sm text-body-sm text-on-surface">2 hours ago</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-[#16181D] object-cover" data-alt="A small, professional avatar portrait of a software engineer. The image is a close-up headshot optimized for a tiny circular UI element. Lighting is studio quality, neutral background, deep charcoal tones. High contrast, sharp focus, modern corporate aesthetic suitable for a developer tool." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBe5qRHNtHv2JiCZ3unYwrMOBamkUajs12r8jVZsRyrmjj8a8VPV5olJ0tYfseMqe_jAgrkRXyWY1fw7lnbsDbbOBanuQpRGcDzQLk-1LSaAetLw0LIBua27i-pxg9ejJOP1N1CdNfxIqcp0BgCunRKAV_p4x3bHpCKXpT-EcUng7JR4SjPE6XCTWTIuBBrRSNPqf_jy6FhnDWAiHw2jM8anQwLI5ZyhWHYTjgDOr1KfqXO9I251stK"/>
+<img class="w-8 h-8 rounded-full border-2 border-[#16181D] object-cover" data-alt="Another small, professional avatar portrait of a software designer. Close-up headshot, studio lighting, neutral background, deep charcoal tones. High contrast, modern corporate developer tool aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgwNzDgHPAx6MsQfwm3T1KKNVPeUYQljqG-JzXkXoJgZHrB3Qbmw5tf2v71GrazlEVj0u2a7E_aF5AyCTC0yJQpjABGBVe2qygQgL1TBRR0vOOxjlu01uQn4Ddh5B1UhQLpUE5tD7Gw10U-i7VfApjWm4_YLV8Nzh1irD_NbXsbnG05TKRJoWCicsDgvYRcqBcDDHNVsbPbh7Qp3DI3S3H2PQIWu4144YC0MMAZVxHgd6RaZrAVDGv"/>
+<img class="w-8 h-8 rounded-full border-2 border-[#16181D] object-cover" data-alt="A third small, professional avatar portrait of a project manager. Close-up headshot, studio lighting, neutral background. Corporate dark mode UI aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAzjxgBVIREnWuYAB0396ubKa-L0H4E1W-R4qFBTVJpGOn-OgrGzlozZ-v0veZLIdbWuwOFkt7QMGzqNCZq2qN_ENhAT94NuybJ3Hibg2-uMqsiNBdWHsSNoH2xsHWjN3SL9P5_7_l_DbBP--23H4Z32IdCdl8_NUj112H5qRlQZnNZacOaGb5jZ_2WiM6k28jffhe6snHYlKV96NH1MohIFKYK0iiZN2AHyZS2nJl-xYc4rRnDybY"/>
+<div class="w-8 h-8 rounded-full border-2 border-[#16181D] bg-surface-container-high flex items-center justify-center font-caption text-caption text-on-surface-variant">
+                            +4
+                        </div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+</button>
+<!-- Engineering 101 -->
+<button class="card-bg card-border rounded-lg p-lg text-left glow-hover group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded bg-outline/10 flex items-center justify-center border border-outline/30 text-on-surface-variant">
+<span class="material-symbols-outlined">school</span>
+</div>
+<div>
+<h2 class="font-title-sm text-title-sm text-on-surface group-hover:text-primary transition-colors">Engineering 101</h2>
+<span class="font-code-label text-code-label text-on-surface-variant uppercase">Guest</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-6 border-t border-[#242830] pt-4">
+<div>
+<span class="font-caption text-caption text-on-surface-variant block mb-1">Projects</span>
+<span class="font-body-sm text-body-sm text-on-surface">1 Active</span>
+</div>
+<div>
+<span class="font-caption text-caption text-on-surface-variant block mb-1">Last Active</span>
+<span class="font-body-sm text-body-sm text-on-surface">3 days ago</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-auto">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-[#16181D] object-cover" data-alt="A small, professional avatar portrait of an engineering student. Close-up headshot, studio lighting, neutral background, deep charcoal tones. High contrast, modern corporate developer tool aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP5PuSks3oWPeA1G4mDHXMNu8sMv-VhP971etT7zLdMcR6R8tIemfNemIdkW-fhlNFAxqSvk7-sOwIIKUp21u8targnvD_J4N3CkYHc-cELhfgc5eno6Fqw1zjkvWZoJK_rGWaQn3ONf1Sqbs9sZaJzdctuZDmgASRv5QB0RjlERu57q6zS_b0K7O0fvak-owIbQ19AUVOjxfsyrC2ODnUgRKVGiyKl3Yjo5cVkBqEgMlDr_OXWtq_"/>
+<img class="w-8 h-8 rounded-full border-2 border-[#16181D] object-cover" data-alt="Another small, professional avatar portrait of a teaching assistant. Close-up headshot, studio lighting, neutral background. Corporate dark mode UI aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbXoMtkmz5f2VyjJsrJDta_WNtuVL0fSqvExCJIQtnQBRDycfWn3EOCR7YiDZ55RPsTbSqAof9_r4DupZgero4obdA-jhQQhENIzrAESBkV194qRX3nr0EC8g0gSAqJmGg9ZfCuky8heiXgX1k_hTwb-NlFNMkAJ4yLDE63RuMV9D3JJTmlwjl87BRCZN3YbXvGx8xzTRzUE2kSGI6c4IolPkWCYGvYjhom8DqbD36JYQeCECrKvhi"/>
+<div class="w-8 h-8 rounded-full border-2 border-[#16181D] bg-surface-container-high flex items-center justify-center font-caption text-caption text-on-surface-variant">
+                            +12
+                        </div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+</button>
+<!-- Create New Workspace -->
+<button class="rounded-lg p-lg border-2 border-dashed border-outline-variant hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-sm text-on-surface-variant hover:text-primary group min-h-[200px] focus:outline-none focus:ring-2 focus:ring-primary">
+<div class="w-12 h-12 rounded-full bg-surface-container-high group-hover:bg-primary/10 flex items-center justify-center transition-colors mb-2">
+<span class="material-symbols-outlined">add</span>
+</div>
+<h2 class="font-title-sm text-title-sm font-semibold">Create New Workspace</h2>
+<span class="font-body-sm text-body-sm text-center max-w-[200px]">Start a new engineering environment.</span>
+</button>
+</div>
+</div>
+</body></html>

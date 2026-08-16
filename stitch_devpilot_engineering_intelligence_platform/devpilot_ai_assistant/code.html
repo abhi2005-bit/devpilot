@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevPilot - AI Assistant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#adc6ff",
+                        "surface-container": "#1f2022",
+                        "surface-container-high": "#292a2c",
+                        "on-primary": "#002e6a",
+                        "on-tertiary": "#472a00",
+                        "surface-container-lowest": "#0d0e10",
+                        "on-primary-container": "#00285d",
+                        "secondary": "#4edea3",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-bright": "#38393b",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed": "#001a42",
+                        "on-secondary-container": "#00311f",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-secondary-fixed": "#002113",
+                        "outline": "#8c909f",
+                        "surface": "#121315",
+                        "tertiary-container": "#ca8100",
+                        "on-secondary": "#003824",
+                        "surface-dim": "#121315",
+                        "surface-variant": "#343537",
+                        "on-tertiary-container": "#3e2400",
+                        "on-tertiary-fixed": "#2a1700",
+                        "error-container": "#93000a",
+                        "on-surface": "#e3e2e5",
+                        "on-surface-variant": "#c2c6d6",
+                        "tertiary": "#ffb95f",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-error": "#690005",
+                        "inverse-primary": "#005ac2",
+                        "on-background": "#e3e2e5",
+                        "primary-container": "#4d8eff",
+                        "inverse-on-surface": "#303033",
+                        "background": "#121315",
+                        "surface-container-highest": "#343537",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-secondary-fixed-variant": "#005236",
+                        "inverse-surface": "#e3e2e5",
+                        "secondary-fixed": "#6ffbbe",
+                        "secondary-container": "#00a572",
+                        "primary": "#adc6ff",
+                        "tertiary-fixed": "#ffddb8",
+                        "outline-variant": "#424754",
+                        "surface-container-low": "#1b1c1e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin": "24px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "xl": "32px",
+                        "unit": "4px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Geist"],
+                        "caption": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "body-md": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "title-sm": ["Geist"],
+                        "code-label": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "caption": ["11px", {"lineHeight": "14px", "fontWeight": "500"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "code-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom scrollbar for dense panels */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #343537; /* surface-variant */
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #424754; /* outline-variant */
+        }
+        
+        /* Emerald glow for AI elements */
+        .ai-glow {
+            box-shadow: 0 0 12px 0 rgba(78, 222, 163, 0.15); /* secondary color */
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface h-screen overflow-hidden flex font-body-md selection:bg-primary selection:text-on-primary">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container border-r border-outline-variant flex flex-col py-lg px-md z-50">
+<!-- Brand Header -->
+<div class="flex items-center gap-sm mb-xl px-sm">
+<div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight leading-none">DevPilot</h1>
+<span class="font-caption text-caption text-on-surface-variant uppercase tracking-widest">Engineering Intelligence</span>
+</div>
+</div>
+<!-- CTA -->
+<button class="mb-lg w-full bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 hover:border-primary/50 transition-colors duration-200 py-sm px-md rounded-lg font-title-sm text-title-sm flex items-center justify-center gap-sm font-medium">
+<span class="material-symbols-outlined text-[18px]">add</span>
+            New Project
+        </button>
+<!-- Navigation Links -->
+<nav class="flex-1 flex flex-col gap-xs overflow-y-auto">
+<a class="flex items-center gap-md px-md py-sm rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">folder_open</span>
+                Projects
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">bug_report</span>
+                Issues
+            </a>
+<!-- Active Tab -->
+<a class="flex items-center gap-md px-md py-sm rounded-r-lg font-body-md text-body-md border-l-2 border-primary bg-surface-container-high text-primary font-bold cursor-pointer active:scale-95 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px] text-secondary">auto_awesome</span>
+                AI Assistant
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+                Documents
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+                Team
+            </a>
+</nav>
+<!-- Bottom Link -->
+<div class="mt-auto pt-md border-t border-outline-variant">
+<a class="flex items-center gap-md px-md py-sm rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-colors duration-200 cursor-pointer active:scale-95 border-l-2 border-transparent" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                Settings
+            </a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="ml-64 flex-1 flex flex-col h-screen relative bg-surface">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-surface border-b border-outline-variant flex items-center justify-between px-lg z-40">
+<!-- Breadcrumbs / Active Context -->
+<div class="flex items-center gap-sm text-body-sm font-body-sm text-on-surface-variant">
+<span class="hover:text-on-surface cursor-pointer transition-colors">DevPilot</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-primary font-bold">AI Assistant</span>
+</div>
+<!-- Trailing Actions & Profile -->
+<div class="flex items-center gap-md">
+<button class="w-8 h-8 rounded-full hover:bg-surface-variant flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all focus-within:border-primary">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-surface-variant flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all focus-within:border-primary">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+<div class="h-6 w-px bg-outline-variant mx-xs"></div>
+<button class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant focus-within:border-primary transition-all">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="Close up professional headshot of a software engineer in a modern dark office setting, subtle cool blue rim lighting, highly detailed, realistic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVHQtYQvbhh548r4WlwlMwOp4wZ38MXpdAoyFjWIcmnnY9WdfaFI778uCbfIs8lQciWZ8uEr6CDW9fCtW6XXGRZlhXfiXyD2XigMg4YjBCB8zcuI4gQpIgw-NcHnfjaTUB9H40bnnt6GCsc15N9DiGsUB-fiS6chW6IqDpFehMKMs_6aDaw-ePaVgBEtXmnNW5w2tLnI_sxyCI6rMMfTp3AESXIL5yutArkdyoUUb3Igv0sIr2XXPl"/>
+</button>
+</div>
+</header>
+<!-- Two-Pane Workspace -->
+<div class="flex-1 mt-16 flex overflow-hidden">
+<!-- Left Pane: Context Management -->
+<section class="w-80 flex-shrink-0 border-r border-outline-variant bg-surface-container-lowest flex flex-col">
+<!-- Context Header & Selector -->
+<div class="p-md border-b border-outline-variant bg-surface-container">
+<h2 class="font-title-sm text-title-sm text-on-surface font-medium mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">database</span>
+                        Active Context
+                    </h2>
+<!-- Repository Dropdown -->
+<button class="w-full bg-surface border border-outline-variant hover:border-primary/50 rounded-lg p-sm flex items-center justify-between text-left transition-colors">
+<div class="flex items-center gap-sm overflow-hidden">
+<span class="material-symbols-outlined text-[16px] text-primary">book</span>
+<span class="font-code-label text-code-label text-on-surface truncate">core-auth-service</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">unfold_more</span>
+</button>
+</div>
+<!-- Context Toggles -->
+<div class="p-sm bg-surface-container border-b border-outline-variant">
+<div class="flex bg-surface-container-highest rounded-lg p-xs border border-outline-variant/50">
+<button class="flex-1 py-xs text-center font-body-sm text-body-sm rounded bg-surface shadow-sm text-on-surface font-medium border border-outline-variant">Issues</button>
+<button class="flex-1 py-xs text-center font-body-sm text-body-sm rounded text-on-surface-variant hover:text-on-surface transition-colors">Docs</button>
+<button class="flex-1 py-xs text-center font-body-sm text-body-sm rounded text-on-surface-variant hover:text-on-surface transition-colors">Activity</button>
+</div>
+</div>
+<!-- Context List (Issues) -->
+<div class="flex-1 overflow-y-auto p-sm flex flex-col gap-sm">
+<!-- Context Card 1: Selected/Active -->
+<div class="p-sm rounded-lg bg-surface border-l-2 border-l-primary border border-outline-variant cursor-pointer hover:bg-surface-variant transition-colors flex flex-col gap-xs">
+<div class="flex items-start justify-between">
+<span class="font-code-label text-code-label text-primary">ISSUE-143</span>
+<span class="px-2 py-px bg-error/10 text-error rounded font-caption text-caption uppercase border border-error/20">Critical</span>
+</div>
+<h3 class="font-body-sm text-body-sm text-on-surface font-medium line-clamp-2 leading-snug">OAuth token validation timeout during peak load</h3>
+<div class="flex items-center gap-xs mt-xs text-on-surface-variant font-caption text-caption">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            Updated 2h ago
+                        </div>
+</div>
+<!-- Context Card 2 -->
+<div class="p-sm rounded-lg bg-surface border border-outline-variant cursor-pointer hover:bg-surface-variant transition-colors flex flex-col gap-xs opacity-80 hover:opacity-100">
+<div class="flex items-start justify-between">
+<span class="font-code-label text-code-label text-on-surface-variant">ISSUE-151</span>
+<span class="px-2 py-px bg-tertiary/10 text-tertiary rounded font-caption text-caption uppercase border border-tertiary/20">High</span>
+</div>
+<h3 class="font-body-sm text-body-sm text-on-surface font-medium line-clamp-2 leading-snug">Intermittent 401s on legacy API endpoints</h3>
+<div class="flex items-center gap-xs mt-xs text-on-surface-variant font-caption text-caption">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            Updated 5h ago
+                        </div>
+</div>
+<!-- Context Card 3 -->
+<div class="p-sm rounded-lg bg-surface border border-outline-variant cursor-pointer hover:bg-surface-variant transition-colors flex flex-col gap-xs opacity-80 hover:opacity-100">
+<div class="flex items-start justify-between">
+<span class="font-code-label text-code-label text-on-surface-variant">PR-204</span>
+<span class="px-2 py-px bg-secondary/10 text-secondary rounded font-caption text-caption uppercase border border-secondary/20">Open</span>
+</div>
+<h3 class="font-body-sm text-body-sm text-on-surface font-medium line-clamp-2 leading-snug">Refactor JWT signing mechanism</h3>
+<div class="flex items-center gap-xs mt-xs text-on-surface-variant font-caption text-caption">
+<span class="material-symbols-outlined text-[14px]">merge</span>
+                            Draft
+                        </div>
+</div>
+</div>
+</section>
+<!-- Right Pane: Chat Interface -->
+<section class="flex-1 flex flex-col bg-surface relative">
+<!-- Chat History -->
+<div class="flex-1 overflow-y-auto p-lg flex flex-col gap-xl">
+<!-- Date Separator -->
+<div class="flex items-center justify-center">
+<span class="font-caption text-caption text-on-surface-variant uppercase tracking-wider bg-surface-container-low px-sm py-xs rounded border border-outline-variant">Today</span>
+</div>
+<!-- User Message -->
+<div class="flex gap-md self-end max-w-[80%]">
+<div class="bg-surface-container-highest rounded-xl rounded-tr-sm p-md border border-outline-variant flex flex-col gap-sm shadow-sm">
+<p class="font-body-md text-body-md text-on-surface">Why is authentication delayed in the production environment?</p>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant flex-shrink-0 mt-1">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="Close up professional headshot of a software engineer in a modern dark office setting, subtle cool blue rim lighting, highly detailed, realistic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDA80tEjPhPvfCZqM7AtN-JvR-uu5h9ODhuFIpC8YgEFfQS_z0K0gD9mjflTrLiqtdFcobWiDLa9JN50mSJDs-7fp3czT29V3HTEAhXpGcGE3gc9aA71eQphJD_G0PSVGU8ruyxho8ixF2qwrr5Cpl9nBQfnYQpqBbrb_TsaYL1aw1XBTHBQ6lge72k3Z4qynXQHa6vW5cZasXiY-Lb9gS5E7r-zYkZM6t4B_pQIQ8yi4ZpiHbPqYfS"/>
+</div>
+</div>
+<!-- AI Response -->
+<div class="flex gap-md w-full max-w-4xl self-start">
+<div class="w-8 h-8 rounded-lg bg-surface-container border border-secondary/30 flex items-center justify-center flex-shrink-0 mt-1 ai-glow">
+<span class="material-symbols-outlined text-[20px] text-secondary">auto_awesome</span>
+</div>
+<div class="flex-1 flex flex-col gap-md">
+<!-- Main Text -->
+<div class="font-body-md text-body-md text-on-surface leading-relaxed flex flex-col gap-sm">
+<p>Based on the current context and recent telemetry, the authentication delays are primarily caused by a bottleneck in the token validation service.</p>
+<p>I've correlated the recent latency spikes with two active issues in the <span class="font-code-label text-code-label bg-surface-container px-1 py-0.5 rounded border border-outline-variant text-primary">core-auth-service</span> repository:</p>
+<!-- Inline Issue References -->
+<div class="flex flex-wrap gap-sm mt-xs">
+<span class="inline-flex items-center gap-xs text-error bg-error/10 px-sm py-xs rounded-full font-code-label text-code-label border border-error/20 cursor-pointer hover:bg-error/20 transition-colors">
+<span class="material-symbols-outlined text-[14px]">error</span>
+                                        ISSUE-143: Token validation timeout
+                                    </span>
+<span class="inline-flex items-center gap-xs text-tertiary bg-tertiary/10 px-sm py-xs rounded-full font-code-label text-code-label border border-tertiary/20 cursor-pointer hover:bg-tertiary/20 transition-colors">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                                        ISSUE-151: Legacy API 401s
+                                    </span>
+</div>
+<p class="mt-sm">The underlying cause appears to be an inefficient database query inside the <span class="font-code-label text-code-label text-on-surface-variant">validateSession()</span> method, which is hitting a lock contention under peak load. This was introduced in yesterday's deployment.</p>
+</div>
+<!-- Recommended Actions Bento Box -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col gap-md mt-sm border-l-2 border-l-secondary">
+<div class="flex items-center gap-sm text-secondary">
+<span class="material-symbols-outlined text-[18px]">psychology</span>
+<h4 class="font-title-sm text-title-sm font-medium">Recommended Actions</h4>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Review the stack trace attached to ISSUE-143 or draft a mitigation plan to rollback the database migration.</p>
+<div class="flex gap-md mt-xs">
+<button class="bg-secondary text-on-secondary font-body-md text-body-md font-medium px-md py-sm rounded-lg hover:bg-secondary-fixed transition-colors flex items-center gap-xs shadow-[0_0_10px_rgba(78,222,163,0.2)]">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+                                        Review Issues
+                                    </button>
+<button class="bg-transparent border border-outline-variant text-on-surface font-body-md text-body-md font-medium px-md py-sm rounded-lg hover:bg-surface-variant transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">edit_note</span>
+                                        Create Plan
+                                    </button>
+</div>
+</div>
+<!-- Source References -->
+<div class="flex flex-col gap-xs mt-xs pt-md border-t border-outline-variant">
+<span class="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Sources Consulted</span>
+<div class="flex gap-sm">
+<a class="inline-flex items-center gap-xs text-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors border border-outline-variant bg-surface-container rounded px-sm py-xs" href="#">
+<span class="material-symbols-outlined text-[14px]">menu_book</span>
+                                        Auth Architecture Doc
+                                    </a>
+<a class="inline-flex items-center gap-xs text-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors border border-outline-variant bg-surface-container rounded px-sm py-xs" href="#">
+<span class="material-symbols-outlined text-[14px]">monitoring</span>
+                                        Datadog: core-auth latency
+                                    </a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Chat Input Area -->
+<div class="p-margin border-t border-outline-variant bg-surface shrink-0">
+<div class="max-w-4xl mx-auto border border-outline-variant rounded-xl bg-surface-container-lowest flex flex-col focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/50 transition-all shadow-sm">
+<!-- Textarea -->
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-body-md text-on-surface resize-none p-md min-h-[80px]" placeholder="Ask DevPilot a question, request a code review, or query your active context..."></textarea>
+<!-- Input Toolbar -->
+<div class="flex justify-between items-center px-sm pb-sm pt-xs border-t border-outline-variant/30">
+<div class="flex gap-xs text-on-surface-variant">
+<button class="w-8 h-8 rounded flex items-center justify-center hover:bg-surface-variant hover:text-on-surface transition-colors" title="Attach file">
+<span class="material-symbols-outlined text-[20px]">attach_file</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center hover:bg-surface-variant hover:text-on-surface transition-colors" title="Reference Code">
+<span class="material-symbols-outlined text-[20px]">code</span>
+</button>
+<button class="px-xs h-8 rounded flex items-center justify-center hover:bg-surface-variant hover:text-on-surface transition-colors font-code-label text-code-label gap-xs border border-transparent hover:border-outline-variant" title="Add Context">
+<span class="material-symbols-outlined text-[16px]">add</span>
+                                    Context
+                                </button>
+</div>
+<button class="bg-primary text-on-primary font-body-md font-medium px-md py-sm rounded-lg hover:bg-primary-fixed transition-colors flex items-center gap-xs shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                Send
+                                <span class="material-symbols-outlined text-[18px]">send</span>
+</button>
+</div>
+</div>
+<div class="max-w-4xl mx-auto text-center mt-sm">
+<span class="font-caption text-caption text-on-surface-variant">DevPilot can make mistakes. Verify critical code and infrastructure changes.</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

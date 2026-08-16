@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevPilot - Project Overview</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#121315",
+                        "surface-container-high": "#292a2c",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-dim": "#121315",
+                        "on-tertiary-fixed": "#2a1700",
+                        "primary": "#adc6ff",
+                        "secondary-container": "#00a572",
+                        "on-secondary-container": "#00311f",
+                        "on-surface-variant": "#c2c6d6",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#343537",
+                        "on-error": "#690005",
+                        "surface-container-low": "#1b1c1e",
+                        "on-secondary-fixed": "#002113",
+                        "on-surface": "#e3e2e5",
+                        "surface-bright": "#38393b",
+                        "on-background": "#e3e2e5",
+                        "outline": "#8c909f",
+                        "tertiary-container": "#ca8100",
+                        "inverse-on-surface": "#303033",
+                        "on-tertiary-container": "#3e2400",
+                        "inverse-primary": "#005ac2",
+                        "surface-container-highest": "#343537",
+                        "on-primary-container": "#00285d",
+                        "background": "#121315",
+                        "tertiary": "#ffb95f",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-tertiary": "#472a00",
+                        "on-primary": "#002e6a",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e3e2e5",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "surface-tint": "#adc6ff",
+                        "secondary": "#4edea3",
+                        "surface-container-lowest": "#0d0e10",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "error-container": "#93000a",
+                        "on-secondary": "#003824",
+                        "outline-variant": "#424754",
+                        "primary-fixed": "#d8e2ff",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-container": "#1f2022",
+                        "on-primary-fixed": "#001a42",
+                        "primary-container": "#4d8eff",
+                        "primary-fixed-dim": "#adc6ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "unit": "4px",
+                        "lg": "24px",
+                        "margin": "24px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-md": ["Geist"],
+                        "title-sm": ["Geist"],
+                        "code-label": ["JetBrains Mono"],
+                        "display-lg": ["Geist"],
+                        "caption": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "title-sm": ["18px", { "lineHeight": "24px", "fontWeight": "500" }],
+                        "code-label": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "caption": ["11px", { "lineHeight": "14px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Minimal custom overrides for sharp aesthetic */
+        .glass-panel {
+            background: rgba(22, 24, 29, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .ai-glow {
+            box-shadow: inset 0 0 16px rgba(78, 222, 163, 0.15);
+        }
+        /* Scrollbar styling for density */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #343537; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #424754; }
+    </style>
+</head>
+<body class="bg-background text-on-surface flex min-h-screen antialiased overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- JSON: SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-64 bg-surface dark:bg-surface text-primary dark:text-primary font-body-md text-body-md border-r border-outline-variant flex flex-col z-40 transition-colors duration-200 ease-in-out">
+<!-- Brand Header -->
+<div class="flex items-center gap-sm p-md mb-sm">
+<div class="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" data-icon="rocket_launch" data-weight="fill" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary leading-tight">DevPilot</h1>
+<span class="font-caption text-caption text-on-surface-variant">Engineering Intel</span>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<ul class="flex flex-col gap-xs px-sm flex-grow overflow-y-auto">
+<li>
+<a class="flex items-center gap-md px-sm py-sm rounded transition-colors duration-200 ease-in-out text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+                    Dashboard
+                </a>
+</li>
+<li>
+<!-- ACTIVE TAB: Projects -->
+<a class="flex items-center gap-md px-sm py-sm rounded transition-colors duration-200 ease-in-out text-secondary border-l-2 border-secondary font-bold bg-surface-container-high hover:bg-surface-container-highest hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="folder_open">folder_open</span>
+                    Projects
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-sm py-sm rounded transition-colors duration-200 ease-in-out text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="list_alt">list_alt</span>
+                    Issues
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-sm py-sm rounded transition-colors duration-200 ease-in-out text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="smart_toy">smart_toy</span>
+                    AI Assistant
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-sm py-sm rounded transition-colors duration-200 ease-in-out text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="analytics">analytics</span>
+                    Analytics
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-sm py-sm rounded transition-colors duration-200 ease-in-out text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="description">description</span>
+                    Documents
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-sm py-sm rounded transition-colors duration-200 ease-in-out text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="group">group</span>
+                    Team
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-sm py-sm rounded transition-colors duration-200 ease-in-out text-on-surface-variant font-medium hover:bg-surface-container-highest hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+                    Settings
+                </a>
+</li>
+</ul>
+<!-- CTA -->
+<div class="p-md border-t border-outline-variant mt-auto">
+<button class="w-full flex items-center justify-center gap-sm bg-primary-container text-on-primary-container font-title-sm text-title-sm py-sm rounded hover:bg-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                New Sprint
+            </button>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-grow flex flex-col ml-64 min-h-screen">
+<!-- JSON: TopNavBar -->
+<header class="flex justify-between items-center w-full h-16 px-6 sticky top-0 z-30 bg-surface dark:bg-surface text-primary dark:text-primary font-body-sm text-body-sm border-b border-outline-variant transition-transform">
+<!-- Left Side / Context (Not explicitly in JSON but good practice for balance, leaving empty to match exact JSON intent which focuses on right side) -->
+<div class="flex-1 flex items-center">
+<div class="font-title-sm text-title-sm font-black text-on-surface mr-md hidden md:block">DevPilot</div>
+<div class="h-6 w-px bg-outline-variant mx-sm hidden md:block"></div>
+<span class="font-body-md text-body-md text-on-surface-variant flex items-center gap-xs">
+                    Projects <span class="material-symbols-outlined text-[16px]">chevron_right</span> E-Commerce Platform
+                </span>
+</div>
+<!-- Right Side: Search, Links, Actions -->
+<div class="flex items-center gap-lg">
+<!-- Search Bar (on_right) -->
+<div class="relative hidden lg:block w-64">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full bg-background border border-outline-variant rounded pl-8 pr-sm py-1 font-body-sm text-body-sm text-on-surface focus:border-primary focus:ring-0 transition-colors" placeholder="Search across DevPilot..." type="text"/>
+<span class="absolute right-sm top-1/2 -translate-y-1/2 flex items-center gap-xs">
+<kbd class="font-code-label text-code-label text-on-surface-variant border border-outline-variant rounded px-1">⌘</kbd>
+<kbd class="font-code-label text-code-label text-on-surface-variant border border-outline-variant rounded px-1">K</kbd>
+</span>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center gap-md">
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Docs</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Support</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">API</a>
+</nav>
+<!-- Icon Actions -->
+<div class="flex items-center gap-sm">
+<button class="text-on-surface-variant hover:text-on-surface transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<!-- Trailing Primary Action -->
+<button class="bg-primary text-on-primary font-title-sm text-title-sm px-md py-1 rounded hover:bg-primary-fixed transition-colors">
+                    Deploy
+                </button>
+<!-- Profile -->
+<div class="w-8 h-8 rounded bg-surface-variant border border-outline-variant overflow-hidden cursor-pointer shrink-0">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A futuristic, minimalist geometric avatar in monochromatic shades of grey and deep blue, representing a developer profile. Clean lines, flat design, subtle gradient." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-xJUGEoHzSc2_lsXJ9au6BHXQYwD_xhjVzoqzwzYMi0Ta0kv8-dE5Amea8-m_WKnQ67k1dqhfYd9HSt-ejLEUxsX6YZOcrN1XlOJS23z39ilZBTUVnPAotCaKIVVhbpMcR3sQIZ8Sh6-PN9b1Ut_eGPsxZr0Mmh34eXQ73MHBapdxpzOUBBkRDC9wyib0yc0qpeCtgkXnNBzQbhqGT-6aaUw8wsSV1iazbT90MN89wyPxKd0nwYr6"/>
+</div>
+</div>
+</header>
+<!-- Project Content Area -->
+<main class="flex-grow p-margin overflow-y-auto">
+<!-- Project Header & Context -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-lg">
+<div>
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-6 h-6 rounded bg-tertiary-container flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined text-[14px]" data-icon="shopping_cart">shopping_cart</span>
+</div>
+<span class="font-code-label text-code-label text-on-surface-variant uppercase tracking-wider">PRJ-ECOM-01</span>
+</div>
+<h2 class="font-display-lg text-display-lg text-on-surface flex items-center gap-md">
+                        E-Commerce Platform
+                        <!-- Badges -->
+<span class="flex items-center gap-xs px-2 py-[2px] rounded border border-secondary/20 bg-secondary/10 text-secondary font-code-label text-code-label uppercase ml-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                            Health: Good
+                        </span>
+<span class="flex items-center gap-xs px-2 py-[2px] rounded border border-tertiary/20 bg-tertiary/10 text-tertiary font-code-label text-code-label uppercase">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                            Risk: Medium
+                        </span>
+</h2>
+</div>
+<div class="flex items-center gap-sm">
+<button class="flex items-center gap-xs border border-outline-variant bg-surface text-on-surface px-md py-1.5 rounded hover:bg-surface-container-high font-body-md text-body-md transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span> Edit Details
+                    </button>
+<button class="flex items-center gap-xs border border-outline-variant bg-surface text-on-surface px-sm py-1.5 rounded hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Project Sub-Navigation -->
+<div class="border-b border-outline-variant mb-lg">
+<nav class="flex gap-lg font-title-sm text-title-sm overflow-x-auto hide-scrollbar">
+<a class="text-primary font-bold border-b-2 border-primary pb-sm flex items-center gap-xs whitespace-nowrap" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span> Overview
+                    </a>
+<a class="text-on-surface-variant hover:text-on-surface pb-sm flex items-center gap-xs whitespace-nowrap transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="view_kanban">view_kanban</span> Board
+                    </a>
+<a class="text-on-surface-variant hover:text-on-surface pb-sm flex items-center gap-xs whitespace-nowrap transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="bug_report">bug_report</span> Issues
+                    </a>
+<a class="text-on-surface-variant hover:text-on-surface pb-sm flex items-center gap-xs whitespace-nowrap transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="article">article</span> Documents
+                    </a>
+<a class="text-on-surface-variant hover:text-on-surface pb-sm flex items-center gap-xs whitespace-nowrap transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="monitoring">monitoring</span> Analytics
+                    </a>
+<a class="text-on-surface-variant hover:text-on-surface pb-sm flex items-center gap-xs whitespace-nowrap transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-secondary" data-icon="auto_awesome">auto_awesome</span> AI
+                    </a>
+<a class="text-on-surface-variant hover:text-on-surface pb-sm flex items-center gap-xs whitespace-nowrap transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="history">history</span> Activity
+                    </a>
+<a class="text-on-surface-variant hover:text-on-surface pb-sm flex items-center gap-xs whitespace-nowrap transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="groups">groups</span> Members
+                    </a>
+<a class="text-on-surface-variant hover:text-on-surface pb-sm flex items-center gap-xs whitespace-nowrap transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="settings">settings</span> Settings
+                    </a>
+</nav>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Sprint Summary (Span 8) -->
+<div class="col-span-1 md:col-span-8 bg-surface border border-outline-variant rounded p-md flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-md">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Sprint 42: Checkout Optimization</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Focused on reducing cart abandonment through localized payment options and latency reduction.</p>
+</div>
+<span class="font-code-label text-code-label bg-surface-container-high px-2 py-1 rounded text-on-surface-variant border border-outline-variant">
+                                4 Days Remaining
+                            </span>
+</div>
+<!-- Grid Metrics inside Sprint -->
+<div class="grid grid-cols-3 gap-sm mb-lg">
+<div class="p-sm bg-background border border-outline-variant rounded flex flex-col">
+<span class="font-caption text-caption text-on-surface-variant uppercase">Story Points</span>
+<div class="flex items-end gap-xs mt-1">
+<span class="font-title-sm text-title-sm text-on-surface">84</span>
+<span class="font-caption text-caption text-on-surface-variant pb-[2px]">/ 120</span>
+</div>
+</div>
+<div class="p-sm bg-background border border-outline-variant rounded flex flex-col">
+<span class="font-caption text-caption text-on-surface-variant uppercase">Issues Done</span>
+<div class="flex items-end gap-xs mt-1">
+<span class="font-title-sm text-title-sm text-on-surface">26</span>
+<span class="font-caption text-caption text-on-surface-variant pb-[2px]">/ 45</span>
+</div>
+</div>
+<div class="p-sm bg-background border border-outline-variant rounded flex flex-col">
+<span class="font-caption text-caption text-on-surface-variant uppercase">Velocity Trend</span>
+<div class="flex items-center gap-xs mt-1 text-secondary">
+<span class="material-symbols-outlined text-[16px]" data-icon="trending_up">trending_up</span>
+<span class="font-title-sm text-title-sm">+12%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Progress Bar -->
+<div>
+<div class="flex justify-between text-body-sm font-body-sm text-on-surface-variant mb-xs">
+<span>Sprint Completion</span>
+<span>70%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded overflow-hidden">
+<div class="h-full bg-primary rounded" style="width: 70%;"></div>
+</div>
+</div>
+</div>
+<!-- AI Project Insight (Span 4) -->
+<div class="col-span-1 md:col-span-4 bg-surface border border-secondary/30 rounded p-md relative overflow-hidden ai-glow flex flex-col group">
+<div class="absolute -right-8 -top-8 w-32 h-32 bg-secondary/10 rounded-full blur-2xl"></div>
+<div class="flex items-center gap-sm mb-md relative z-10">
+<span class="material-symbols-outlined text-secondary" data-icon="auto_awesome">auto_awesome</span>
+<h3 class="font-title-sm text-title-sm text-on-surface">AI Project Insight</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant relative z-10 flex-grow mb-md">
+                        Analysis indicates a <span class="text-tertiary font-bold">Medium Risk (65% probability)</span> of bottleneck in the Payment Gateway Integration epic based on historical commit velocity and current code complexity metrics.
+                    </p>
+<div class="mt-auto relative z-10 border-t border-outline-variant pt-sm">
+<span class="font-caption text-caption text-on-surface-variant block mb-xs">Recommended Action:</span>
+<button class="w-full text-left bg-surface-container-high border border-outline-variant hover:border-secondary transition-colors p-sm rounded flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface">Pair senior dev on ECOM-142</span>
+<span class="material-symbols-outlined text-[16px] text-secondary" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Recent Activity (Span 12) -->
+<div class="col-span-1 md:col-span-12 bg-surface border border-outline-variant rounded p-md">
+<div class="flex justify-between items-center mb-md border-b border-outline-variant pb-sm">
+<h3 class="font-title-sm text-title-sm text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="pulse">switch_account</span> Recent Activity
+                        </h3>
+<a class="font-body-sm text-body-sm text-primary hover:underline" href="#">View All Activity</a>
+</div>
+<div class="flex flex-col gap-0">
+<!-- Activity Item 1 -->
+<div class="flex items-start gap-md py-sm hover:bg-surface-container-lowest transition-colors px-xs rounded group">
+<div class="mt-1 w-8 h-8 rounded-full bg-primary-container/20 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+<span class="material-symbols-outlined text-[16px]" data-icon="merge">merge</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-baseline">
+<p class="font-body-md text-body-md text-on-surface">
+<span class="font-bold">Sarah Connor</span> merged PR <a class="text-primary hover:underline" href="#">#892</a> into <span class="font-code-label text-code-label px-1 bg-surface-container-high rounded text-on-surface-variant">main</span>
+</p>
+<span class="font-caption text-caption text-on-surface-variant shrink-0">12m ago</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs line-clamp-1">Fix: Stripe webhook idempotency issue causing duplicate orders in staging environment.</p>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="flex items-start gap-md py-sm hover:bg-surface-container-lowest transition-colors px-xs rounded group">
+<div class="mt-1 w-8 h-8 rounded-full bg-tertiary/20 text-tertiary flex items-center justify-center shrink-0 border border-tertiary/20">
+<span class="material-symbols-outlined text-[16px]" data-icon="bug_report">bug_report</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-baseline">
+<p class="font-body-md text-body-md text-on-surface">
+<span class="font-bold">John Smith</span> created issue <a class="text-primary hover:underline" href="#">ECOM-405</a>
+</p>
+<span class="font-caption text-caption text-on-surface-variant shrink-0">1h ago</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs line-clamp-1">UI layout breaks on mobile when cart exceeds 10 items.</p>
+<div class="flex gap-xs mt-sm">
+<span class="font-code-label text-code-label px-2 py-0.5 bg-error/10 text-error border border-error/20 rounded">High Priority</span>
+<span class="font-code-label text-code-label px-2 py-0.5 bg-surface-container-high text-on-surface-variant border border-outline-variant rounded">Frontend</span>
+</div>
+</div>
+</div>
+<!-- Activity Item 3 -->
+<div class="flex items-start gap-md py-sm hover:bg-surface-container-lowest transition-colors px-xs rounded group">
+<div class="mt-1 w-8 h-8 rounded-full bg-secondary/20 text-secondary flex items-center justify-center shrink-0 border border-secondary/20">
+<span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-baseline">
+<p class="font-body-md text-body-md text-on-surface">
+<span class="font-bold">DevOps Bot</span> completed deployment to <span class="font-code-label text-code-label px-1 bg-surface-container-high rounded text-on-surface-variant">production</span>
+</p>
+<span class="font-caption text-caption text-on-surface-variant shrink-0">3h ago</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs line-clamp-1">Release v2.4.1 - Hotfix for session timeout.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

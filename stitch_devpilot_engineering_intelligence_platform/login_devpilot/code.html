@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevPilot - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface": "#121315",
+                      "surface-container-high": "#292a2c",
+                      "secondary-fixed-dim": "#4edea3",
+                      "surface-dim": "#121315",
+                      "on-tertiary-fixed": "#2a1700",
+                      "primary": "#adc6ff",
+                      "secondary-container": "#00a572",
+                      "on-secondary-container": "#00311f",
+                      "on-surface-variant": "#c2c6d6",
+                      "error": "#ffb4ab",
+                      "surface-variant": "#343537",
+                      "on-error": "#690005",
+                      "surface-container-low": "#1b1c1e",
+                      "on-secondary-fixed": "#002113",
+                      "on-surface": "#e3e2e5",
+                      "surface-bright": "#38393b",
+                      "on-background": "#e3e2e5",
+                      "outline": "#8c909f",
+                      "tertiary-container": "#ca8100",
+                      "inverse-on-surface": "#303033",
+                      "on-tertiary-container": "#3e2400",
+                      "inverse-primary": "#005ac2",
+                      "surface-container-highest": "#343537",
+                      "on-primary-container": "#00285d",
+                      "background": "#121315",
+                      "tertiary": "#ffb95f",
+                      "on-primary-fixed-variant": "#004395",
+                      "on-secondary-fixed-variant": "#005236",
+                      "on-tertiary": "#472a00",
+                      "on-primary": "#002e6a",
+                      "tertiary-fixed": "#ffddb8",
+                      "on-error-container": "#ffdad6",
+                      "inverse-surface": "#e3e2e5",
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "surface-tint": "#adc6ff",
+                      "secondary": "#4edea3",
+                      "surface-container-lowest": "#0d0e10",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "error-container": "#93000a",
+                      "on-secondary": "#003824",
+                      "outline-variant": "#424754",
+                      "primary-fixed": "#d8e2ff",
+                      "secondary-fixed": "#6ffbbe",
+                      "surface-container": "#1f2022",
+                      "on-primary-fixed": "#001a42",
+                      "primary-container": "#4d8eff",
+                      "primary-fixed-dim": "#adc6ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "md": "16px",
+                      "gutter": "16px",
+                      "sm": "8px",
+                      "xs": "4px",
+                      "unit": "4px",
+                      "lg": "24px",
+                      "margin": "24px"
+              },
+              "fontFamily": {
+                      "body-sm": [
+                              "Geist"
+                      ],
+                      "headline-md": [
+                              "Geist"
+                      ],
+                      "body-md": [
+                              "Geist"
+                      ],
+                      "title-sm": [
+                              "Geist"
+                      ],
+                      "code-label": [
+                              "JetBrains Mono"
+                      ],
+                      "display-lg": [
+                              "Geist"
+                      ],
+                      "caption": [
+                              "Geist"
+                      ]
+              },
+              "fontSize": {
+                      "body-sm": [
+                              "13px",
+                              {
+                                      "lineHeight": "18px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "title-sm": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "code-label": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "caption": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+          .grid-background {
+              background-size: 40px 40px;
+              background-image: 
+                  linear-gradient(to right, rgba(66, 71, 84, 0.1) 1px, transparent 1px),
+                  linear-gradient(to bottom, rgba(66, 71, 84, 0.1) 1px, transparent 1px);
+          }
+      </style>
+</head>
+<body class="bg-surface-dim text-on-surface min-h-screen flex items-center justify-center relative overflow-hidden font-body-md antialiased">
+<!-- Ambient background element -->
+<div class="absolute inset-0 grid-background z-0 pointer-events-none"></div>
+<div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl z-0 pointer-events-none"></div>
+<main class="w-full max-w-md relative z-10 px-margin">
+<!-- Logo Header -->
+<div class="flex flex-col items-center mb-xl">
+<div class="w-12 h-12 bg-surface-container flex items-center justify-center rounded-lg border border-outline-variant shadow-sm mb-sm relative overflow-hidden">
+<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">terminal</span>
+<!-- Subtle AI Sparkle indication -->
+<span class="absolute top-1 right-1 material-symbols-outlined text-secondary text-[10px]" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface">DevPilot</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Engineering Intel. Authorized access only.</p>
+</div>
+<!-- Auth Card -->
+<div class="bg-surface-container-high rounded-xl border border-outline-variant p-lg shadow-lg relative overflow-hidden">
+<!-- Top border highlight accent -->
+<div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+<form class="space-y-md">
+<!-- Email Input -->
+<div class="space-y-xs">
+<label class="font-code-label text-code-label text-on-surface-variant uppercase tracking-wider block" for="email">Email Address</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant text-lg">mail</span>
+</span>
+<input class="block w-full pl-10 pr-3 py-2 bg-surface border border-outline-variant rounded focus:border-primary focus:ring-0 focus:outline-none font-body-md text-on-surface transition-colors placeholder:text-outline" id="email" name="email" placeholder="developer@company.com" required="" type="email"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="space-y-xs">
+<div class="flex justify-between items-center">
+<label class="font-code-label text-code-label text-on-surface-variant uppercase tracking-wider block" for="password">Password</label>
+<a class="font-caption text-caption text-primary hover:text-primary-container transition-colors" href="#">Forgot password?</a>
+</div>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant text-lg">lock</span>
+</span>
+<input class="block w-full pl-10 pr-10 py-2 bg-surface border border-outline-variant rounded focus:border-primary focus:ring-0 focus:outline-none font-body-md text-on-surface transition-colors placeholder:text-outline" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center text-outline-variant hover:text-on-surface transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined text-lg">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Remember Me -->
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-outline-variant bg-surface text-primary focus:ring-primary focus:ring-offset-surface-container-high transition-colors cursor-pointer" id="remember-me" name="remember-me" type="checkbox"/>
+<label class="ml-2 block font-body-sm text-body-sm text-on-surface-variant cursor-pointer" for="remember-me">
+                        Remember me for 30 days
+                    </label>
+</div>
+<!-- Submit Button -->
+<button class="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded bg-primary text-on-primary font-title-sm text-title-sm hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-container-high focus:ring-primary transition-colors mt-lg" type="submit">
+                    Sign In
+                    <span class="material-symbols-outlined ml-2 text-sm" style="font-variation-settings: 'wght' 600;">arrow_forward</span>
+</button>
+</form>
+<div class="mt-lg">
+<div class="relative">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-2 bg-surface-container-high font-caption text-caption text-on-surface-variant uppercase tracking-wider">Or continue with</span>
+</div>
+</div>
+<div class="mt-md">
+<button class="w-full flex justify-center items-center py-2 px-4 border border-outline-variant rounded bg-transparent text-on-surface font-title-sm text-title-sm hover:bg-surface hover:text-primary transition-colors focus:outline-none focus:border-primary" type="button">
+<svg aria-hidden="true" class="w-4 h-4 mr-2" fill="currentColor" viewbox="0 0 18 19" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M8.842 18.083a8.8 8.8 0 0 1-8.65-8.948 8.841 8.841 0 0 1 8.8-8.652h.153a8.439 8.439 0 0 1 5.8 2.212l-2.43 2.682a5.394 5.394 0 0 0-3.69-1.132 5.094 5.094 0 0 0-5.112 4.966 5.093 5.093 0 0 0 5.112 4.965 5.353 5.353 0 0 0 5.328-3.633h-5.328V6.621h9.123a11.531 11.531 0 0 1 .15 2.5 8.924 8.924 0 0 1-8.8 8.962Z" fill-rule="evenodd"></path>
+</svg>
+                        Google
+                    </button>
+</div>
+</div>
+</div>
+<p class="mt-md text-center font-body-sm text-body-sm text-on-surface-variant">
+            Don't have an account? 
+            <a class="font-medium text-primary hover:text-primary-container transition-colors" href="#">Request Access</a>
+</p>
+</main>
+</body></html>

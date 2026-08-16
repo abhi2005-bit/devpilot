@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevPilot - Create Issue</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#121315",
+                    "surface-container-high": "#292a2c",
+                    "secondary-fixed-dim": "#4edea3",
+                    "surface-dim": "#121315",
+                    "on-tertiary-fixed": "#2a1700",
+                    "primary": "#adc6ff",
+                    "secondary-container": "#00a572",
+                    "on-secondary-container": "#00311f",
+                    "on-surface-variant": "#c2c6d6",
+                    "error": "#ffb4ab",
+                    "surface-variant": "#343537",
+                    "on-error": "#690005",
+                    "surface-container-low": "#1b1c1e",
+                    "on-secondary-fixed": "#002113",
+                    "on-surface": "#e3e2e5",
+                    "surface-bright": "#38393b",
+                    "on-background": "#e3e2e5",
+                    "outline": "#8c909f",
+                    "tertiary-container": "#ca8100",
+                    "inverse-on-surface": "#303033",
+                    "on-tertiary-container": "#3e2400",
+                    "inverse-primary": "#005ac2",
+                    "surface-container-highest": "#343537",
+                    "on-primary-container": "#00285d",
+                    "background": "#121315",
+                    "tertiary": "#ffb95f",
+                    "on-primary-fixed-variant": "#004395",
+                    "on-secondary-fixed-variant": "#005236",
+                    "on-tertiary": "#472a00",
+                    "on-primary": "#002e6a",
+                    "tertiary-fixed": "#ffddb8",
+                    "on-error-container": "#ffdad6",
+                    "inverse-surface": "#e3e2e5",
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "surface-tint": "#adc6ff",
+                    "secondary": "#4edea3",
+                    "surface-container-lowest": "#0d0e10",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "error-container": "#93000a",
+                    "on-secondary": "#003824",
+                    "outline-variant": "#424754",
+                    "primary-fixed": "#d8e2ff",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface-container": "#1f2022",
+                    "on-primary-fixed": "#001a42",
+                    "primary-container": "#4d8eff",
+                    "primary-fixed-dim": "#adc6ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "md": "16px",
+                    "gutter": "16px",
+                    "sm": "8px",
+                    "xs": "4px",
+                    "unit": "4px",
+                    "lg": "24px",
+                    "margin": "24px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Geist"],
+                    "headline-md": ["Geist"],
+                    "body-md": ["Geist"],
+                    "title-sm": ["Geist"],
+                    "code-label": ["JetBrains Mono"],
+                    "display-lg": ["Geist"],
+                    "caption": ["Geist"]
+            },
+            "fontSize": {
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                    "code-label": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "caption": ["11px", {"lineHeight": "14px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.cdnfonts.com/css/geist');
+        
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-surface');
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Custom Scrollbar for dense lists */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.outline-variant');
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: theme('colors.outline');
+        }
+        
+        /* Blur background when modal is active */
+        .content-canvas.modal-open {
+            filter: blur(2px);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-on-surface bg-background">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 border-r border-outline-variant bg-surface dark:bg-surface flex flex-col h-screen overflow-y-auto z-40 hidden md:flex">
+<div class="p-6 pb-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center font-bold text-on-primary font-headline-md text-headline-md">
+                    D
+                </div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary leading-none">DevPilot</h1>
+<span class="font-caption text-caption text-on-surface-variant">Engineering Intel</span>
+</div>
+</div>
+<button class="mt-6 w-full bg-primary text-on-primary py-2 rounded-lg font-body-sm font-medium hover:opacity-90 transition-opacity">
+                New Sprint
+            </button>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium font-body-md text-body-md hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium font-body-md text-body-md hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">folder_open</span>
+                Projects
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-secondary border-l-2 border-secondary font-bold bg-surface-container-high font-body-md text-body-md transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">list_alt</span>
+                Issues
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium font-body-md text-body-md hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">smart_toy</span>
+                AI Assistant
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium font-body-md text-body-md hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium font-body-md text-body-md hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+                Documents
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium font-body-md text-body-md hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+                Team
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium font-body-md text-body-md hover:bg-surface-container-highest hover:text-on-surface transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                Settings
+            </a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-0 md:ml-64 flex flex-col min-h-screen relative bg-background content-canvas modal-open transition-all duration-300">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full h-16 px-6 sticky top-0 z-30 bg-surface dark:bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-8">
+<!-- Mobile Menu Trigger -->
+<button class="md:hidden text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<nav class="hidden md:flex gap-6">
+<a class="text-on-surface-variant font-body-sm text-body-sm hover:text-on-surface transition-colors" href="#">Docs</a>
+<a class="text-on-surface-variant font-body-sm text-body-sm hover:text-on-surface transition-colors" href="#">Support</a>
+<a class="text-on-surface-variant font-body-sm text-body-sm hover:text-on-surface transition-colors" href="#">API</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<!-- Search -->
+<div class="relative hidden sm:block w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-DEFAULT pl-9 pr-3 py-1.5 text-body-sm font-body-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="Search commands, issues..." type="text"/>
+</div>
+<!-- Trailing Icon Actions -->
+<button class="text-on-surface-variant hover:text-on-surface scale-98 transition-transform relative">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 rounded-full bg-secondary"></span>
+</button>
+<button class="text-on-surface-variant hover:text-on-surface scale-98 transition-transform hidden sm:block">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+<button class="bg-surface-container-high border border-outline-variant text-on-surface px-3 py-1.5 rounded-DEFAULT font-body-sm text-body-sm hover:bg-surface-container-highest transition-colors">
+                    Deploy
+                </button>
+<div class="w-8 h-8 rounded-full bg-tertiary-container border border-outline-variant overflow-hidden flex items-center justify-center">
+<span class="font-bold text-on-tertiary-container text-body-sm">U</span>
+</div>
+</div>
+</header>
+<!-- Dummy Canvas Content (Behind Modal) -->
+<div class="p-6">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-6">Active Issues</h2>
+<div class="space-y-3 opacity-30">
+<!-- Skeleton rows -->
+<div class="h-16 w-full bg-surface border border-outline-variant rounded-DEFAULT"></div>
+<div class="h-16 w-full bg-surface border border-outline-variant rounded-DEFAULT"></div>
+<div class="h-16 w-full bg-surface border border-outline-variant rounded-DEFAULT"></div>
+</div>
+</div>
+</main>
+<!-- CREATE ISSUE MODAL OVERLAY -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 animate-[fadeIn_0.2s_ease-out]">
+<!-- Modal Container -->
+<div class="w-full max-w-4xl bg-surface rounded-lg border border-outline-variant shadow-2xl flex flex-col overflow-hidden animate-[slideUp_0.3s_ease-out]">
+<!-- Modal Header -->
+<div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+<h2 class="font-title-sm text-title-sm font-semibold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary">add_box</span>
+                    Create New Issue
+                </h2>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors" title="Close">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Modal Body (Form) -->
+<div class="p-6 overflow-y-auto flex-1 flex flex-col gap-6 bg-surface">
+<!-- Title Row -->
+<div>
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase tracking-wider mb-2">Title</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-DEFAULT px-4 py-2.5 font-body-md text-body-md text-on-surface placeholder-on-surface-variant/40 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="e.g., Fix authentication token refresh loop" type="text"/>
+</div>
+<!-- Rich Text Description -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase tracking-wider">Description</label>
+<!-- AI Action Hint -->
+<button class="flex items-center gap-1 text-secondary font-code-label text-[11px] hover:text-secondary-fixed transition-colors">
+<span class="material-symbols-outlined text-[14px]">temp_preferences_custom</span>
+                            Auto-generate from Title
+                        </button>
+</div>
+<div class="border border-outline-variant rounded-DEFAULT overflow-hidden flex flex-col bg-surface-container-lowest focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+<!-- Toolbar -->
+<div class="bg-surface-container border-b border-outline-variant flex items-center px-2 py-1 gap-1">
+<button class="p-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest rounded"><span class="material-symbols-outlined text-[16px]">format_bold</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest rounded"><span class="material-symbols-outlined text-[16px]">format_italic</span></button>
+<div class="w-px h-4 bg-outline-variant mx-1"></div>
+<button class="p-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest rounded"><span class="material-symbols-outlined text-[16px]">link</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest rounded"><span class="material-symbols-outlined text-[16px]">code</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest rounded"><span class="material-symbols-outlined text-[16px]">image</span></button>
+</div>
+<!-- Textarea -->
+<textarea class="w-full bg-transparent border-none p-4 h-40 font-body-sm text-body-sm text-on-surface placeholder-on-surface-variant/40 resize-y focus:ring-0" placeholder="Describe the issue, steps to reproduce, or acceptance criteria..."></textarea>
+</div>
+</div>
+<!-- Meta Data Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pt-2">
+<!-- Status -->
+<div>
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase tracking-wider mb-2">Status</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-DEFAULT pl-4 pr-10 py-2.5 font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+<option>Todo</option>
+<option>In Progress</option>
+<option>In Review</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">arrow_drop_down</span>
+</div>
+</div>
+<!-- Priority -->
+<div>
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase tracking-wider mb-2">Priority</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-DEFAULT pl-4 pr-10 py-2.5 font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+<option>Low</option>
+<option>Medium</option>
+<option>High</option>
+<option>Urgent</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">arrow_drop_down</span>
+</div>
+</div>
+<!-- Assignee -->
+<div>
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase tracking-wider mb-2">Assignee</label>
+<div class="relative">
+<div class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-outline-variant flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-[14px] text-surface">person</span>
+</div>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-DEFAULT pl-10 pr-4 py-2.5 font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="Search team..." type="text"/>
+</div>
+</div>
+<!-- Labels -->
+<div class="md:col-span-2 xl:col-span-1">
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase tracking-wider mb-2">Labels</label>
+<div class="flex flex-wrap gap-2 items-center min-h-[42px] px-3 border border-outline-variant rounded-DEFAULT bg-surface-container-lowest focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+<span class="flex items-center gap-1 bg-surface-variant text-on-surface px-2 py-0.5 rounded font-code-label text-[11px]">
+                                bug
+                                <button class="hover:text-error"><span class="material-symbols-outlined text-[12px] leading-none block">close</span></button>
+</span>
+<span class="flex items-center gap-1 bg-surface-variant text-on-surface px-2 py-0.5 rounded font-code-label text-[11px]">
+                                frontend
+                                <button class="hover:text-error"><span class="material-symbols-outlined text-[12px] leading-none block">close</span></button>
+</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm font-body-sm w-24 p-0 ml-1 placeholder-on-surface-variant/40" placeholder="Add label..." type="text"/>
+</div>
+</div>
+<!-- Due Date -->
+<div>
+<label class="block font-code-label text-code-label text-on-surface-variant uppercase tracking-wider mb-2">Due Date</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">calendar_today</span>
+<input class="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-DEFAULT pl-10 pr-4 py-2.5 font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-on-surface-variant color-scheme-dark" style="color-scheme: dark;" type="date"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-6 py-4 border-t border-outline-variant bg-surface-container-lowest flex justify-end gap-3 items-center">
+<button class="px-5 py-2 rounded-lg font-body-sm text-body-sm font-medium text-on-surface hover:bg-surface-container border border-transparent hover:border-outline-variant transition-all">
+                    Cancel
+                </button>
+<button class="px-5 py-2 rounded-lg font-body-sm text-body-sm font-medium bg-primary text-on-primary hover:bg-primary-fixed-dim transition-colors shadow-sm">
+                    Create Issue
+                </button>
+</div>
+</div>
+</div>
+<style>
+        /* Simple entry animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        /* Ensure dark mode calendar picker icon */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) hue-rotate(180deg);
+            opacity: 0.6;
+            cursor: pointer;
+        }
+    </style>
+</body></html>
