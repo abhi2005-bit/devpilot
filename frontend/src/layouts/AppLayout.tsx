@@ -1,12 +1,8 @@
-import type { ReactNode } from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "../components/layout/Sidebar";
 import Navbar from "../components/layout/Navbar";
 
-interface AppLayoutProps {
-  children: ReactNode;
-}
-
-function AppLayout({ children }: AppLayoutProps) {
+function AppLayout() {
   return (
     <div className="min-h-screen bg-background text-on-background">
       <Sidebar />
@@ -15,7 +11,7 @@ function AppLayout({ children }: AppLayoutProps) {
         <Navbar />
 
         <main className="flex-1 pt-16">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>

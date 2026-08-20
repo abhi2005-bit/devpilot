@@ -1,4 +1,4 @@
-import AppLayout from "../layouts/AppLayout";
+
 import SummaryCard from "../components/dashboard/SummaryCard";
 import AIInsights from "../components/dashboard/AIInsights";
 import ProjectHealth from "../components/dashboard/ProjectHealth";
@@ -6,7 +6,6 @@ import MyWork from "../components/dashboard/MyWork";
 
 function Dashboard() {
   return (
-    <AppLayout>
       <main className="overflow-y-auto px-margin pb-margin pt-8">
         
         {/* Summary Cards */}
@@ -61,7 +60,6 @@ function Dashboard() {
         </section>
 
       </main>
-    </AppLayout>
   );
 }
 
