@@ -14,6 +14,7 @@ function ProjectOverview() {
     return (
       <main className="flex min-h-full items-center justify-center px-margin py-margin">
         <div className="text-center">
+
           <span className="material-symbols-outlined text-5xl text-on-surface-variant">
             folder_off
           </span>
@@ -36,6 +37,7 @@ function ProjectOverview() {
 
             Back to Projects
           </Link>
+
         </div>
       </main>
     );
@@ -49,19 +51,21 @@ function ProjectOverview() {
       icon: "dashboard",
     },
     {
+      label: "Board",
+      path: `/projects/${project.id}/board`,
+      icon: "view_kanban",
+      disabled: true,
+    },
+    {
       label: "Issues",
       path: `/projects/${project.id}/issues`,
       icon: "bug_report",
     },
     {
-      label: "Board",
-      path: `/projects/${project.id}/board`,
-      icon: "view_kanban",
-    },
-    {
       label: "Documents",
       path: `/projects/${project.id}/documents`,
       icon: "description",
+      disabled: true,
     },
     {
       label: "Analytics",
@@ -74,6 +78,12 @@ function ProjectOverview() {
       icon: "auto_awesome",
     },
     {
+      label: "Activity",
+      path: `/projects/${project.id}/activity`,
+      icon: "history",
+      disabled: true,
+    },
+    {
       label: "Members",
       path: `/projects/${project.id}/members`,
       icon: "group",
@@ -82,14 +92,28 @@ function ProjectOverview() {
       label: "Settings",
       path: `/projects/${project.id}/settings`,
       icon: "settings",
+      disabled: true,
     },
   ];
 
+  const riskStyles =
+    project.risk === "HIGH"
+      ? "bg-error-container text-error"
+      : project.risk === "MEDIUM"
+        ? "bg-tertiary-container text-tertiary"
+        : "bg-secondary-container text-secondary";
+
   return (
-    <main className="overflow-y-auto">
-      {/* Project Header */}
+    <main className="w-full overflow-y-auto">
+
+      {/* ====================================================== */}
+      {/* PROJECT HEADER */}
+      {/* ====================================================== */}
+
       <section className="border-b border-outline-variant bg-surface-container">
+
         <div className="px-margin pb-lg pt-lg">
+
           {/* Back */}
           <Link
             to="/projects"
@@ -102,34 +126,74 @@ function ProjectOverview() {
             Projects
           </Link>
 
-          {/* Project information */}
-          <div className="flex flex-col gap-lg lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-md">
-                <h1 className="text-display-md font-bold text-on-surface">
-                  {project.name}
-                </h1>
+          {/* Main Header */}
+          <div className="flex flex-col gap-lg xl:flex-row xl:items-start xl:justify-between">
 
+            {/* Project Identity */}
+            <div className="min-w-0">
+
+              <div className="flex flex-wrap items-center gap-sm">
+
+                {/* Project Icon */}
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-container">
+                  <span className="material-symbols-outlined text-2xl text-primary">
+                    folder_open
+                  </span>
+                </div>
+
+                <div className="min-w-0">
+
+                  {/* Project ID */}
+                  <p className="text-caption font-medium uppercase tracking-wide text-on-surface-variant">
+                    Project / {project.id}
+                  </p>
+
+                  {/* Project Name */}
+                  <h1 className="mt-xs break-words text-display-md font-bold text-on-surface">
+                    {project.name}
+                  </h1>
+
+                </div>
+
+                {/* Health */}
+                <span className="inline-flex items-center gap-xs rounded-full bg-secondary-container px-sm py-xs text-caption font-semibold text-secondary">
+                  <span className="h-2 w-2 rounded-full bg-secondary" />
+                  HEALTHY
+                </span>
+
+                {/* Risk */}
                 <span
-                  className={`rounded-full px-sm py-xs text-caption font-semibold ${
-                    project.risk === "HIGH"
-                      ? "bg-error-container text-on-error"
-                      : project.risk === "MEDIUM"
-                        ? "bg-tertiary-container text-on-tertiary"
-                        : "bg-secondary-container text-on-secondary"
-                  }`}
+                  className={`inline-flex items-center gap-xs rounded-full px-sm py-xs text-caption font-semibold ${riskStyles}`}
                 >
+                  <span className="material-symbols-outlined text-[15px]">
+                    warning
+                  </span>
+
                   {project.risk} RISK
                 </span>
+
               </div>
 
-              <p className="mt-sm max-w-3xl text-body-md text-on-surface-variant">
+              {/* Description */}
+              <p className="mt-md max-w-4xl text-body-md leading-7 text-on-surface-variant">
                 {project.description}
               </p>
+
             </div>
 
-            {/* Project actions */}
-            <div className="flex shrink-0 gap-sm">
+            {/* Actions */}
+            <div className="flex shrink-0 items-center gap-sm">
+
+              <button
+                type="button"
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-outline-variant bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
+                aria-label="More project options"
+              >
+                <span className="material-symbols-outlined">
+                  more_vert
+                </span>
+              </button>
+
               <Link
                 to="/projects"
                 className="flex items-center gap-sm rounded-lg border border-outline-variant bg-surface-container-high px-md py-sm text-body-sm font-medium text-on-surface transition-colors hover:bg-surface-container-highest"
@@ -138,117 +202,190 @@ function ProjectOverview() {
                   edit
                 </span>
 
-                Edit
+                Edit Details
               </Link>
 
-              <Link
-                to={`/projects/${project.id}/issues`}
-                className="flex items-center gap-sm rounded-lg bg-primary px-md py-sm text-body-sm font-bold text-on-primary transition-colors hover:bg-primary-container"
-              >
-                <span className="material-symbols-outlined text-body-md">
-                  add
-                </span>
-
-                Create Issue
-              </Link>
             </div>
+
           </div>
 
-          {/* Project Metrics */}
-          <div className="mt-xl grid grid-cols-1 gap-md sm:grid-cols-3">
+          {/* ================================================== */}
+          {/* PROJECT SIGNALS */}
+          {/* ================================================== */}
+
+          <div className="mt-xl grid grid-cols-2 gap-md md:grid-cols-4">
+
             {/* Progress */}
             <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
-              <div className="mb-sm flex items-center justify-between">
-                <span className="text-caption text-on-surface-variant">
+
+              <div className="flex items-center justify-between gap-sm">
+
+                <p className="text-caption text-on-surface-variant">
                   Progress
+                </p>
+
+                <span className="material-symbols-outlined text-primary">
+                  trending_up
                 </span>
 
-                <span className="text-body-md font-bold text-on-surface">
-                  {project.progress}%
-                </span>
               </div>
 
-              <div className="h-2 overflow-hidden rounded-full bg-surface-container-highest">
+              <p className="mt-sm text-title-lg font-bold text-on-surface">
+                {project.progress}%
+              </p>
+
+              <div className="mt-sm h-2 overflow-hidden rounded-full bg-surface-container-highest">
                 <div
-                  className="h-full rounded-full bg-primary"
+                  className="h-full rounded-full bg-primary transition-all"
                   style={{
                     width: `${project.progress}%`,
                   }}
                 />
               </div>
+
             </div>
 
-            {/* Issues */}
+            {/* Open Issues */}
             <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-caption text-on-surface-variant">
-                    Open Issues
-                  </p>
 
-                  <p className="mt-xs text-title-lg font-bold text-on-surface">
-                    {project.openIssues}
-                  </p>
-                </div>
+              <div className="flex items-center justify-between gap-sm">
+
+                <p className="text-caption text-on-surface-variant">
+                  Open Issues
+                </p>
 
                 <span className="material-symbols-outlined text-error">
                   bug_report
                 </span>
+
               </div>
+
+              <p className="mt-sm text-title-lg font-bold text-on-surface">
+                {project.openIssues}
+              </p>
+
+              <p className="mt-xs text-caption text-on-surface-variant">
+                Requires attention
+              </p>
+
             </div>
 
-            {/* PRs */}
+            {/* Pending PRs */}
             <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-caption text-on-surface-variant">
-                    PRs Pending
-                  </p>
 
-                  <p className="mt-xs text-title-lg font-bold text-on-surface">
-                    {project.prsPending}
-                  </p>
-                </div>
+              <div className="flex items-center justify-between gap-sm">
+
+                <p className="text-caption text-on-surface-variant">
+                  PRs Pending
+                </p>
 
                 <span className="material-symbols-outlined text-secondary">
                   merge
                 </span>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Navigation Tabs */}
-        <div className="overflow-x-auto">
-          <nav className="flex min-w-max px-margin">
-            {tabs.map((tab) => (
-              <NavLink
-                key={tab.label}
-                to={tab.path}
-                end={tab.end}
-                className={({ isActive }) =>
-                  `flex items-center gap-sm border-b-2 px-md py-md text-body-sm font-medium transition-colors ${
-                    isActive
-                      ? "border-primary text-primary"
-                      : "border-transparent text-on-surface-variant hover:border-outline hover:text-on-surface"
-                  }`
-                }
-              >
-                <span className="material-symbols-outlined text-body-md">
-                  {tab.icon}
+              </div>
+
+              <p className="mt-sm text-title-lg font-bold text-on-surface">
+                {project.prsPending}
+              </p>
+
+              <p className="mt-xs text-caption text-on-surface-variant">
+                Awaiting review
+              </p>
+
+            </div>
+
+            {/* Team */}
+            <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
+
+              <div className="flex items-center justify-between gap-sm">
+
+                <p className="text-caption text-on-surface-variant">
+                  Team Members
+                </p>
+
+                <span className="material-symbols-outlined text-secondary">
+                  group
                 </span>
 
-                {tab.label}
-              </NavLink>
-            ))}
-          </nav>
+              </div>
+
+              <p className="mt-sm text-title-lg font-bold text-on-surface">
+                {project.members.length}
+              </p>
+
+              <p className="mt-xs text-caption text-on-surface-variant">
+                Active contributors
+              </p>
+
+            </div>
+
+          </div>
+
         </div>
+
+        {/* ==================================================== */}
+        {/* PROJECT NAVIGATION */}
+        {/* ==================================================== */}
+
+        <div className="overflow-x-auto border-t border-outline-variant">
+
+          <nav className="flex min-w-max px-margin">
+
+            {tabs.map((tab) => {
+
+              if (tab.disabled) {
+                return (
+                  <span
+                    key={tab.label}
+                    className="flex cursor-not-allowed items-center gap-sm border-b-2 border-transparent px-md py-md text-body-sm font-medium text-on-surface-variant/50"
+                    title={`${tab.label} is coming soon`}
+                  >
+                    <span className="material-symbols-outlined text-body-md">
+                      {tab.icon}
+                    </span>
+
+                    {tab.label}
+                  </span>
+                );
+              }
+
+              return (
+                <NavLink
+                  key={tab.label}
+                  to={tab.path}
+                  end={tab.end}
+                  className={({ isActive }) =>
+                    `flex items-center gap-sm border-b-2 px-md py-md text-body-sm font-medium transition-colors ${
+                      isActive
+                        ? "border-primary text-primary"
+                        : "border-transparent text-on-surface-variant hover:border-outline hover:text-on-surface"
+                    }`
+                  }
+                >
+                  <span className="material-symbols-outlined text-body-md">
+                    {tab.icon}
+                  </span>
+
+                  {tab.label}
+                </NavLink>
+              );
+            })}
+
+          </nav>
+
+        </div>
+
       </section>
 
-      {/* Nested Route Content */}
-      <section className="px-margin py-lg">
+      {/* ====================================================== */}
+      {/* NESTED PAGE CONTENT */}
+      {/* ====================================================== */}
+
+      <section className="w-full px-margin py-lg">
         <Outlet />
       </section>
+
     </main>
   );
 }
