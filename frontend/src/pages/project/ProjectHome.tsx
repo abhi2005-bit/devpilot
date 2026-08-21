@@ -1,15 +1,33 @@
 import { useParams } from "react-router-dom";
-import { projects } from "../../data/projects";
+import { projectService } from "../../services/projectService";
 
 function ProjectHome() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const { projectId } = useParams<{
+    projectId: string;
+  }>();
 
-  const project = projects.find(
-    (item) => item.id === projectId,
-  );
+  const project = projectId
+    ? projectService.getById(projectId)
+    : undefined;
 
   if (!project) {
-    return null;
+    return (
+      <div className="flex min-h-64 items-center justify-center rounded-xl border border-outline-variant bg-surface-container">
+        <div className="text-center">
+          <span className="material-symbols-outlined text-5xl text-on-surface-variant">
+            folder_off
+          </span>
+
+          <h2 className="mt-md text-title-sm font-semibold text-on-surface">
+            Project not found
+          </h2>
+
+          <p className="mt-xs text-body-sm text-on-surface-variant">
+            This project could not be loaded.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -230,9 +248,17 @@ function ProjectHome() {
                   {member.name.charAt(0).toUpperCase()}
                 </div>
 
-                <span className="text-body-sm font-medium text-on-surface">
-                  {member.name}
-                </span>
+                <div>
+                  <span className="block text-body-sm font-medium text-on-surface">
+                    {member.name}
+                  </span>
+
+                  {member.role && (
+                    <span className="block text-caption text-on-surface-variant">
+                      {member.role}
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

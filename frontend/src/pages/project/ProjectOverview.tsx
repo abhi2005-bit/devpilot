@@ -1,12 +1,14 @@
 import { Link, NavLink, Outlet, useParams } from "react-router-dom";
-import { projects } from "../../data/projects";
+import { projectService } from "../../services/projectService";
 
 function ProjectOverview() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const { projectId } = useParams<{
+    projectId: string;
+  }>();
 
-  const project = projects.find(
-    (item) => item.id === projectId,
-  );
+  const project = projectId
+    ? projectService.getById(projectId)
+    : undefined;
 
   if (!project) {
     return (
@@ -128,8 +130,8 @@ function ProjectOverview() {
 
             {/* Project actions */}
             <div className="flex shrink-0 gap-sm">
-              <button
-                type="button"
+              <Link
+                to="/projects"
                 className="flex items-center gap-sm rounded-lg border border-outline-variant bg-surface-container-high px-md py-sm text-body-sm font-medium text-on-surface transition-colors hover:bg-surface-container-highest"
               >
                 <span className="material-symbols-outlined text-body-md">
@@ -137,10 +139,10 @@ function ProjectOverview() {
                 </span>
 
                 Edit
-              </button>
+              </Link>
 
-              <button
-                type="button"
+              <Link
+                to={`/projects/${project.id}/issues`}
                 className="flex items-center gap-sm rounded-lg bg-primary px-md py-sm text-body-sm font-bold text-on-primary transition-colors hover:bg-primary-container"
               >
                 <span className="material-symbols-outlined text-body-md">
@@ -148,7 +150,7 @@ function ProjectOverview() {
                 </span>
 
                 Create Issue
-              </button>
+              </Link>
             </div>
           </div>
 

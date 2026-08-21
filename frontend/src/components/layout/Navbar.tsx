@@ -2,13 +2,11 @@ import { NavLink } from "react-router-dom";
 
 function Navbar() {
   return (
-    <header className="fixed top-0 right-0 z-40 flex h-16 w-[calc(100%-16rem)] items-center justify-between border-b border-outline-variant bg-surface px-lg">
-      
+    <header className="relative z-40 flex h-16 shrink-0 w-full items-center justify-between border-b border-outline-variant bg-surface px-lg">
       {/* Left side */}
-      <div className="flex items-center space-x-sm">
-
+      <div className="flex min-w-0 items-center space-x-sm">
         {/* Search */}
-        <div className="relative flex items-center rounded-lg border border-transparent bg-surface-container-highest px-sm py-[6px] transition-all focus-within:border-primary">
+        <div className="relative flex shrink-0 items-center rounded-lg border border-transparent bg-surface-container-highest px-sm py-[6px] transition-all focus-within:border-primary">
           <span className="material-symbols-outlined mr-xs text-[18px] text-on-surface-variant">
             search
           </span>
@@ -21,7 +19,7 @@ function Navbar() {
         </div>
 
         {/* Breadcrumb */}
-        <div className="ml-md flex items-center space-x-xs font-body-sm text-body-sm text-on-surface-variant">
+        <div className="ml-md flex min-w-0 items-center space-x-xs font-body-sm text-body-sm text-on-surface-variant">
           <NavLink
             to="/dashboard"
             className="font-bold text-primary hover:underline"
@@ -31,13 +29,12 @@ function Navbar() {
 
           <span>/</span>
 
-          <span>Abhijit</span>
+          <span className="truncate">Abhijit</span>
         </div>
       </div>
 
       {/* Right side */}
-      <div className="flex items-center space-x-md">
-
+      <div className="flex shrink-0 items-center space-x-md">
         {/* Notifications */}
         <button
           type="button"

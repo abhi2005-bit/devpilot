@@ -45,10 +45,11 @@ const navigationItems = [
 
 function Sidebar() {
   return (
-    <aside className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-outline-variant bg-surface-container px-md py-lg">
-      
+    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-outline-variant bg-surface-container px-md py-lg">
+
       {/* Logo */}
       <div className="mb-xl flex items-center justify-between">
+
         <div>
           <h1 className="font-headline-md text-headline-md font-bold text-primary">
             DevPilot
@@ -60,14 +61,21 @@ function Sidebar() {
         </div>
 
         <div className="h-8 w-8 rounded-full bg-surface-container-highest" />
+
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-sm">
+      <nav className="flex-1 space-y-sm overflow-y-auto">
+
         {navigationItems.map((item) => (
+
           <NavLink
             key={item.path}
             to={item.path}
+            end={
+              item.path === "/dashboard" ||
+              item.path === "/projects"
+            }
             className={({ isActive }) =>
               `flex items-center space-x-md rounded-DEFAULT p-sm transition-colors duration-200 ${
                 isActive
@@ -76,6 +84,7 @@ function Sidebar() {
               }`
             }
           >
+
             <span className="material-symbols-outlined font-body-md text-body-md">
               {item.icon}
             </span>
@@ -83,14 +92,21 @@ function Sidebar() {
             <span className="font-body-md text-body-md">
               {item.label}
             </span>
+
           </NavLink>
+
         ))}
+
       </nav>
 
       {/* New Project */}
-      <button className="mt-auto w-full rounded-lg bg-primary py-sm font-body-md font-bold text-on-primary transition-colors hover:bg-primary-container">
+      <button
+        type="button"
+        className="mt-auto w-full shrink-0 rounded-lg bg-primary py-sm font-body-md font-bold text-on-primary transition-colors hover:bg-primary-container"
+      >
         New Project
       </button>
+
     </aside>
   );
 }

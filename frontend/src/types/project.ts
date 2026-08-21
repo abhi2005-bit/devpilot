@@ -1,9 +1,17 @@
 export type ProjectRisk = "HIGH" | "MEDIUM" | "LOW";
 
+export type ProjectMemberRole =
+  | "OWNER"
+  | "ENGINEER"
+  | "DESIGNER"
+  | "PRODUCT"
+  | "QA";
+
 export interface ProjectMember {
   id: string;
   name: string;
   avatar?: string;
+  role?: ProjectMemberRole;
 }
 
 export interface Project {

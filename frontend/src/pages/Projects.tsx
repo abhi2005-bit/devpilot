@@ -3,7 +3,7 @@ import Modal from "../components/common/Modal";
 import CreateProjectForm from "../components/projects/CreateProjectForm";
 import EditProjectForm from "../components/projects/EditProjectForm";
 import ProjectCard from "../components/projects/ProjectCard";
-import { projects } from "../data/projects";
+import { projectService } from "../services/projectService";
 import type { Project, ProjectRisk } from "../types/project";
 
 type FilterOption = "ALL" | ProjectRisk;
@@ -16,7 +16,9 @@ type SortOption =
   | "ISSUES_LOW";
 
 function Projects() {
-  const [projectList, setProjectList] = useState<Project[]>(projects);
+  const [projectList, setProjectList] = useState<Project[]>(() =>
+    projectService.getAll(),
+  );
 
   const [filter, setFilter] = useState<FilterOption>("ALL");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -70,19 +72,23 @@ function Projects() {
   };
 
   const handleCreateProject = (newProject: Project) => {
+    const createdProject = projectService.create(newProject);
+
     setProjectList((currentProjects) => [
       ...currentProjects,
-      newProject,
+      createdProject,
     ]);
 
     setIsCreateModalOpen(false);
   };
 
   const handleEditProject = (updatedProject: Project) => {
+    const savedProject = projectService.update(updatedProject);
+
     setProjectList((currentProjects) =>
       currentProjects.map((project) =>
-        project.id === updatedProject.id
-          ? updatedProject
+        project.id === savedProject.id
+          ? savedProject
           : project,
       ),
     );
@@ -94,6 +100,8 @@ function Projects() {
     if (!deletingProject) {
       return;
     }
+
+    projectService.delete(deletingProject.id);
 
     setProjectList((currentProjects) =>
       currentProjects.filter(
@@ -144,10 +152,22 @@ function Projects() {
             {isFilterOpen && (
               <div className="absolute right-0 z-30 mt-sm w-48 rounded-lg border border-outline-variant bg-surface-container p-sm shadow-xl">
                 {[
-                  { label: "All Projects", value: "ALL" },
-                  { label: "High Risk", value: "HIGH" },
-                  { label: "Medium Risk", value: "MEDIUM" },
-                  { label: "Low Risk", value: "LOW" },
+                  {
+                    label: "All Projects",
+                    value: "ALL",
+                  },
+                  {
+                    label: "High Risk",
+                    value: "HIGH",
+                  },
+                  {
+                    label: "Medium Risk",
+                    value: "MEDIUM",
+                  },
+                  {
+                    label: "Low Risk",
+                    value: "LOW",
+                  },
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -345,8 +365,8 @@ function Projects() {
               </h2>
 
               <p className="mt-sm text-body-sm leading-6 text-on-surface-variant">
-                This will remove the project from your current
-                project list. This action cannot be undone.
+                This will permanently remove the project from
+                your current project list.
               </p>
             </div>
 

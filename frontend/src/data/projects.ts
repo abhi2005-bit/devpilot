@@ -1,4 +1,17 @@
-import type { Project } from "../types/project";
+import type {
+  Project,
+  ProjectMemberRole,
+} from "../types/project";
+
+const member = (
+  id: string,
+  name: string,
+  role: ProjectMemberRole,
+) => ({
+  id,
+  name,
+  role,
+});
 
 export const projects: Project[] = [
   {
@@ -11,10 +24,10 @@ export const projects: Project[] = [
     openIssues: 12,
     prsPending: 4,
     members: [
-      { id: "1", name: "Alex" },
-      { id: "2", name: "Sarah" },
-      { id: "3", name: "Mike" },
-      { id: "4", name: "John" },
+      member("1", "Alex", "OWNER"),
+      member("2", "Sarah", "ENGINEER"),
+      member("3", "Mike", "ENGINEER"),
+      member("4", "John", "QA"),
     ],
     aiInsight:
       "Deployment risk increased due to unresolved checkout issues.",
@@ -29,9 +42,9 @@ export const projects: Project[] = [
     openIssues: 5,
     prsPending: 2,
     members: [
-      { id: "5", name: "Emma" },
-      { id: "6", name: "David" },
-      { id: "7", name: "Ryan" },
+      member("5", "Emma", "OWNER"),
+      member("6", "David", "ENGINEER"),
+      member("7", "Ryan", "QA"),
     ],
     aiInsight:
       "Project is progressing well with a small number of remaining issues.",
@@ -46,8 +59,8 @@ export const projects: Project[] = [
     openIssues: 2,
     prsPending: 1,
     members: [
-      { id: "8", name: "Daniel" },
-      { id: "9", name: "Lisa" },
+      member("8", "Daniel", "OWNER"),
+      member("9", "Lisa", "ENGINEER"),
     ],
     aiInsight:
       "Project is on track and approaching completion.",
