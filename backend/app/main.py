@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.routes.projects import router as projects_router
+
 
 app = FastAPI(
     title="DevPilot API",
@@ -9,9 +11,9 @@ app = FastAPI(
 )
 
 
-# ---------------------------------------------------------
+
 # CORS
-# ---------------------------------------------------------
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,9 +27,19 @@ app.add_middleware(
 )
 
 
-# ---------------------------------------------------------
+
+# API Routes
+
+
+app.include_router(
+    projects_router,
+    prefix="/api/v1",
+)
+
+
+
 # Health
-# ---------------------------------------------------------
+
 
 @app.get("/health")
 def health_check():
@@ -38,9 +50,9 @@ def health_check():
     }
 
 
-# ---------------------------------------------------------
+
 # Root
-# ---------------------------------------------------------
+
 
 @app.get("/")
 def root():
