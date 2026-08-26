@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
+from app.db.database import get_db
 from app.schemas.project import (
     Project,
     ProjectCreate,
@@ -20,29 +22,28 @@ router = APIRouter(
 )
 
 
-
-# GET /projects
-
-
 @router.get(
     "",
     response_model=list[Project],
 )
-def list_projects():
-    return get_projects()
-
-
-
-# GET /projects/{project_id}
+def list_projects(
+    db: Session = Depends(get_db),
+):
+    return get_projects(db)
 
 
 @router.get(
     "/{project_id}",
     response_model=Project,
 )
-def read_project(project_id: str):
-
-    project = get_project(project_id)
+def read_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+):
+    project = get_project(
+        db,
+        project_id,
+    )
 
     if project is None:
         raise HTTPException(
@@ -53,22 +54,19 @@ def read_project(project_id: str):
     return project
 
 
-
-# POST /projects
-
-
 @router.post(
     "",
     response_model=Project,
     status_code=status.HTTP_201_CREATED,
 )
-def create_new_project(data: ProjectCreate):
-
-    return create_project(data)
-
-
-
-# PUT /projects/{project_id}
+def create_new_project(
+    data: ProjectCreate,
+    db: Session = Depends(get_db),
+):
+    return create_project(
+        db,
+        data,
+    )
 
 
 @router.put(
@@ -78,9 +76,10 @@ def create_new_project(data: ProjectCreate):
 def update_existing_project(
     project_id: str,
     data: ProjectUpdate,
+    db: Session = Depends(get_db),
 ):
-
     project = update_project(
+        db,
         project_id,
         data,
     )
@@ -94,19 +93,18 @@ def update_existing_project(
     return project
 
 
-
-# DELETE /projects/{project_id}
-
-
 @router.delete(
     "/{project_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_existing_project(
     project_id: str,
+    db: Session = Depends(get_db),
 ):
-
-    deleted = delete_project(project_id)
+    deleted = delete_project(
+        db,
+        project_id,
+    )
 
     if not deleted:
         raise HTTPException(
