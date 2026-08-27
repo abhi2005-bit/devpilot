@@ -5,14 +5,26 @@ if TYPE_CHECKING:
     from app.models.issue import Issue
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Text,text
+from sqlalchemy import DateTime, ForeignKey, String, Text, Table, Column, Integer, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 
+project_members = Table(
+    "project_members",
+    Base.metadata,
+    Column("project_id", Integer, ForeignKey("projects.id"), primary_key=True),
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+)
+
 
 class Project(Base):
     __tablename__ = "projects"
+
+    members: Mapped[list["User"]] = relationship(
+    "User",
+    secondary=project_members,
+    )
 
     id: Mapped[int] = mapped_column(
         primary_key=True,
