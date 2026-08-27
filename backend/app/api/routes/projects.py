@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -7,13 +7,7 @@ from app.schemas.project import (
     ProjectCreate,
     ProjectUpdate,
 )
-from app.services.project_service import (
-    get_projects,
-    get_project,
-    create_project,
-    update_project,
-    delete_project,
-)
+from app.services.project_service import project_service
 
 
 router = APIRouter(
@@ -29,7 +23,7 @@ router = APIRouter(
 def list_projects(
     db: Session = Depends(get_db),
 ):
-    return get_projects(db)
+    return project_service.get_projects(db)
 
 
 @router.get(
@@ -40,30 +34,22 @@ def read_project(
     project_id: str,
     db: Session = Depends(get_db),
 ):
-    project = get_project(
+    return project_service.get_project(
         db,
         project_id,
     )
-
-    if project is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found",
-        )
-
-    return project
 
 
 @router.post(
     "",
     response_model=Project,
-    status_code=status.HTTP_201_CREATED,
+    status_code=201,
 )
 def create_new_project(
     data: ProjectCreate,
     db: Session = Depends(get_db),
 ):
-    return create_project(
+    return project_service.create_project(
         db,
         data,
     )
@@ -78,38 +64,24 @@ def update_existing_project(
     data: ProjectUpdate,
     db: Session = Depends(get_db),
 ):
-    project = update_project(
+    return project_service.update_project(
         db,
         project_id,
         data,
     )
 
-    if project is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found",
-        )
-
-    return project
-
 
 @router.delete(
     "/{project_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=204,
 )
 def delete_existing_project(
     project_id: str,
     db: Session = Depends(get_db),
 ):
-    deleted = delete_project(
+    project_service.delete_project(
         db,
         project_id,
     )
-
-    if not deleted:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found",
-        )
 
     return None
