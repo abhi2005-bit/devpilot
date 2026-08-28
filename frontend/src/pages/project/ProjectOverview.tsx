@@ -1,20 +1,81 @@
-import { Link, NavLink, Outlet, useParams } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useParams,
+} from "react-router-dom";
+import { useEffect, useState } from "react";
+
 import { projectService } from "../../services/projectService";
+import type { Project } from "../../types/project";
 
 function ProjectOverview() {
   const { projectId } = useParams<{
     projectId: string;
   }>();
 
-  const project = projectId
-    ? projectService.getById(projectId)
-    : undefined;
+  const [project, setProject] =
+    useState<Project | undefined>();
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProject() {
+      if (!projectId) {
+        setProject(undefined);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        const loadedProject =
+          await projectService.getById(projectId);
+
+        if (!cancelled) {
+          setProject(loadedProject);
+        }
+      } catch {
+        if (!cancelled) {
+          setProject(undefined);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProject();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  if (isLoading) {
+    return (
+      <main className="flex min-h-full items-center justify-center px-margin py-margin">
+        <div className="text-center">
+          <span className="material-symbols-outlined animate-spin text-5xl text-primary">
+            progress_activity
+          </span>
+
+          <p className="mt-md text-body-md text-on-surface-variant">
+            Loading project...
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   if (!project) {
     return (
       <main className="flex min-h-full items-center justify-center px-margin py-margin">
         <div className="text-center">
-
           <span className="material-symbols-outlined text-5xl text-on-surface-variant">
             folder_off
           </span>
@@ -37,7 +98,6 @@ function ProjectOverview() {
 
             Back to Projects
           </Link>
-
         </div>
       </main>
     );
@@ -51,21 +111,19 @@ function ProjectOverview() {
       icon: "dashboard",
     },
     {
-      label: "Board",
-      path: `/projects/${project.id}/board`,
-      icon: "view_kanban",
-      disabled: true,
-    },
-    {
       label: "Issues",
       path: `/projects/${project.id}/issues`,
       icon: "bug_report",
     },
     {
+      label: "Board",
+      path: `/projects/${project.id}/board`,
+      icon: "view_kanban",
+    },
+    {
       label: "Documents",
       path: `/projects/${project.id}/documents`,
       icon: "description",
-      disabled: true,
     },
     {
       label: "Analytics",
@@ -78,12 +136,6 @@ function ProjectOverview() {
       icon: "auto_awesome",
     },
     {
-      label: "Activity",
-      path: `/projects/${project.id}/activity`,
-      icon: "history",
-      disabled: true,
-    },
-    {
       label: "Members",
       path: `/projects/${project.id}/members`,
       icon: "group",
@@ -92,29 +144,18 @@ function ProjectOverview() {
       label: "Settings",
       path: `/projects/${project.id}/settings`,
       icon: "settings",
-      disabled: true,
     },
   ];
 
-  const riskStyles =
-    project.risk === "HIGH"
-      ? "bg-error-container text-error"
-      : project.risk === "MEDIUM"
-        ? "bg-tertiary-container text-tertiary"
-        : "bg-secondary-container text-secondary";
-
   return (
-    <main className="w-full overflow-y-auto">
-
-      {/* ====================================================== */}
-      {/* PROJECT HEADER */}
-      {/* ====================================================== */}
+    <main className="overflow-y-auto">
+      {/* Project Header */}
 
       <section className="border-b border-outline-variant bg-surface-container">
-
         <div className="px-margin pb-lg pt-lg">
 
           {/* Back */}
+
           <Link
             to="/projects"
             className="mb-lg inline-flex items-center gap-xs text-body-sm text-on-surface-variant transition-colors hover:text-primary"
@@ -126,73 +167,41 @@ function ProjectOverview() {
             Projects
           </Link>
 
-          {/* Main Header */}
-          <div className="flex flex-col gap-lg xl:flex-row xl:items-start xl:justify-between">
+          {/* Project information */}
 
-            {/* Project Identity */}
+          <div className="flex flex-col gap-lg lg:flex-row lg:items-start lg:justify-between">
+
             <div className="min-w-0">
 
-              <div className="flex flex-wrap items-center gap-sm">
+              <div className="flex flex-wrap items-center gap-md">
 
-                {/* Project Icon */}
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-container">
-                  <span className="material-symbols-outlined text-2xl text-primary">
-                    folder_open
-                  </span>
-                </div>
+                <h1 className="text-display-md font-bold text-on-surface">
+                  {project.name}
+                </h1>
 
-                <div className="min-w-0">
-
-                  {/* Project ID */}
-                  <p className="text-caption font-medium uppercase tracking-wide text-on-surface-variant">
-                    Project / {project.id}
-                  </p>
-
-                  {/* Project Name */}
-                  <h1 className="mt-xs break-words text-display-md font-bold text-on-surface">
-                    {project.name}
-                  </h1>
-
-                </div>
-
-                {/* Health */}
-                <span className="inline-flex items-center gap-xs rounded-full bg-secondary-container px-sm py-xs text-caption font-semibold text-secondary">
-                  <span className="h-2 w-2 rounded-full bg-secondary" />
-                  HEALTHY
-                </span>
-
-                {/* Risk */}
                 <span
-                  className={`inline-flex items-center gap-xs rounded-full px-sm py-xs text-caption font-semibold ${riskStyles}`}
+                  className={`rounded-full px-sm py-xs text-caption font-semibold ${
+                    project.risk === "HIGH"
+                      ? "bg-error-container text-on-error"
+                      : project.risk === "MEDIUM"
+                        ? "bg-tertiary-container text-on-tertiary"
+                        : "bg-secondary-container text-on-secondary"
+                  }`}
                 >
-                  <span className="material-symbols-outlined text-[15px]">
-                    warning
-                  </span>
-
                   {project.risk} RISK
                 </span>
 
               </div>
 
-              {/* Description */}
-              <p className="mt-md max-w-4xl text-body-md leading-7 text-on-surface-variant">
+              <p className="mt-sm max-w-3xl text-body-md text-on-surface-variant">
                 {project.description}
               </p>
 
             </div>
 
-            {/* Actions */}
-            <div className="flex shrink-0 items-center gap-sm">
+            {/* Project actions */}
 
-              <button
-                type="button"
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-outline-variant bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
-                aria-label="More project options"
-              >
-                <span className="material-symbols-outlined">
-                  more_vert
-                </span>
-              </button>
+            <div className="flex shrink-0 gap-sm">
 
               <Link
                 to="/projects"
@@ -202,57 +211,74 @@ function ProjectOverview() {
                   edit
                 </span>
 
-                Edit Details
+                Edit
+              </Link>
+
+              <Link
+                to={`/projects/${project.id}/issues`}
+                className="flex items-center gap-sm rounded-lg bg-primary px-md py-sm text-body-sm font-bold text-on-primary transition-colors hover:bg-primary-container"
+              >
+                <span className="material-symbols-outlined text-body-md">
+                  add
+                </span>
+
+                Create Issue
               </Link>
 
             </div>
 
           </div>
 
-          {/* ================================================== */}
-          {/* PROJECT SIGNALS */}
-          {/* ================================================== */}
+          {/* Project Metrics */}
 
-          <div className="mt-xl grid grid-cols-2 gap-md md:grid-cols-4">
+          <div className="mt-xl grid grid-cols-1 gap-md sm:grid-cols-3">
 
             {/* Progress */}
+
             <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
 
-              <div className="flex items-center justify-between gap-sm">
+              <div className="mb-sm flex items-center justify-between">
 
-                <p className="text-caption text-on-surface-variant">
+                <span className="text-caption text-on-surface-variant">
                   Progress
-                </p>
+                </span>
 
-                <span className="material-symbols-outlined text-primary">
-                  trending_up
+                <span className="text-body-md font-bold text-on-surface">
+                  {project.progress}%
                 </span>
 
               </div>
 
-              <p className="mt-sm text-title-lg font-bold text-on-surface">
-                {project.progress}%
-              </p>
+              <div className="h-2 overflow-hidden rounded-full bg-surface-container-highest">
 
-              <div className="mt-sm h-2 overflow-hidden rounded-full bg-surface-container-highest">
                 <div
-                  className="h-full rounded-full bg-primary transition-all"
+                  className="h-full rounded-full bg-primary"
                   style={{
                     width: `${project.progress}%`,
                   }}
                 />
+
               </div>
 
             </div>
 
-            {/* Open Issues */}
+            {/* Issues */}
+
             <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
 
-              <div className="flex items-center justify-between gap-sm">
+              <div className="flex items-center justify-between">
 
-                <p className="text-caption text-on-surface-variant">
-                  Open Issues
-                </p>
+                <div>
+
+                  <p className="text-caption text-on-surface-variant">
+                    Open Issues
+                  </p>
+
+                  <p className="mt-xs text-title-lg font-bold text-on-surface">
+                    {project.openIssues}
+                  </p>
+
+                </div>
 
                 <span className="material-symbols-outlined text-error">
                   bug_report
@@ -260,24 +286,25 @@ function ProjectOverview() {
 
               </div>
 
-              <p className="mt-sm text-title-lg font-bold text-on-surface">
-                {project.openIssues}
-              </p>
-
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Requires attention
-              </p>
-
             </div>
 
-            {/* Pending PRs */}
+            {/* PRs */}
+
             <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
 
-              <div className="flex items-center justify-between gap-sm">
+              <div className="flex items-center justify-between">
 
-                <p className="text-caption text-on-surface-variant">
-                  PRs Pending
-                </p>
+                <div>
+
+                  <p className="text-caption text-on-surface-variant">
+                    PRs Pending
+                  </p>
+
+                  <p className="mt-xs text-title-lg font-bold text-on-surface">
+                    {project.prsPending}
+                  </p>
+
+                </div>
 
                 <span className="material-symbols-outlined text-secondary">
                   merge
@@ -285,92 +312,42 @@ function ProjectOverview() {
 
               </div>
 
-              <p className="mt-sm text-title-lg font-bold text-on-surface">
-                {project.prsPending}
-              </p>
-
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Awaiting review
-              </p>
-
-            </div>
-
-            {/* Team */}
-            <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
-
-              <div className="flex items-center justify-between gap-sm">
-
-                <p className="text-caption text-on-surface-variant">
-                  Team Members
-                </p>
-
-                <span className="material-symbols-outlined text-secondary">
-                  group
-                </span>
-
-              </div>
-
-              <p className="mt-sm text-title-lg font-bold text-on-surface">
-                {project.members.length}
-              </p>
-
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Active contributors
-              </p>
-
             </div>
 
           </div>
 
         </div>
 
-        {/* ==================================================== */}
-        {/* PROJECT NAVIGATION */}
-        {/* ==================================================== */}
+        {/* Navigation Tabs */}
 
-        <div className="overflow-x-auto border-t border-outline-variant">
+        <div className="overflow-x-auto">
 
           <nav className="flex min-w-max px-margin">
 
-            {tabs.map((tab) => {
+            {tabs.map((tab) => (
 
-              if (tab.disabled) {
-                return (
-                  <span
-                    key={tab.label}
-                    className="flex cursor-not-allowed items-center gap-sm border-b-2 border-transparent px-md py-md text-body-sm font-medium text-on-surface-variant/50"
-                    title={`${tab.label} is coming soon`}
-                  >
-                    <span className="material-symbols-outlined text-body-md">
-                      {tab.icon}
-                    </span>
+              <NavLink
+                key={tab.label}
+                to={tab.path}
+                end={tab.end}
+                className={({ isActive }) =>
+                  `flex items-center gap-sm border-b-2 px-md py-md text-body-sm font-medium transition-colors ${
+                    isActive
+                      ? "border-primary text-primary"
+                      : "border-transparent text-on-surface-variant hover:border-outline hover:text-on-surface"
+                  }`
+                }
+              >
 
-                    {tab.label}
-                  </span>
-                );
-              }
+                <span className="material-symbols-outlined text-body-md">
+                  {tab.icon}
+                </span>
 
-              return (
-                <NavLink
-                  key={tab.label}
-                  to={tab.path}
-                  end={tab.end}
-                  className={({ isActive }) =>
-                    `flex items-center gap-sm border-b-2 px-md py-md text-body-sm font-medium transition-colors ${
-                      isActive
-                        ? "border-primary text-primary"
-                        : "border-transparent text-on-surface-variant hover:border-outline hover:text-on-surface"
-                    }`
-                  }
-                >
-                  <span className="material-symbols-outlined text-body-md">
-                    {tab.icon}
-                  </span>
+                {tab.label}
 
-                  {tab.label}
-                </NavLink>
-              );
-            })}
+              </NavLink>
+
+            ))}
 
           </nav>
 
@@ -378,11 +355,9 @@ function ProjectOverview() {
 
       </section>
 
-      {/* ====================================================== */}
-      {/* NESTED PAGE CONTENT */}
-      {/* ====================================================== */}
+      {/* Nested Route Content */}
 
-      <section className="w-full px-margin py-lg">
+      <section className="px-margin py-lg">
         <Outlet />
       </section>
 

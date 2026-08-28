@@ -3,225 +3,263 @@ import type {
   IssuePriority,
   IssueStatus,
 } from "../types/issue";
-import { issues as initialIssues } from "../data/issues";
 
-const STORAGE_KEY = "devpilot_issues";
+const API_URL =
+  "http://127.0.0.1:8000/api/v1/issues";
 
-const delay = (ms: number) =>
-  new Promise<void>((resolve) => {
-    setTimeout(resolve, ms);
-  });
+type BackendIssue = {
+  id: number;
+  project_id: number;
+  assignee_id: number | null;
+  title: string;
+  description: string;
+  status: IssueStatus;
+  priority: IssuePriority;
+};
 
-function cloneIssue(issue: Issue): Issue {
+type FrontendIssueInput = Omit<
+  Issue,
+  "id" | "createdAt" | "updatedAt"
+>;
+
+type IssueUpdateFields = Partial<
+  Pick<
+    Issue,
+    | "title"
+    | "description"
+    | "status"
+    | "priority"
+    | "assignee"
+    | "labels"
+  >
+>;
+
+function toFrontendIssue(
+  issue: BackendIssue,
+): Issue {
+  const now = new Date().toISOString();
+
   return {
-    ...issue,
-    labels: [...issue.labels],
-    assignee: issue.assignee
-      ? { ...issue.assignee }
+    id: String(issue.id),
+    projectId: String(issue.project_id),
+    title: issue.title,
+    description: issue.description ?? "",
+    status: issue.status,
+    priority: issue.priority,
+    assignee: issue.assignee_id
+      ? {
+          id: String(issue.assignee_id),
+          name: `User ${issue.assignee_id}`,
+        }
       : undefined,
+    labels: [],
+    createdAt: now,
+    updatedAt: now,
   };
 }
 
-function cloneIssues(issueList: Issue[]): Issue[] {
-  return issueList.map(cloneIssue);
-}
-
-function loadIssues(): Issue[] {
-  if (typeof window === "undefined") {
-    return cloneIssues(initialIssues);
+function getAssigneeId(
+  assignee: Issue["assignee"],
+): number | null {
+  if (!assignee) {
+    return null;
   }
 
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+  const parsedId = Number(assignee.id);
 
-    if (!stored) {
-      const defaults = cloneIssues(initialIssues);
-
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(defaults),
-      );
-
-      return defaults;
-    }
-
-    const parsed: unknown = JSON.parse(stored);
-
-    if (!Array.isArray(parsed)) {
-      const defaults = cloneIssues(initialIssues);
-
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(defaults),
-      );
-
-      return defaults;
-    }
-
-    return parsed as Issue[];
-  } catch {
-    const defaults = cloneIssues(initialIssues);
-
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(defaults),
-    );
-
-    return defaults;
-  }
-}
-
-function saveIssues(issueList: Issue[]): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(issueList),
-  );
+  return Number.isInteger(parsedId)
+    ? parsedId
+    : null;
 }
 
 export const issueService = {
-  async getAll(): Promise<Issue[]> {
-    await delay(150);
 
-    return cloneIssues(loadIssues());
+  async getAll(): Promise<Issue[]> {
+    const response = await fetch(API_URL);
+
+    if (!response.ok) {
+      throw new Error("Failed to load issues");
+    }
+
+    const data: BackendIssue[] =
+      await response.json();
+
+    return data.map(toFrontendIssue);
   },
 
   async getByProject(
     projectId: string,
   ): Promise<Issue[]> {
-    await delay(150);
-
-    return cloneIssues(
-      loadIssues().filter(
-        (issue) => issue.projectId === projectId,
-      ),
+    const response = await fetch(
+      `${API_URL}?project_id=${encodeURIComponent(
+        projectId,
+      )}`,
     );
+
+    if (!response.ok) {
+      throw new Error(
+        "Failed to load project issues",
+      );
+    }
+
+    const data: BackendIssue[] =
+      await response.json();
+
+    return data.map(toFrontendIssue);
   },
 
   async getIssue(
     issueId: string,
   ): Promise<Issue | undefined> {
-    await delay(150);
-
-    const issue = loadIssues().find(
-      (item) => item.id === issueId,
+    const response = await fetch(
+      `${API_URL}/${issueId}`,
     );
 
-    return issue ? cloneIssue(issue) : undefined;
+    if (response.status === 404) {
+      return undefined;
+    }
+
+    if (!response.ok) {
+      throw new Error("Failed to load issue");
+    }
+
+    const data: BackendIssue =
+      await response.json();
+
+    return toFrontendIssue(data);
   },
 
   async createIssue(
-    issue: Omit<Issue, "id" | "createdAt" | "updatedAt">,
+    issue: FrontendIssueInput,
   ): Promise<Issue> {
-    await delay(300);
 
-    const now = new Date().toISOString();
+    const response = await fetch(API_URL, {
+      method: "POST",
 
-    const newIssue: Issue = {
-      ...issue,
-      id: `issue-${Date.now()}`,
-      createdAt: now,
-      updatedAt: now,
-      labels: [...issue.labels],
-      assignee: issue.assignee
-        ? { ...issue.assignee }
-        : undefined,
-    };
+      headers: {
+        "Content-Type": "application/json",
+      },
 
-    const currentIssues = loadIssues();
+      body: JSON.stringify({
+        project_id: Number(issue.projectId),
+        assignee_id: getAssigneeId(
+          issue.assignee,
+        ),
+        title: issue.title,
+        description: issue.description,
+        status: issue.status,
+        priority: issue.priority,
+      }),
+    });
 
-    saveIssues([newIssue, ...currentIssues]);
+    if (!response.ok) {
+      throw new Error("Failed to create issue");
+    }
 
-    return cloneIssue(newIssue);
+    const data: BackendIssue =
+      await response.json();
+
+    return toFrontendIssue(data);
   },
 
   async updateIssue(
     issueId: string,
-    updates: Partial<
-      Pick<
-        Issue,
-        | "title"
-        | "description"
-        | "status"
-        | "priority"
-        | "assignee"
-        | "labels"
-      >
-    >,
+    updates: IssueUpdateFields,
   ): Promise<Issue | undefined> {
-    await delay(300);
 
-    const currentIssues = loadIssues();
+    const body: Record<
+      string,
+      string | number | null
+    > = {};
 
-    const issue = currentIssues.find(
-      (item) => item.id === issueId,
+    if (updates.title !== undefined) {
+      body.title = updates.title;
+    }
+
+    if (updates.description !== undefined) {
+      body.description = updates.description;
+    }
+
+    if (updates.status !== undefined) {
+      body.status = updates.status;
+    }
+
+    if (updates.priority !== undefined) {
+      body.priority = updates.priority;
+    }
+
+    if (updates.assignee !== undefined) {
+      body.assignee_id = getAssigneeId(
+        updates.assignee,
+      );
+    }
+
+    const response = await fetch(
+      `${API_URL}/${issueId}`,
+      {
+        method: "PUT",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(body),
+      },
     );
 
-    if (!issue) {
+    if (response.status === 404) {
       return undefined;
     }
 
-    Object.assign(issue, {
-      ...updates,
-      labels: updates.labels
-        ? [...updates.labels]
-        : issue.labels,
-      assignee:
-        updates.assignee !== undefined
-          ? updates.assignee
-            ? { ...updates.assignee }
-            : undefined
-          : issue.assignee,
-      updatedAt: new Date().toISOString(),
-    });
+    if (!response.ok) {
+      throw new Error("Failed to update issue");
+    }
 
-    saveIssues(currentIssues);
+    const data: BackendIssue =
+      await response.json();
 
-    return cloneIssue(issue);
+    return toFrontendIssue(data);
   },
 
   async updateIssueStatus(
     issueId: string,
     status: IssueStatus,
   ): Promise<Issue | undefined> {
-    return this.updateIssue(issueId, { status });
+    return this.updateIssue(
+      issueId,
+      { status },
+    );
   },
 
   async updateIssuePriority(
     issueId: string,
     priority: IssuePriority,
   ): Promise<Issue | undefined> {
-    return this.updateIssue(issueId, { priority });
+    return this.updateIssue(
+      issueId,
+      { priority },
+    );
   },
 
   async deleteIssue(
     issueId: string,
   ): Promise<boolean> {
-    await delay(300);
 
-    const currentIssues = loadIssues();
-
-    const exists = currentIssues.some(
-      (issue) => issue.id === issueId,
+    const response = await fetch(
+      `${API_URL}/${issueId}`,
+      {
+        method: "DELETE",
+      },
     );
 
-    if (!exists) {
+    if (response.status === 404) {
       return false;
     }
 
-    const updatedIssues = currentIssues.filter(
-      (issue) => issue.id !== issueId,
-    );
-
-    saveIssues(updatedIssues);
+    if (!response.ok) {
+      throw new Error("Failed to delete issue");
+    }
 
     return true;
-  },
-
-  reset(): void {
-    saveIssues(cloneIssues(initialIssues));
   },
 };

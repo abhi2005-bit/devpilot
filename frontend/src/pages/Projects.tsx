@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import Modal from "../components/common/Modal";
 import CreateProjectForm from "../components/projects/CreateProjectForm";
 import EditProjectForm from "../components/projects/EditProjectForm";
@@ -16,9 +16,9 @@ type SortOption =
   | "ISSUES_LOW";
 
 function Projects() {
-  const [projectList, setProjectList] = useState<Project[]>(() =>
-    projectService.getAll(),
-  );
+  const [projectList, setProjectList] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [filter, setFilter] = useState<FilterOption>("ALL");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -33,6 +33,24 @@ function Projects() {
 
   const [deletingProject, setDeletingProject] =
     useState<Project | null>(null);
+
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        setError("");
+
+        const projects = await projectService.getAll();
+
+        setProjectList(projects);
+      } catch {
+        setError("Unable to load projects.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadProjects();
+  }, []);
 
   const displayedProjects = useMemo(() => {
     const filtered =
@@ -71,50 +89,79 @@ function Projects() {
     ISSUES_LOW: "Issues: Low -> High",
   };
 
-  const handleCreateProject = (newProject: Project) => {
-    const createdProject = projectService.create(newProject);
+  const handleCreateProject = async (
+    newProject: Project,
+  ) => {
+    try {
+      setError("");
 
-    setProjectList((currentProjects) => [
-      ...currentProjects,
-      createdProject,
-    ]);
+      const createdProject =
+        await projectService.create(newProject);
 
-    setIsCreateModalOpen(false);
+      setProjectList((currentProjects) => [
+        ...currentProjects,
+        createdProject,
+      ]);
+
+      setIsCreateModalOpen(false);
+    } catch {
+      setError("Unable to create project.");
+    }
   };
 
-  const handleEditProject = (updatedProject: Project) => {
-    const savedProject = projectService.update(updatedProject);
+  const handleEditProject = async (
+    updatedProject: Project,
+  ) => {
+    try {
+      setError("");
 
-    setProjectList((currentProjects) =>
-      currentProjects.map((project) =>
-        project.id === savedProject.id
-          ? savedProject
-          : project,
-      ),
-    );
+      const savedProject =
+        await projectService.update(updatedProject);
 
-    setEditingProject(null);
+      setProjectList((currentProjects) =>
+        currentProjects.map((project) =>
+          project.id === savedProject.id
+            ? savedProject
+            : project,
+        ),
+      );
+
+      setEditingProject(null);
+    } catch {
+      setError("Unable to update project.");
+    }
   };
 
-  const handleDeleteProject = () => {
+  const handleDeleteProject = async () => {
     if (!deletingProject) {
       return;
     }
 
-    projectService.delete(deletingProject.id);
+    try {
+      setError("");
 
-    setProjectList((currentProjects) =>
-      currentProjects.filter(
-        (project) => project.id !== deletingProject.id,
-      ),
-    );
+      await projectService.delete(
+        deletingProject.id,
+      );
 
-    setDeletingProject(null);
+      setProjectList((currentProjects) =>
+        currentProjects.filter(
+          (project) =>
+            project.id !== deletingProject.id,
+        ),
+      );
+
+      setDeletingProject(null);
+    } catch {
+      setError("Unable to delete project.");
+    }
   };
 
   return (
     <main className="overflow-y-auto px-margin pb-margin pt-8">
+
       {/* Page Header */}
+
       <div className="mb-xl flex flex-col gap-lg md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-display-lg font-bold text-on-surface">
@@ -127,8 +174,11 @@ function Projects() {
         </div>
 
         {/* Toolbar */}
+
         <div className="flex flex-wrap gap-sm">
+
           {/* Filter */}
+
           <div className="relative">
             <button
               type="button"
@@ -173,7 +223,9 @@ function Projects() {
                     key={option.value}
                     type="button"
                     onClick={() => {
-                      setFilter(option.value as FilterOption);
+                      setFilter(
+                        option.value as FilterOption,
+                      );
                       setIsFilterOpen(false);
                     }}
                     className={`flex w-full items-center justify-between rounded-md px-sm py-sm text-left text-body-sm transition-colors hover:bg-surface-container-high ${
@@ -196,6 +248,7 @@ function Projects() {
           </div>
 
           {/* Sort */}
+
           <div className="relative">
             <button
               type="button"
@@ -248,6 +301,7 @@ function Projects() {
           </div>
 
           {/* New Project */}
+
           <button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
@@ -263,6 +317,7 @@ function Projects() {
       </div>
 
       {/* Active Filters */}
+
       <div className="mb-md flex flex-wrap items-center gap-sm">
         {filter !== "ALL" && (
           <span className="rounded-full bg-surface-container-high px-sm py-xs text-caption text-on-surface">
@@ -275,21 +330,45 @@ function Projects() {
         </span>
       </div>
 
-      {/* Result Count */}
-      <div className="mb-md">
-        <p className="text-body-sm text-on-surface-variant">
-          Showing{" "}
-          <span className="font-semibold text-on-surface">
-            {displayedProjects.length}
-          </span>{" "}
-          {displayedProjects.length === 1
-            ? "project"
-            : "projects"}
-        </p>
-      </div>
+      {/* Error */}
 
-      {/* Project Grid */}
-      {displayedProjects.length > 0 ? (
+      {error && (
+        <div className="mb-md rounded-lg border border-error/30 bg-error-container p-md text-body-sm text-error">
+          {error}
+        </div>
+      )}
+
+      {/* Result Count */}
+
+      {!isLoading && (
+        <div className="mb-md">
+          <p className="text-body-sm text-on-surface-variant">
+            Showing{" "}
+            <span className="font-semibold text-on-surface">
+              {displayedProjects.length}
+            </span>{" "}
+            {displayedProjects.length === 1
+              ? "project"
+              : "projects"}
+          </p>
+        </div>
+      )}
+
+      {/* Projects */}
+
+      {isLoading ? (
+        <div className="flex min-h-64 items-center justify-center rounded-xl border border-outline-variant bg-surface-container-low">
+          <div className="text-center">
+            <span className="material-symbols-outlined animate-spin text-4xl text-primary">
+              progress_activity
+            </span>
+
+            <p className="mt-md text-body-sm text-on-surface-variant">
+              Loading projects...
+            </p>
+          </div>
+        </div>
+      ) : displayedProjects.length > 0 ? (
         <section className="grid grid-cols-1 gap-gutter md:grid-cols-2 xl:grid-cols-3">
           {displayedProjects.map((project) => (
             <ProjectCard
@@ -312,47 +391,61 @@ function Projects() {
             </h2>
 
             <p className="mt-xs text-body-sm text-on-surface-variant">
-              Try selecting a different filter.
+              Create your first project to get started.
             </p>
           </div>
         </div>
       )}
 
       {/* Create Project Modal */}
+
       <Modal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() =>
+          setIsCreateModalOpen(false)
+        }
         title="Create New Project"
       >
         <CreateProjectForm
-          onCancel={() => setIsCreateModalOpen(false)}
+          onCancel={() =>
+            setIsCreateModalOpen(false)
+          }
           onSubmit={handleCreateProject}
         />
       </Modal>
 
       {/* Edit Project Modal */}
+
       {editingProject && (
         <Modal
           isOpen={true}
-          onClose={() => setEditingProject(null)}
+          onClose={() =>
+            setEditingProject(null)
+          }
           title="Edit Project"
         >
           <EditProjectForm
             project={editingProject}
-            onCancel={() => setEditingProject(null)}
+            onCancel={() =>
+              setEditingProject(null)
+            }
             onSubmit={handleEditProject}
           />
         </Modal>
       )}
 
       {/* Delete Confirmation Modal */}
+
       {deletingProject && (
         <Modal
           isOpen={true}
-          onClose={() => setDeletingProject(null)}
+          onClose={() =>
+            setDeletingProject(null)
+          }
           title="Delete Project"
         >
           <div className="space-y-lg">
+
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-error-container">
               <span className="material-symbols-outlined text-error">
                 delete_forever
@@ -373,7 +466,9 @@ function Projects() {
             <div className="flex justify-end gap-sm border-t border-outline-variant pt-lg">
               <button
                 type="button"
-                onClick={() => setDeletingProject(null)}
+                onClick={() =>
+                  setDeletingProject(null)
+                }
                 className="rounded-lg border border-outline-variant px-md py-sm text-body-sm font-medium text-on-surface transition-colors hover:bg-surface-container-high"
               >
                 Cancel
@@ -387,9 +482,11 @@ function Projects() {
                 Delete Project
               </button>
             </div>
+
           </div>
         </Modal>
       )}
+
     </main>
   );
 }

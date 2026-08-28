@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { issues } from "../../../data/issues";
 import { projectService } from "../../../services/projectService";
 
 import type {
+  Project,
   ProjectMember,
   ProjectMemberRole,
 } from "../../../types/project";
@@ -63,27 +64,72 @@ function Members() {
     projectId: string;
   }>();
 
-  const [, forceUpdate] = useState(0);
+  const [project, setProject] =
+    useState<Project | undefined>();
+
+  const [isLoading, setIsLoading] = useState(true);
 
   const [search, setSearch] = useState("");
-  const [isAddOpen, setIsAddOpen] = useState(false);
 
-  const [newName, setNewName] = useState("");
+  const [isAddOpen, setIsAddOpen] =
+    useState(false);
+
+  const [newName, setNewName] =
+    useState("");
+
   const [newRole, setNewRole] =
     useState<ProjectMemberRole>("ENGINEER");
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
-  const project = projectId
-    ? projectService.getById(projectId)
-    : undefined;
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProject() {
+      if (!projectId) {
+        setProject(undefined);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const loadedProject =
+          await projectService.getById(projectId);
+
+        if (!cancelled) {
+          setProject(loadedProject);
+        }
+      } catch {
+        if (!cancelled) {
+          setProject(undefined);
+          setError("Unable to load project.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProject();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
 
   /*
    * Calculate issue workload for a member.
    *
    * Only issues belonging to the current project are counted.
    */
-  const getMemberWorkload = (memberId: string) => {
+  const getMemberWorkload = (
+    memberId: string,
+  ) => {
     if (!projectId) {
       return {
         total: 0,
@@ -109,23 +155,28 @@ function Members() {
       (issue) => issue.status === "TODO",
     ).length;
 
-    const inProgress = memberIssues.filter(
-      (issue) => issue.status === "IN_PROGRESS",
-    ).length;
+    const inProgress =
+      memberIssues.filter(
+        (issue) =>
+          issue.status === "IN_PROGRESS",
+      ).length;
 
-    const inReview = memberIssues.filter(
-      (issue) => issue.status === "IN_REVIEW",
-    ).length;
+    const inReview =
+      memberIssues.filter(
+        (issue) =>
+          issue.status === "IN_REVIEW",
+      ).length;
 
     const done = memberIssues.filter(
       (issue) => issue.status === "DONE",
     ).length;
 
-    const highPriority = memberIssues.filter(
-      (issue) =>
-        issue.priority === "HIGH" ||
-        issue.priority === "CRITICAL",
-    ).length;
+    const highPriority =
+      memberIssues.filter(
+        (issue) =>
+          issue.priority === "HIGH" ||
+          issue.priority === "CRITICAL",
+      ).length;
 
     const active = total - done;
 
@@ -138,7 +189,10 @@ function Members() {
      * 3 active issues = 75%
      * 4+ active issues = 100%
      */
-    const workload = Math.min(active * 25, 100);
+    const workload = Math.min(
+      active * 25,
+      100,
+    );
 
     return {
       total,
@@ -157,25 +211,31 @@ function Members() {
       return [];
     }
 
-    const query = search.trim().toLowerCase();
+    const query =
+      search.trim().toLowerCase();
 
     if (!query) {
       return project.members;
     }
 
-    return project.members.filter((member) => {
-      const role = member.role ?? "ENGINEER";
+    return project.members.filter(
+      (member: ProjectMember) => {
+        const role =
+          member.role ?? "ENGINEER";
 
-      return (
-        member.name.toLowerCase().includes(query) ||
-        roleLabels[role]
-          .toLowerCase()
-          .includes(query)
-      );
-    });
+        return (
+          member.name
+            .toLowerCase()
+            .includes(query) ||
+          roleLabels[role]
+            .toLowerCase()
+            .includes(query)
+        );
+      },
+    );
   }, [project, search]);
 
-  const handleAddMember = () => {
+  const handleAddMember = async () => {
     if (!projectId || !project) {
       return;
     }
@@ -187,11 +247,12 @@ function Members() {
       return;
     }
 
-    const existingMember = project.members.some(
-      (member) =>
-        member.name.toLowerCase() ===
-        name.toLowerCase(),
-    );
+    const existingMember =
+      project.members.some(
+        (member) =>
+          member.name.toLowerCase() ===
+          name.toLowerCase(),
+      );
 
     if (existingMember) {
       setError(
@@ -206,7 +267,7 @@ function Members() {
       role: newRole,
     };
 
-    const updatedProject = {
+    const updatedProject: Project = {
       ...project,
       members: [
         ...project.members,
@@ -214,14 +275,19 @@ function Members() {
       ],
     };
 
-    projectService.update(updatedProject);
+    /*
+     * The current backend project API only
+     * persists name and description.
+     *
+     * Keep the new member in local React state
+     * for this page for now.
+     */
+    setProject(updatedProject);
 
     setNewName("");
     setNewRole("ENGINEER");
     setError("");
     setIsAddOpen(false);
-
-    forceUpdate((value) => value + 1);
   };
 
   const handleRemoveMember = (
@@ -246,18 +312,16 @@ function Members() {
       return;
     }
 
-    const updatedProject = {
+    const updatedProject: Project = {
       ...project,
       members: project.members.filter(
         (item) => item.id !== memberId,
       ),
     };
 
-    projectService.update(updatedProject);
+    setProject(updatedProject);
 
     setError("");
-
-    forceUpdate((value) => value + 1);
   };
 
   const closeModal = () => {
@@ -267,10 +331,29 @@ function Members() {
     setError("");
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-64 items-center justify-center rounded-xl border border-outline-variant bg-surface-container">
+        <div className="text-center">
+
+          <span className="material-symbols-outlined animate-spin text-5xl text-primary">
+            progress_activity
+          </span>
+
+          <p className="mt-md text-body-sm text-on-surface-variant">
+            Loading project...
+          </p>
+
+        </div>
+      </div>
+    );
+  }
+
   if (!project) {
     return (
       <div className="flex min-h-64 items-center justify-center rounded-xl border border-outline-variant bg-surface-container">
         <div className="text-center">
+
           <span className="material-symbols-outlined text-5xl text-on-surface-variant">
             group
           </span>
@@ -283,6 +366,13 @@ function Members() {
             Team members are unavailable for
             this project.
           </p>
+
+          {error && (
+            <p className="mt-sm text-body-sm text-error">
+              {error}
+            </p>
+          )}
+
         </div>
       </div>
     );
@@ -291,12 +381,12 @@ function Members() {
   return (
     <div className="space-y-lg">
 
-      {/* ========================================= */}
       {/* HEADER */}
-      {/* ========================================= */}
 
       <section className="flex flex-col gap-lg md:flex-row md:items-end md:justify-between">
+
         <div>
+
           <div className="flex items-center gap-sm">
 
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-container">
@@ -306,6 +396,7 @@ function Members() {
             </div>
 
             <div>
+
               <h2 className="text-title-lg font-bold text-on-surface">
                 Project Members
               </h2>
@@ -314,9 +405,11 @@ function Members() {
                 People contributing to{" "}
                 {project.name}.
               </p>
+
             </div>
 
           </div>
+
         </div>
 
         <div className="flex flex-wrap items-center gap-sm">
@@ -353,11 +446,10 @@ function Members() {
           </button>
 
         </div>
+
       </section>
 
-      {/* ========================================= */}
       {/* ERROR */}
-      {/* ========================================= */}
 
       {error && !isAddOpen && (
         <div className="flex items-start gap-sm rounded-lg border border-error/30 bg-error-container p-md text-error">
@@ -373,9 +465,7 @@ function Members() {
         </div>
       )}
 
-      {/* ========================================= */}
       {/* SEARCH */}
-      {/* ========================================= */}
 
       <section className="rounded-xl border border-outline-variant bg-surface-container p-md">
 
@@ -399,255 +489,254 @@ function Members() {
 
       </section>
 
-      {/* ========================================= */}
       {/* MEMBER CARDS */}
-      {/* ========================================= */}
 
       {filteredMembers.length > 0 ? (
 
         <section className="grid grid-cols-1 gap-md md:grid-cols-2 xl:grid-cols-3">
 
-          {filteredMembers.map((member) => {
+          {filteredMembers.map(
+            (member: ProjectMember) => {
 
-            const role =
-              member.role ?? "ENGINEER";
+              const role =
+                member.role ?? "ENGINEER";
 
-            const workload =
-              getMemberWorkload(member.id);
+              const workload =
+                getMemberWorkload(
+                  member.id,
+                );
 
-            return (
-              <article
-                key={member.id}
-                className="rounded-xl border border-outline-variant bg-surface-container p-lg transition-colors hover:bg-surface-container-high"
-              >
+              return (
+                <article
+                  key={member.id}
+                  className="rounded-xl border border-outline-variant bg-surface-container p-lg transition-colors hover:bg-surface-container-high"
+                >
 
-                {/* Member Header */}
-                <div className="flex items-start gap-md">
+                  {/* Member Header */}
 
-                  {member.avatar ? (
+                  <div className="flex items-start gap-md">
 
-                    <img
-                      src={member.avatar}
-                      alt={member.name}
-                      className="h-12 w-12 shrink-0 rounded-full object-cover"
-                    />
+                    {member.avatar ? (
 
-                  ) : (
+                      <img
+                        src={member.avatar}
+                        alt={member.name}
+                        className="h-12 w-12 shrink-0 rounded-full object-cover"
+                      />
 
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-container text-title-sm font-bold text-primary">
-                      {member.name
-                        .charAt(0)
-                        .toUpperCase()}
+                    ) : (
+
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-container text-title-sm font-bold text-primary">
+                        {member.name
+                          .charAt(0)
+                          .toUpperCase()}
+                      </div>
+
+                    )}
+
+                    <div className="min-w-0 flex-1">
+
+                      <h3 className="truncate text-body-md font-semibold text-on-surface">
+                        {member.name}
+                      </h3>
+
+                      <p className="mt-xs text-caption text-on-surface-variant">
+                        {roleLabels[role]}
+                      </p>
+
                     </div>
+
+                    <span
+                      className={`rounded-full px-sm py-xs text-caption font-semibold ${getRoleClass(
+                        role,
+                      )}`}
+                    >
+                      {roleLabels[role]}
+                    </span>
+
+                  </div>
+
+                  {/* Member Information */}
+
+                  <div className="mt-lg grid grid-cols-2 gap-sm">
+
+                    <div className="rounded-lg bg-surface-container-low p-sm">
+
+                      <p className="text-caption text-on-surface-variant">
+                        Role
+                      </p>
+
+                      <p className="mt-xs text-body-sm font-medium text-on-surface">
+                        {roleLabels[role]}
+                      </p>
+
+                    </div>
+
+                    <div className="rounded-lg bg-surface-container-low p-sm">
+
+                      <p className="text-caption text-on-surface-variant">
+                        Member ID
+                      </p>
+
+                      <p className="mt-xs truncate text-body-sm font-medium text-on-surface">
+                        #{member.id}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                  {/* WORKLOAD */}
+
+                  <div className="mt-lg rounded-lg border border-outline-variant bg-surface-container-low p-md">
+
+                    <div className="flex items-center justify-between">
+
+                      <div className="flex items-center gap-sm">
+
+                        <span className="material-symbols-outlined text-body-md text-primary">
+                          insights
+                        </span>
+
+                        <span className="text-body-sm font-semibold text-on-surface">
+                          Workload
+                        </span>
+
+                      </div>
+
+                      <span className="text-body-sm font-bold text-on-surface">
+                        {workload.workload}%
+                      </span>
+
+                    </div>
+
+                    <div className="mt-sm h-2 overflow-hidden rounded-full bg-surface-container-highest">
+
+                      <div
+                        className={`h-full rounded-full transition-all ${getWorkloadClass(
+                          workload.workload,
+                        )}`}
+                        style={{
+                          width: `${workload.workload}%`,
+                        }}
+                      />
+
+                    </div>
+
+                    <div className="mt-md grid grid-cols-2 gap-sm">
+
+                      <div>
+                        <p className="text-caption text-on-surface-variant">
+                          Assigned
+                        </p>
+
+                        <p className="mt-xs text-body-sm font-bold text-on-surface">
+                          {workload.total}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-caption text-on-surface-variant">
+                          Active
+                        </p>
+
+                        <p className="mt-xs text-body-sm font-bold text-on-surface">
+                          {workload.active}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-caption text-on-surface-variant">
+                          In Progress
+                        </p>
+
+                        <p className="mt-xs text-body-sm font-bold text-on-surface">
+                          {workload.inProgress}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-caption text-on-surface-variant">
+                          High Priority
+                        </p>
+
+                        <p className="mt-xs text-body-sm font-bold text-on-surface">
+                          {workload.highPriority}
+                        </p>
+                      </div>
+
+                    </div>
+
+                    <div className="mt-md border-t border-outline-variant pt-md">
+
+                      <div className="flex items-center justify-between text-caption">
+
+                        <span className="text-on-surface-variant">
+                          To Do
+                        </span>
+
+                        <span className="font-semibold text-on-surface">
+                          {workload.todo}
+                        </span>
+
+                      </div>
+
+                      <div className="mt-xs flex items-center justify-between text-caption">
+
+                        <span className="text-on-surface-variant">
+                          In Review
+                        </span>
+
+                        <span className="font-semibold text-on-surface">
+                          {workload.inReview}
+                        </span>
+
+                      </div>
+
+                      <div className="mt-xs flex items-center justify-between text-caption">
+
+                        <span className="text-on-surface-variant">
+                          Completed
+                        </span>
+
+                        <span className="font-semibold text-on-surface">
+                          {workload.done}
+                        </span>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  {/* Remove */}
+
+                  {role !== "OWNER" && (
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRemoveMember(
+                          member.id,
+                        )
+                      }
+                      className="mt-md flex w-full items-center justify-center gap-sm rounded-lg border border-outline-variant py-sm text-caption font-medium text-error transition-colors hover:bg-error-container"
+                    >
+
+                      <span className="material-symbols-outlined text-body-md">
+                        person_remove
+                      </span>
+
+                      Remove Member
+
+                    </button>
 
                   )}
 
-                  <div className="min-w-0 flex-1">
-
-                    <h3 className="truncate text-body-md font-semibold text-on-surface">
-                      {member.name}
-                    </h3>
-
-                    <p className="mt-xs text-caption text-on-surface-variant">
-                      {roleLabels[role]}
-                    </p>
-
-                  </div>
-
-                  <span
-                    className={`rounded-full px-sm py-xs text-caption font-semibold ${getRoleClass(
-                      role,
-                    )}`}
-                  >
-                    {roleLabels[role]}
-                  </span>
-
-                </div>
-
-                {/* Member Information */}
-                <div className="mt-lg grid grid-cols-2 gap-sm">
-
-                  <div className="rounded-lg bg-surface-container-low p-sm">
-
-                    <p className="text-caption text-on-surface-variant">
-                      Role
-                    </p>
-
-                    <p className="mt-xs text-body-sm font-medium text-on-surface">
-                      {roleLabels[role]}
-                    </p>
-
-                  </div>
-
-                  <div className="rounded-lg bg-surface-container-low p-sm">
-
-                    <p className="text-caption text-on-surface-variant">
-                      Member ID
-                    </p>
-
-                    <p className="mt-xs truncate text-body-sm font-medium text-on-surface">
-                      #{member.id}
-                    </p>
-
-                  </div>
-
-                </div>
-
-                {/* ================================= */}
-                {/* WORKLOAD INTELLIGENCE */}
-                {/* ================================= */}
-
-                <div className="mt-lg rounded-lg border border-outline-variant bg-surface-container-low p-md">
-
-                  {/* Workload Header */}
-                  <div className="flex items-center justify-between">
-
-                    <div className="flex items-center gap-sm">
-
-                      <span className="material-symbols-outlined text-body-md text-primary">
-                        insights
-                      </span>
-
-                      <span className="text-body-sm font-semibold text-on-surface">
-                        Workload
-                      </span>
-
-                    </div>
-
-                    <span className="text-body-sm font-bold text-on-surface">
-                      {workload.workload}%
-                    </span>
-
-                  </div>
-
-                  {/* Workload Progress */}
-                  <div className="mt-sm h-2 overflow-hidden rounded-full bg-surface-container-highest">
-
-                    <div
-                      className={`h-full rounded-full transition-all ${getWorkloadClass(
-                        workload.workload,
-                      )}`}
-                      style={{
-                        width: `${workload.workload}%`,
-                      }}
-                    />
-
-                  </div>
-
-                  {/* Workload Stats */}
-                  <div className="mt-md grid grid-cols-2 gap-sm">
-
-                    <div>
-                      <p className="text-caption text-on-surface-variant">
-                        Assigned
-                      </p>
-
-                      <p className="mt-xs text-body-sm font-bold text-on-surface">
-                        {workload.total}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-caption text-on-surface-variant">
-                        Active
-                      </p>
-
-                      <p className="mt-xs text-body-sm font-bold text-on-surface">
-                        {workload.active}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-caption text-on-surface-variant">
-                        In Progress
-                      </p>
-
-                      <p className="mt-xs text-body-sm font-bold text-on-surface">
-                        {workload.inProgress}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-caption text-on-surface-variant">
-                        High Priority
-                      </p>
-
-                      <p className="mt-xs text-body-sm font-bold text-on-surface">
-                        {workload.highPriority}
-                      </p>
-                    </div>
-
-                  </div>
-
-                  {/* Status Breakdown */}
-                  <div className="mt-md border-t border-outline-variant pt-md">
-
-                    <div className="flex items-center justify-between text-caption">
-
-                      <span className="text-on-surface-variant">
-                        To Do
-                      </span>
-
-                      <span className="font-semibold text-on-surface">
-                        {workload.todo}
-                      </span>
-
-                    </div>
-
-                    <div className="mt-xs flex items-center justify-between text-caption">
-
-                      <span className="text-on-surface-variant">
-                        In Review
-                      </span>
-
-                      <span className="font-semibold text-on-surface">
-                        {workload.inReview}
-                      </span>
-
-                    </div>
-
-                    <div className="mt-xs flex items-center justify-between text-caption">
-
-                      <span className="text-on-surface-variant">
-                        Completed
-                      </span>
-
-                      <span className="font-semibold text-on-surface">
-                        {workload.done}
-                      </span>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-                {/* Remove */}
-                {role !== "OWNER" && (
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleRemoveMember(
-                        member.id,
-                      )
-                    }
-                    className="mt-md flex w-full items-center justify-center gap-sm rounded-lg border border-outline-variant py-sm text-caption font-medium text-error transition-colors hover:bg-error-container"
-                  >
-
-                    <span className="material-symbols-outlined text-body-md">
-                      person_remove
-                    </span>
-
-                    Remove Member
-
-                  </button>
-
-                )}
-
-              </article>
-            );
-          })}
+                </article>
+              );
+            },
+          )}
 
         </section>
 
@@ -675,9 +764,7 @@ function Members() {
 
       )}
 
-      {/* ========================================= */}
       {/* ADD MEMBER MODAL */}
-      {/* ========================================= */}
 
       {isAddOpen && (
 
@@ -703,6 +790,7 @@ function Members() {
           >
 
             {/* Modal Header */}
+
             <div className="flex items-start justify-between border-b border-outline-variant px-6 py-5">
 
               <div className="flex items-center gap-sm">
@@ -745,6 +833,7 @@ function Members() {
             </div>
 
             {/* Modal Body */}
+
             <div className="space-y-5 px-6 py-6">
 
               {error && (
@@ -764,6 +853,7 @@ function Members() {
               )}
 
               {/* Name */}
+
               <div className="space-y-2">
 
                 <label
@@ -794,6 +884,7 @@ function Members() {
               </div>
 
               {/* Role */}
+
               <div className="space-y-2">
 
                 <label
@@ -837,6 +928,7 @@ function Members() {
             </div>
 
             {/* Modal Footer */}
+
             <div className="flex items-center justify-end gap-sm border-t border-outline-variant bg-surface-container-low px-6 py-4">
 
               <button

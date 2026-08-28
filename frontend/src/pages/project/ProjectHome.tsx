@@ -1,19 +1,77 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+
 import { projectService } from "../../services/projectService";
+import type { Project } from "../../types/project";
 
 function ProjectHome() {
   const { projectId } = useParams<{
     projectId: string;
   }>();
 
-  const project = projectId
-    ? projectService.getById(projectId)
-    : undefined;
+  const [project, setProject] =
+    useState<Project | undefined>();
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProject() {
+      if (!projectId) {
+        setProject(undefined);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        const loadedProject =
+          await projectService.getById(projectId);
+
+        if (!cancelled) {
+          setProject(loadedProject);
+        }
+      } catch {
+        if (!cancelled) {
+          setProject(undefined);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProject();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-64 items-center justify-center rounded-xl border border-outline-variant bg-surface-container">
+        <div className="text-center">
+          <span className="material-symbols-outlined animate-spin text-5xl text-primary">
+            progress_activity
+          </span>
+
+          <p className="mt-md text-body-sm text-on-surface-variant">
+            Loading project...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
       <div className="flex min-h-64 items-center justify-center rounded-xl border border-outline-variant bg-surface-container">
         <div className="text-center">
+
           <span className="material-symbols-outlined text-5xl text-on-surface-variant">
             folder_off
           </span>
@@ -25,236 +83,114 @@ function ProjectHome() {
           <p className="mt-xs text-body-sm text-on-surface-variant">
             This project could not be loaded.
           </p>
+
         </div>
       </div>
     );
   }
 
-  /*
-   * These values represent the current sprint/project signals.
-   * They are kept here for now so the overview can be wired to
-   * real backend/Git/issue data later.
-   */
-  const sprint = {
-    name: "Sprint 42: Checkout Optimization",
-    storyPointsCompleted: 84,
-    storyPointsTotal: 120,
-    issuesCompleted: 26,
-    issuesTotal: 45,
-    velocityChange: 12,
-    completion: 70,
-  };
-
-  const aiRisk = "MEDIUM";
-  const aiRiskScore = 65;
-
   return (
-    <div className="w-full space-y-lg">
+    <div className="space-y-lg">
 
-      {/* ====================================================== */}
-      {/* SPRINT SUMMARY + AI INSIGHT */}
-      {/* ====================================================== */}
+      {/* Project Health */}
 
-      <section className="grid w-full grid-cols-1 gap-lg xl:grid-cols-12">
+      <section>
 
-        {/* Sprint Summary */}
-        <div className="rounded-xl border border-outline-variant bg-surface-container p-lg xl:col-span-8">
+        <div className="mb-md">
 
-          <div className="flex items-start justify-between gap-md">
+          <h2 className="text-title-lg font-bold text-on-surface">
+            Project Health
+          </h2>
 
-            <div>
-              <p className="text-caption font-semibold uppercase tracking-wide text-primary">
-                Current Sprint
-              </p>
-
-              <h2 className="mt-xs text-title-lg font-bold text-on-surface">
-                {sprint.name}
-              </h2>
-
-              <p className="mt-xs text-body-sm text-on-surface-variant">
-                Current delivery progress and engineering workload.
-              </p>
-            </div>
-
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-container">
-              <span className="material-symbols-outlined text-primary">
-                sprint
-              </span>
-            </div>
-
-          </div>
-
-          {/* Sprint Metrics */}
-          <div className="mt-xl grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-4">
-
-            {/* Story Points */}
-            <div className="rounded-lg border border-outline-variant bg-surface-container-low p-md">
-              <p className="text-caption text-on-surface-variant">
-                Story Points
-              </p>
-
-              <p className="mt-xs text-title-lg font-bold text-on-surface">
-                {sprint.storyPointsCompleted}
-                <span className="text-body-md font-medium text-on-surface-variant">
-                  {" "}
-                  / {sprint.storyPointsTotal}
-                </span>
-              </p>
-
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Completed
-              </p>
-            </div>
-
-            {/* Issues */}
-            <div className="rounded-lg border border-outline-variant bg-surface-container-low p-md">
-              <p className="text-caption text-on-surface-variant">
-                Issues Done
-              </p>
-
-              <p className="mt-xs text-title-lg font-bold text-on-surface">
-                {sprint.issuesCompleted}
-                <span className="text-body-md font-medium text-on-surface-variant">
-                  {" "}
-                  / {sprint.issuesTotal}
-                </span>
-              </p>
-
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Completed
-              </p>
-            </div>
-
-            {/* Velocity */}
-            <div className="rounded-lg border border-outline-variant bg-surface-container-low p-md">
-              <p className="text-caption text-on-surface-variant">
-                Velocity
-              </p>
-
-              <div className="mt-xs flex items-center gap-xs">
-                <span className="material-symbols-outlined text-secondary">
-                  trending_up
-                </span>
-
-                <p className="text-title-lg font-bold text-secondary">
-                  +{sprint.velocityChange}%
-                </p>
-              </div>
-
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Compared with previous sprint
-              </p>
-            </div>
-
-            {/* Completion */}
-            <div className="rounded-lg border border-outline-variant bg-surface-container-low p-md">
-              <p className="text-caption text-on-surface-variant">
-                Sprint Completion
-              </p>
-
-              <p className="mt-xs text-title-lg font-bold text-on-surface">
-                {sprint.completion}%
-              </p>
-
-              <div className="mt-sm h-2 overflow-hidden rounded-full bg-surface-container-highest">
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{
-                    width: `${sprint.completion}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-          </div>
+          <p className="mt-xs text-body-sm text-on-surface-variant">
+            Current engineering health and project signals.
+          </p>
 
         </div>
 
-        {/* AI Project Insight */}
-        <div className="rounded-xl border border-outline-variant bg-surface-container p-lg xl:col-span-4">
-
-          <div className="flex items-start justify-between gap-md">
-
-            <div className="flex items-center gap-sm">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary-container">
-                <span className="material-symbols-outlined text-secondary">
-                  auto_awesome
-                </span>
-              </div>
-
-              <div>
-                <h2 className="text-title-sm font-semibold text-on-surface">
-                  AI Project Insight
-                </h2>
-
-                <p className="text-caption text-on-surface-variant">
-                  Engineering intelligence
-                </p>
-              </div>
-            </div>
-
-          </div>
+        <div className="grid grid-cols-1 gap-md md:grid-cols-3">
 
           {/* Risk */}
-          <div className="mt-lg rounded-lg bg-tertiary-container p-md">
 
-            <div className="flex items-center justify-between gap-md">
+          <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+            <div className="flex items-center justify-between">
 
               <div>
-                <p className="text-caption text-on-tertiary">
-                  Current Risk
+
+                <p className="text-caption text-on-surface-variant">
+                  Risk Level
                 </p>
 
-                <p className="mt-xs text-title-md font-bold text-on-tertiary">
-                  {aiRisk}
+                <p className="mt-xs text-title-lg font-bold text-on-surface">
+                  {project.risk}
                 </p>
+
               </div>
 
-              <div className="text-right">
-                <p className="text-caption text-on-tertiary">
-                  Confidence
-                </p>
-
-                <p className="mt-xs text-title-md font-bold text-on-tertiary">
-                  {aiRiskScore}%
-                </p>
-              </div>
+              <span
+                className={`material-symbols-outlined ${
+                  project.risk === "HIGH"
+                    ? "text-error"
+                    : project.risk === "MEDIUM"
+                      ? "text-tertiary"
+                      : "text-secondary"
+                }`}
+              >
+                warning
+              </span>
 
             </div>
 
           </div>
 
-          {/* Insight */}
-          <div className="mt-md">
+          {/* Progress */}
 
-            <p className="text-body-sm leading-6 text-on-surface">
-              Sprint progress is healthy, but the current issue workload
-              indicates that delivery risk should be monitored closely.
-              Review outstanding checkout issues and keep high-priority
-              work moving through review.
-            </p>
+          <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+            <div className="flex items-center justify-between">
+
+              <div>
+
+                <p className="text-caption text-on-surface-variant">
+                  Completion
+                </p>
+
+                <p className="mt-xs text-title-lg font-bold text-on-surface">
+                  {project.progress}%
+                </p>
+
+              </div>
+
+              <span className="material-symbols-outlined text-primary">
+                trending_up
+              </span>
+
+            </div>
 
           </div>
 
-          {/* Recommendation */}
-          <div className="mt-md rounded-lg border border-outline-variant bg-surface-container-low p-md">
+          {/* Team */}
 
-            <div className="flex items-start gap-sm">
+          <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
 
-              <span className="material-symbols-outlined text-primary">
-                lightbulb
-              </span>
+            <div className="flex items-center justify-between">
 
               <div>
-                <p className="text-caption font-semibold uppercase tracking-wide text-primary">
-                  Recommended Action
+
+                <p className="text-caption text-on-surface-variant">
+                  Team Members
                 </p>
 
-                <p className="mt-xs text-body-sm leading-6 text-on-surface">
-                  Prioritize unresolved checkout work and reduce review
-                  bottlenecks before taking on additional sprint scope.
+                <p className="mt-xs text-title-lg font-bold text-on-surface">
+                  {project.members.length}
                 </p>
+
               </div>
+
+              <span className="material-symbols-outlined text-secondary">
+                group
+              </span>
 
             </div>
 
@@ -264,91 +200,289 @@ function ProjectHome() {
 
       </section>
 
-      {/* ====================================================== */}
-      {/* RECENT ACTIVITY */}
-      {/* ====================================================== */}
+      {/* AI + Risk */}
 
-      <section className="w-full rounded-xl border border-outline-variant bg-surface-container p-lg">
+      <section className="grid grid-cols-1 gap-lg xl:grid-cols-3">
 
-        <div className="mb-lg flex items-start justify-between gap-md">
+        {/* AI Insight */}
 
-          <div>
-            <h2 className="text-title-sm font-semibold text-on-surface">
-              Recent Activity
-            </h2>
+        <div className="rounded-xl border border-outline-variant bg-surface-container p-lg xl:col-span-2">
 
-            <p className="mt-xs text-caption text-on-surface-variant">
-              Latest engineering activity in this project.
-            </p>
+          <div className="mb-md flex items-center gap-sm">
+
+            <span className="material-symbols-outlined text-secondary">
+              auto_awesome
+            </span>
+
+            <div>
+
+              <h2 className="text-title-sm font-semibold text-on-surface">
+                AI Engineering Insight
+              </h2>
+
+              <p className="text-caption text-on-surface-variant">
+                Generated from current project signals
+              </p>
+
+            </div>
+
           </div>
 
-          <span className="material-symbols-outlined text-on-surface-variant">
-            history
-          </span>
+          <div className="rounded-lg bg-surface-container-low p-md">
+
+            <p className="text-body-md leading-7 text-on-surface">
+              {project.aiInsight ??
+                "No AI insights are available for this project yet."}
+            </p>
+
+          </div>
+
+        </div>
+
+        {/* Risk Summary */}
+
+        <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+          <h2 className="text-title-sm font-semibold text-on-surface">
+            Risk Summary
+          </h2>
+
+          <div className="mt-lg space-y-md">
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                Open Issues
+              </span>
+
+              <span className="font-semibold text-on-surface">
+                {project.openIssues}
+              </span>
+
+            </div>
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                Pending PRs
+              </span>
+
+              <span className="font-semibold text-on-surface">
+                {project.prsPending}
+              </span>
+
+            </div>
+
+            <div className="h-px bg-outline-variant" />
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm font-medium text-on-surface">
+                Overall Risk
+              </span>
+
+              <span
+                className={`rounded-full px-sm py-xs text-caption font-semibold ${
+                  project.risk === "HIGH"
+                    ? "bg-error-container text-on-error"
+                    : project.risk === "MEDIUM"
+                      ? "bg-tertiary-container text-on-tertiary"
+                      : "bg-secondary-container text-on-secondary"
+                }`}
+              >
+                {project.risk}
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* Progress + Team */}
+
+      <section className="grid grid-cols-1 gap-lg lg:grid-cols-2">
+
+        {/* Development Progress */}
+
+        <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+
+              <h2 className="text-title-sm font-semibold text-on-surface">
+                Development Progress
+              </h2>
+
+              <p className="mt-xs text-caption text-on-surface-variant">
+                Overall project completion
+              </p>
+
+            </div>
+
+            <span className="text-title-sm font-bold text-primary">
+              {project.progress}%
+            </span>
+
+          </div>
+
+          <div className="mt-lg h-3 overflow-hidden rounded-full bg-surface-container-highest">
+
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{
+                width: `${project.progress}%`,
+              }}
+            />
+
+          </div>
+
+        </div>
+
+        {/* Project Team */}
+
+        <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+
+              <h2 className="text-title-sm font-semibold text-on-surface">
+                Project Team
+              </h2>
+
+              <p className="mt-xs text-caption text-on-surface-variant">
+                Members currently working on this project
+              </p>
+
+            </div>
+
+            <span className="material-symbols-outlined text-secondary">
+              group
+            </span>
+
+          </div>
+
+          <div className="mt-lg flex flex-wrap gap-sm">
+
+            {project.members.map((member) => (
+
+              <div
+                key={member.id}
+                className="flex items-center gap-sm rounded-lg bg-surface-container-low px-sm py-sm"
+              >
+
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-highest text-caption font-semibold text-on-surface">
+                  {member.name.charAt(0).toUpperCase()}
+                </div>
+
+                <div>
+
+                  <span className="block text-body-sm font-medium text-on-surface">
+                    {member.name}
+                  </span>
+
+                  {member.role && (
+                    <span className="block text-caption text-on-surface-variant">
+                      {member.role}
+                    </span>
+                  )}
+
+                </div>
+
+              </div>
+
+            ))}
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* Recent Activity */}
+
+      <section className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+        <div className="mb-lg">
+
+          <h2 className="text-title-sm font-semibold text-on-surface">
+            Recent Activity
+          </h2>
+
+          <p className="mt-xs text-caption text-on-surface-variant">
+            Latest engineering activity in this project
+          </p>
 
         </div>
 
         <div className="space-y-md">
 
-          {/* Activity 1 */}
-          <div className="flex items-start gap-md rounded-lg border border-outline-variant bg-surface-container-low p-md">
+          <div className="flex items-start gap-md">
 
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-container">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-container">
               <span className="material-symbols-outlined text-primary">
-                merge
+                commit
               </span>
             </div>
 
-            <div className="min-w-0">
-              <p className="text-body-sm font-medium text-on-surface">
-                Pull request merged into the checkout workflow.
+            <div>
+
+              <p className="text-body-sm text-on-surface">
+                New commits were pushed to the project.
               </p>
 
               <p className="mt-xs text-caption text-on-surface-variant">
-                Recent activity
+                Recently
               </p>
+
             </div>
 
           </div>
 
-          {/* Activity 2 */}
-          <div className="flex items-start gap-md rounded-lg border border-outline-variant bg-surface-container-low p-md">
+          <div className="flex items-start gap-md">
 
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-tertiary-container">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary-container">
+              <span className="material-symbols-outlined text-secondary">
+                merge
+              </span>
+            </div>
+
+            <div>
+
+              <p className="text-body-sm text-on-surface">
+                A pull request is waiting for review.
+              </p>
+
+              <p className="mt-xs text-caption text-on-surface-variant">
+                Recently
+              </p>
+
+            </div>
+
+          </div>
+
+          <div className="flex items-start gap-md">
+
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-tertiary-container">
               <span className="material-symbols-outlined text-tertiary">
                 bug_report
               </span>
             </div>
 
-            <div className="min-w-0">
-              <p className="text-body-sm font-medium text-on-surface">
-                A new engineering issue was created for the project.
+            <div>
+
+              <p className="text-body-sm text-on-surface">
+                Engineering issues are being tracked for this project.
               </p>
 
               <p className="mt-xs text-caption text-on-surface-variant">
-                Recent activity
-              </p>
-            </div>
-
-          </div>
-
-          {/* Activity 3 */}
-          <div className="flex items-start gap-md rounded-lg border border-outline-variant bg-surface-container-low p-md">
-
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary-container">
-              <span className="material-symbols-outlined text-secondary">
-                rocket_launch
-              </span>
-            </div>
-
-            <div className="min-w-0">
-              <p className="text-body-sm font-medium text-on-surface">
-                Project deployment completed successfully.
+                Recently
               </p>
 
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Recent activity
-              </p>
             </div>
 
           </div>

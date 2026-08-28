@@ -3,13 +3,12 @@ import {
   useMemo,
   useState,
 } from "react";
-import {
-  useNavigate,
-  useParams,
-} from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+
 import Modal from "../../../components/common/Modal";
 import CreateIssueForm from "../../../components/issues/CreateIssueForm";
 import { issueService } from "../../../services/issueService";
+
 import type {
   Issue,
   IssuePriority,
@@ -88,11 +87,14 @@ function Issues() {
   const [projectIssues, setProjectIssues] =
     useState<Issue[]>([]);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] =
+    useState(true);
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] =
+    useState("");
 
   const [statusFilter, setStatusFilter] =
     useState<IssueStatus | "ALL">("ALL");
@@ -103,10 +105,19 @@ function Issues() {
   const [isCreateModalOpen, setIsCreateModalOpen] =
     useState(false);
 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] =
+    useState(false);
+
+  const [deletingIssue, setDeletingIssue] =
+    useState<Issue | null>(null);
+
   const [viewMode, setViewMode] =
     useState<"LIST" | "BOARD">("BOARD");
 
   const [updatingIssueId, setUpdatingIssueId] =
+    useState<string | null>(null);
+
+  const [deletingIssueId, setDeletingIssueId] =
     useState<string | null>(null);
 
   const [draggedIssueId, setDraggedIssueId] =
@@ -137,7 +148,9 @@ function Issues() {
         }
       } catch {
         if (!cancelled) {
-          setError("Unable to load project issues.");
+          setError(
+            "Unable to load project issues.",
+          );
         }
       } finally {
         if (!cancelled) {
@@ -154,17 +167,22 @@ function Issues() {
   }, [projectId]);
 
   const filteredIssues = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    const query =
+      search.trim().toLowerCase();
 
     return projectIssues.filter((issue) => {
       const matchesSearch =
         query === "" ||
-        issue.title.toLowerCase().includes(query) ||
+        issue.title
+          .toLowerCase()
+          .includes(query) ||
         issue.description
           .toLowerCase()
           .includes(query) ||
         issue.labels.some((label) =>
-          label.toLowerCase().includes(query),
+          label
+            .toLowerCase()
+            .includes(query),
         ) ||
         issue.assignee?.name
           .toLowerCase()
@@ -194,9 +212,11 @@ function Issues() {
   const issuesByStatus = useMemo(() => {
     return statuses.reduce(
       (groups, status) => {
-        groups[status] = filteredIssues.filter(
-          (issue) => issue.status === status,
-        );
+        groups[status] =
+          filteredIssues.filter(
+            (issue) =>
+              issue.status === status,
+          );
 
         return groups;
       },
@@ -228,7 +248,9 @@ function Issues() {
 
       setIsCreateModalOpen(false);
     } catch {
-      setError("Unable to create the issue.");
+      setError(
+        "Unable to create the issue.",
+      );
     }
   };
 
@@ -236,9 +258,10 @@ function Issues() {
     issueId: string,
     newStatus: IssueStatus,
   ) => {
-    const currentIssue = projectIssues.find(
-      (issue) => issue.id === issueId,
-    );
+    const currentIssue =
+      projectIssues.find(
+        (issue) => issue.id === issueId,
+      );
 
     if (
       !currentIssue ||
@@ -258,18 +281,80 @@ function Issues() {
         );
 
       if (updatedIssue) {
-        setProjectIssues((currentIssues) =>
-          currentIssues.map((issue) =>
-            issue.id === issueId
-              ? updatedIssue
-              : issue,
-          ),
+        setProjectIssues(
+          (currentIssues) =>
+            currentIssues.map((issue) =>
+              issue.id === issueId
+                ? updatedIssue
+                : issue,
+            ),
         );
       }
     } catch {
-      setError("Unable to update issue status.");
+      setError(
+        "Unable to update issue status.",
+      );
     } finally {
       setUpdatingIssueId(null);
+    }
+  };
+
+  const openDeleteModal = (
+    issue: Issue,
+  ) => {
+    setDeletingIssue(issue);
+    setIsDeleteModalOpen(true);
+    setError("");
+  };
+
+  const closeDeleteModal = () => {
+    if (deletingIssueId !== null) {
+      return;
+    }
+
+    setDeletingIssue(null);
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleDeleteIssue = async () => {
+    if (!deletingIssue) {
+      return;
+    }
+
+    setDeletingIssueId(
+      deletingIssue.id,
+    );
+    setError("");
+
+    try {
+      const deleted =
+        await issueService.deleteIssue(
+          deletingIssue.id,
+        );
+
+      if (!deleted) {
+        throw new Error(
+          "Issue could not be deleted.",
+        );
+      }
+
+      setProjectIssues(
+        (currentIssues) =>
+          currentIssues.filter(
+            (issue) =>
+              issue.id !==
+              deletingIssue.id,
+          ),
+      );
+
+      setDeletingIssue(null);
+      setIsDeleteModalOpen(false);
+    } catch {
+      setError(
+        "Unable to delete the issue.",
+      );
+    } finally {
+      setDeletingIssueId(null);
     }
   };
 
@@ -279,7 +364,8 @@ function Issues() {
   ) => {
     setDraggedIssueId(issueId);
 
-    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.effectAllowed =
+      "move";
 
     event.dataTransfer.setData(
       "text/plain",
@@ -298,7 +384,8 @@ function Issues() {
   ) => {
     event.preventDefault();
 
-    event.dataTransfer.dropEffect = "move";
+    event.dataTransfer.dropEffect =
+      "move";
 
     setDragOverStatus(status);
   };
@@ -306,7 +393,10 @@ function Issues() {
   const handleDragLeave = (
     event: React.DragEvent<HTMLDivElement>,
   ) => {
-    if (event.currentTarget === event.target) {
+    if (
+      event.currentTarget ===
+      event.target
+    ) {
       setDragOverStatus(null);
     }
   };
@@ -318,8 +408,9 @@ function Issues() {
     event.preventDefault();
 
     const issueId =
-      event.dataTransfer.getData("text/plain") ||
-      draggedIssueId;
+      event.dataTransfer.getData(
+        "text/plain",
+      ) || draggedIssueId;
 
     setDragOverStatus(null);
     setDraggedIssueId(null);
@@ -359,6 +450,7 @@ function Issues() {
   return (
     <div className="space-y-lg">
       {/* Header */}
+
       <section className="flex flex-col gap-lg lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-title-lg font-bold text-on-surface">
@@ -366,13 +458,14 @@ function Issues() {
           </h2>
 
           <p className="mt-xs text-body-sm text-on-surface-variant">
-            Track bugs, tasks, and engineering work for
-            this project.
+            Track bugs, tasks, and engineering work
+            for this project.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-sm">
           {/* View Toggle */}
+
           <div className="flex rounded-lg border border-outline-variant bg-surface-container-low p-xs">
             <button
               type="button"
@@ -412,6 +505,7 @@ function Issues() {
           </div>
 
           {/* Create */}
+
           <button
             type="button"
             onClick={() =>
@@ -429,6 +523,7 @@ function Issues() {
       </section>
 
       {/* Error */}
+
       {error && (
         <div className="flex items-start gap-sm rounded-lg border border-error/30 bg-error-container p-md text-error">
           <span className="material-symbols-outlined">
@@ -442,9 +537,11 @@ function Issues() {
       )}
 
       {/* Toolbar */}
+
       <section className="rounded-xl border border-outline-variant bg-surface-container p-md">
         <div className="flex flex-col gap-md xl:flex-row xl:items-center xl:justify-between">
           {/* Search */}
+
           <div className="relative min-w-0 flex-1">
             <span className="material-symbols-outlined pointer-events-none absolute left-md top-1/2 -translate-y-1/2 text-body-md text-on-surface-variant">
               search
@@ -462,6 +559,7 @@ function Issues() {
           </div>
 
           {/* Filters */}
+
           <div className="flex flex-wrap gap-sm">
             <select
               value={statusFilter}
@@ -541,6 +639,7 @@ function Issues() {
       </section>
 
       {/* Loading */}
+
       {isLoading ? (
         <section className="flex min-h-72 items-center justify-center rounded-xl border border-outline-variant bg-surface-container">
           <div className="text-center">
@@ -556,6 +655,7 @@ function Issues() {
       ) : (
         <>
           {/* Summary */}
+
           <div className="flex items-center justify-between">
             <p className="text-body-sm text-on-surface-variant">
               Showing{" "}
@@ -569,6 +669,7 @@ function Issues() {
           </div>
 
           {/* BOARD */}
+
           {viewMode === "BOARD" ? (
             <section className="overflow-x-auto pb-md">
               <div className="grid min-w-[1100px] grid-cols-4 gap-md">
@@ -604,6 +705,7 @@ function Issues() {
                       }`}
                     >
                       {/* Column Header */}
+
                       <div className="mb-sm flex items-center justify-between px-sm py-xs">
                         <div className="flex items-center gap-sm">
                           <span
@@ -633,6 +735,7 @@ function Issues() {
                       </div>
 
                       {/* Drop Hint */}
+
                       {isDropTarget &&
                         draggedIssueId && (
                           <div className="mb-sm rounded-lg border border-dashed border-primary bg-primary-container/40 px-sm py-md text-center">
@@ -647,6 +750,7 @@ function Issues() {
                         )}
 
                       {/* Cards */}
+
                       <div className="space-y-sm">
                         {columnIssues.map(
                           (issue) => (
@@ -654,7 +758,9 @@ function Issues() {
                               key={issue.id}
                               draggable={
                                 updatingIssueId !==
-                                issue.id
+                                  issue.id &&
+                                deletingIssueId !==
+                                  issue.id
                               }
                               onDragStart={(
                                 event,
@@ -679,7 +785,9 @@ function Issues() {
                                   : ""
                               } ${
                                 updatingIssueId ===
-                                issue.id
+                                  issue.id ||
+                                deletingIssueId ===
+                                  issue.id
                                   ? "opacity-60"
                                   : ""
                               }`}
@@ -718,19 +826,13 @@ function Issues() {
                                 {issue.description}
                               </p>
 
-                              {issue.labels
-                                .length >
+                              {issue.labels.length >
                                 0 && (
                                 <div className="mt-md flex flex-wrap gap-xs">
                                   {issue.labels
-                                    .slice(
-                                      0,
-                                      3,
-                                    )
+                                    .slice(0, 3)
                                     .map(
-                                      (
-                                        label,
-                                      ) => (
+                                      (label) => (
                                         <span
                                           key={
                                             label
@@ -749,16 +851,13 @@ function Issues() {
                                   <div className="flex items-center gap-xs">
                                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-container-highest text-caption font-semibold text-on-surface">
                                       {issue.assignee.name
-                                        .charAt(
-                                          0,
-                                        )
+                                        .charAt(0)
                                         .toUpperCase()}
                                     </div>
 
                                     <span className="max-w-24 truncate text-caption text-on-surface-variant">
                                       {
-                                        issue
-                                          .assignee
+                                        issue.assignee
                                           .name
                                       }
                                     </span>
@@ -775,6 +874,7 @@ function Issues() {
                               </div>
 
                               {/* Status Controls */}
+
                               <div
                                 className="mt-sm grid grid-cols-4 gap-xs border-t border-outline-variant pt-sm"
                                 onClick={(
@@ -799,6 +899,8 @@ function Issues() {
                                       }
                                       disabled={
                                         updatingIssueId ===
+                                          issue.id ||
+                                        deletingIssueId ===
                                           issue.id ||
                                         targetStatus ===
                                           issue.status
@@ -827,6 +929,37 @@ function Issues() {
                                   ),
                                 )}
                               </div>
+
+                              {/* Delete */}
+
+                              <div
+                                className="mt-sm border-t border-outline-variant pt-sm"
+                                onClick={(
+                                  event,
+                                ) =>
+                                  event.stopPropagation()
+                                }
+                              >
+                                <button
+                                  type="button"
+                                  disabled={
+                                    deletingIssueId ===
+                                    issue.id
+                                  }
+                                  onClick={() =>
+                                    openDeleteModal(
+                                      issue,
+                                    )
+                                  }
+                                  className="flex w-full items-center justify-center gap-xs rounded-md px-sm py-xs text-caption font-medium text-error transition-colors hover:bg-error-container disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  <span className="material-symbols-outlined text-body-md">
+                                    delete
+                                  </span>
+
+                                  Delete
+                                </button>
+                              </div>
                             </article>
                           ),
                         )}
@@ -843,6 +976,7 @@ function Issues() {
                       </div>
 
                       {/* Add Issue */}
+
                       <button
                         type="button"
                         onClick={() =>
@@ -865,6 +999,7 @@ function Issues() {
             </section>
           ) : (
             /* LIST */
+
             <>
               {filteredIssues.length > 0 ? (
                 <section className="space-y-sm">
@@ -944,9 +1079,7 @@ function Issues() {
                               <div className="flex items-center gap-sm">
                                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-highest text-caption font-semibold text-on-surface">
                                   {issue.assignee.name
-                                    .charAt(
-                                      0,
-                                    )
+                                    .charAt(0)
                                     .toUpperCase()}
                                 </div>
 
@@ -976,9 +1109,39 @@ function Issues() {
                               </div>
                             )}
 
-                            <span className="material-symbols-outlined text-on-surface-variant transition-colors group-hover:text-primary">
-                              arrow_forward
-                            </span>
+                            {/* List actions */}
+
+                            <div
+                              className="flex items-center gap-xs"
+                              onClick={(
+                                event,
+                              ) =>
+                                event.stopPropagation()
+                              }
+                            >
+                              <button
+                                type="button"
+                                disabled={
+                                  deletingIssueId ===
+                                  issue.id
+                                }
+                                onClick={() =>
+                                  openDeleteModal(
+                                    issue,
+                                  )
+                                }
+                                title="Delete issue"
+                                className="flex h-9 w-9 items-center justify-center rounded-md text-error transition-colors hover:bg-error-container disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <span className="material-symbols-outlined text-body-md">
+                                  delete
+                                </span>
+                              </button>
+
+                              <span className="material-symbols-outlined text-on-surface-variant transition-colors group-hover:text-primary">
+                                arrow_forward
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </article>
@@ -1017,6 +1180,7 @@ function Issues() {
       )}
 
       {/* Create Issue Modal */}
+
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() =>
@@ -1031,6 +1195,75 @@ function Issues() {
           }
           onSubmit={handleCreateIssue}
         />
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        title="Delete Issue"
+      >
+        {deletingIssue && (
+          <div className="space-y-lg">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-error-container">
+              <span className="material-symbols-outlined text-error">
+                delete_forever
+              </span>
+            </div>
+
+            <div>
+              <h3 className="text-title-sm font-semibold text-on-surface">
+                Delete "{deletingIssue.title}"?
+              </h3>
+
+              <p className="mt-sm text-body-sm leading-6 text-on-surface-variant">
+                This will permanently remove the issue
+                from the project.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-sm border-t border-outline-variant pt-lg">
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                disabled={
+                  deletingIssueId !== null
+                }
+                className="rounded-lg border border-outline-variant px-md py-sm text-body-sm font-medium text-on-surface transition-colors hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDeleteIssue}
+                disabled={
+                  deletingIssueId !== null
+                }
+                className="flex items-center gap-sm rounded-lg bg-error px-md py-sm text-body-sm font-bold text-on-error transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {deletingIssueId !== null ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin text-body-md">
+                      progress_activity
+                    </span>
+
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-body-md">
+                      delete
+                    </span>
+
+                    Delete Issue
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
