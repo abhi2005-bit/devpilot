@@ -41,6 +41,7 @@ function CreateProjectForm({
       id: `${slug}-${Date.now()}`,
       name: data.name.trim(),
       description: data.description.trim(),
+      ownerId: "1",
       risk: data.risk,
       progress: Number(data.progress),
       openIssues: 0,
@@ -74,7 +75,8 @@ function CreateProjectForm({
             required: "Project name is required.",
             minLength: {
               value: 3,
-              message: "Project name must be at least 3 characters.",
+              message:
+                "Project name must be at least 3 characters.",
             },
           })}
           className="block w-full rounded-lg border border-outline-variant bg-surface-container-low px-4 py-3 text-sm text-on-surface outline-none transition-colors placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary"
@@ -104,7 +106,8 @@ function CreateProjectForm({
             required: "Description is required.",
             minLength: {
               value: 10,
-              message: "Description must be at least 10 characters.",
+              message:
+                "Description must be at least 10 characters.",
             },
           })}
           className="block w-full resize-none rounded-lg border border-outline-variant bg-surface-container-low px-4 py-3 text-sm text-on-surface outline-none transition-colors placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary"

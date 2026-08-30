@@ -15,11 +15,15 @@ from app.schemas.project import (
 
 class ProjectService:
 
-    def _to_schema(self, project: ProjectModel) -> Project:
+    def _to_schema(
+        self,
+        project: ProjectModel,
+    ) -> Project:
         return Project(
             id=str(project.id),
             name=project.name,
             description=project.description or "",
+            ownerId=str(project.owner_id),
             risk="LOW",
             progress=0,
             openIssues=0,
@@ -28,7 +32,10 @@ class ProjectService:
             aiInsight=None,
         )
 
-    def get_projects(self, db: Session) -> list[Project]:
+    def get_projects(
+        self,
+        db: Session,
+    ) -> list[Project]:
         statement = (
             select(ProjectModel)
             .order_by(ProjectModel.id)

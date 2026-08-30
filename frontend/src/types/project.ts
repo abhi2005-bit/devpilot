@@ -18,6 +18,7 @@ export interface Project {
   id: string;
   name: string;
   description: string;
+  ownerId: string;
   risk: ProjectRisk;
   progress: number;
   openIssues: number;

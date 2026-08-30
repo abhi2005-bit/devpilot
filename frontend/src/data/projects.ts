@@ -19,6 +19,7 @@ export const projects: Project[] = [
     name: "E-Commerce Platform V2",
     description:
       "Next-generation commerce platform with improved checkout and inventory management.",
+    ownerId: "1",
     risk: "HIGH",
     progress: 68,
     openIssues: 12,
@@ -32,11 +33,13 @@ export const projects: Project[] = [
     aiInsight:
       "Deployment risk increased due to unresolved checkout issues.",
   },
+
   {
     id: "mobile-banking-app",
     name: "Mobile Banking App",
     description:
       "Secure mobile banking experience with payments, transfers, and account management.",
+    ownerId: "5",
     risk: "MEDIUM",
     progress: 82,
     openIssues: 5,
@@ -49,11 +52,13 @@ export const projects: Project[] = [
     aiInsight:
       "Project is progressing well with a small number of remaining issues.",
   },
+
   {
     id: "internal-dev-tools",
     name: "Internal Dev Tools",
     description:
       "Internal engineering tools for improving developer productivity and workflow automation.",
+    ownerId: "8",
     risk: "LOW",
     progress: 94,
     openIssues: 2,

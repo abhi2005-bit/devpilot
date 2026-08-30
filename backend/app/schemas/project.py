@@ -13,6 +13,7 @@ class Project(BaseModel):
     id: str
     name: str
     description: str
+    ownerId: str
     risk: str
     progress: int = Field(ge=0, le=100)
     openIssues: int = Field(ge=0)
