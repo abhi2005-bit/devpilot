@@ -1,6 +1,8 @@
 import type { Project } from "../types/project";
+import type { ProjectHealth } from "../types/health";
 
-const API_URL = "http://127.0.0.1:8000/api/v1/projects";
+const API_URL =
+  "http://127.0.0.1:8000/api/v1/projects";
 
 export const projectService = {
 
@@ -14,9 +16,11 @@ export const projectService = {
     return response.json();
   },
 
-  async getById(id: string): Promise<Project | undefined> {
+  async getById(
+    id: string,
+  ): Promise<Project | undefined> {
     const response = await fetch(
-      `${API_URL}/${id}`
+      `${API_URL}/${id}`,
     );
 
     if (response.status === 404) {
@@ -25,6 +29,26 @@ export const projectService = {
 
     if (!response.ok) {
       throw new Error("Failed to load project");
+    }
+
+    return response.json();
+  },
+
+  async getHealth(
+    id: string,
+  ): Promise<ProjectHealth> {
+    const response = await fetch(
+      `${API_URL}/${id}/health`,
+    );
+
+    if (response.status === 404) {
+      throw new Error("Project not found");
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        "Failed to load project health",
+      );
     }
 
     return response.json();
@@ -77,7 +101,9 @@ export const projectService = {
     return response.json();
   },
 
-  async delete(id: string): Promise<void> {
+  async delete(
+    id: string,
+  ): Promise<void> {
 
     const response = await fetch(
       `${API_URL}/${id}`,

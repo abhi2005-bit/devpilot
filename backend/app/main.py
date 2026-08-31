@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.routes.projects import router as projects_router
 from app.api.routes.issues import router as issues_router
+from app.api.routes.comments import router as comments_router
 from app.api.routes.project_members import (
     router as project_members_router,
 )
@@ -140,6 +141,11 @@ app.include_router(
 
 app.include_router(
     issues_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    comments_router,
     prefix="/api/v1",
 )
 

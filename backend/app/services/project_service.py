@@ -5,7 +5,12 @@ from app.core.exceptions import (
     PermissionDeniedError,
     ProjectNotFoundError,
 )
+from app.models.issue import Issue as IssueModel
 from app.models.project import Project as ProjectModel
+from app.schemas.health import (
+    IssueMetrics,
+    ProjectHealth,
+)
 from app.schemas.project import (
     Project,
     ProjectCreate,
@@ -36,6 +41,7 @@ class ProjectService:
         self,
         db: Session,
     ) -> list[Project]:
+
         statement = (
             select(ProjectModel)
             .order_by(ProjectModel.id)
@@ -69,6 +75,126 @@ class ProjectService:
             raise ProjectNotFoundError()
 
         return self._to_schema(project)
+
+    def get_project_health(
+        self,
+        db: Session,
+        project_id: str,
+    ) -> ProjectHealth:
+
+        try:
+            project_id_int = int(project_id)
+        except ValueError:
+            raise ProjectNotFoundError()
+
+        project_statement = select(ProjectModel).where(
+            ProjectModel.id == project_id_int
+        )
+
+        project = db.scalar(project_statement)
+
+        if project is None:
+            raise ProjectNotFoundError()
+
+        issue_statement = select(IssueModel).where(
+            IssueModel.project_id == project_id_int
+        )
+
+        issues = db.scalars(issue_statement).all()
+
+        total = len(issues)
+
+        todo = sum(
+            1
+            for issue in issues
+            if issue.status == "TODO"
+        )
+
+        in_progress = sum(
+            1
+            for issue in issues
+            if issue.status == "IN_PROGRESS"
+        )
+
+        in_review = sum(
+            1
+            for issue in issues
+            if issue.status == "IN_REVIEW"
+        )
+
+        done = sum(
+            1
+            for issue in issues
+            if issue.status == "DONE"
+        )
+
+        critical = sum(
+            1
+            for issue in issues
+            if issue.priority == "CRITICAL"
+        )
+
+        high_priority = sum(
+            1
+            for issue in issues
+            if issue.priority == "HIGH"
+        )
+
+        unassigned = sum(
+            1
+            for issue in issues
+            if issue.assignee_id is None
+        )
+
+        open_issues = (
+            todo
+            + in_progress
+            + in_review
+        )
+
+        # Calculate health score
+        score = 100
+
+        if total > 0:
+            open_ratio = open_issues / total
+            score -= int(open_ratio * 30)
+
+        score -= critical * 15
+        score -= high_priority * 5
+
+        if total > 0:
+            unassigned_ratio = unassigned / total
+            score -= int(unassigned_ratio * 15)
+
+        score = max(
+            0,
+            min(100, score),
+        )
+
+        # Determine health status
+        if score >= 80:
+            health = "HEALTHY"
+        elif score >= 60:
+            health = "AT_RISK"
+        else:
+            health = "CRITICAL"
+
+        return ProjectHealth(
+            project_id=project_id_int,
+            health=health,
+            health_score=score,
+            issues=IssueMetrics(
+                total=total,
+                open=open_issues,
+                todo=todo,
+                in_progress=in_progress,
+                in_review=in_review,
+                done=done,
+                critical=critical,
+                high_priority=high_priority,
+                unassigned=unassigned,
+            ),
+        )
 
     def create_project(
         self,
@@ -125,7 +251,11 @@ class ProjectService:
 
         for field, value in update_data.items():
             if field in allowed_fields:
-                setattr(project, field, value)
+                setattr(
+                    project,
+                    field,
+                    value,
+                )
 
         db.commit()
         db.refresh(project)

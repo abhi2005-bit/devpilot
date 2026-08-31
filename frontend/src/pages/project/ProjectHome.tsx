@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { projectService } from "../../services/projectService";
+import { healthService } from "../../services/healthService";
+
 import type { Project } from "../../types/project";
+import type { ProjectHealth } from "../../types/health";
 
 function ProjectHome() {
   const { projectId } = useParams<{
@@ -12,8 +15,17 @@ function ProjectHome() {
   const [project, setProject] =
     useState<Project | undefined>();
 
+  const [health, setHealth] =
+    useState<ProjectHealth | undefined>();
+
   const [isLoading, setIsLoading] = useState(true);
 
+  const [isHealthLoading, setIsHealthLoading] =
+    useState(true);
+
+  /*
+   * Load project
+   */
   useEffect(() => {
     let cancelled = false;
 
@@ -51,6 +63,51 @@ function ProjectHome() {
     };
   }, [projectId]);
 
+  /*
+   * Load real project health
+   */
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadHealth() {
+      if (!projectId) {
+        setHealth(undefined);
+        setIsHealthLoading(false);
+        return;
+      }
+
+      setIsHealthLoading(true);
+
+      try {
+        const loadedHealth =
+          await healthService.getProjectHealth(
+            projectId,
+          );
+
+        if (!cancelled) {
+          setHealth(loadedHealth);
+        }
+      } catch {
+        if (!cancelled) {
+          setHealth(undefined);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsHealthLoading(false);
+        }
+      }
+    }
+
+    loadHealth();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  /*
+   * Loading project
+   */
   if (isLoading) {
     return (
       <div className="flex min-h-64 items-center justify-center rounded-xl border border-outline-variant bg-surface-container">
@@ -67,11 +124,13 @@ function ProjectHome() {
     );
   }
 
+  /*
+   * Project not found
+   */
   if (!project) {
     return (
       <div className="flex min-h-64 items-center justify-center rounded-xl border border-outline-variant bg-surface-container">
         <div className="text-center">
-
           <span className="material-symbols-outlined text-5xl text-on-surface-variant">
             folder_off
           </span>
@@ -83,11 +142,58 @@ function ProjectHome() {
           <p className="mt-xs text-body-sm text-on-surface-variant">
             This project could not be loaded.
           </p>
-
         </div>
       </div>
     );
   }
+
+  /*
+   * Calculate real progress
+   */
+  const progress =
+    health && health.issues.total > 0
+      ? Math.round(
+          (health.issues.done /
+            health.issues.total) *
+            100,
+        )
+      : 0;
+
+  /*
+   * Real health status
+   */
+  const healthStatus =
+    health?.health ?? "UNKNOWN";
+
+  const healthLabel =
+    healthStatus === "HEALTHY"
+      ? "HEALTHY"
+      : healthStatus === "AT_RISK"
+        ? "AT RISK"
+        : healthStatus === "CRITICAL"
+          ? "CRITICAL"
+          : "UNKNOWN";
+
+  /*
+   * Health styling
+   */
+  const healthTextColor =
+    healthStatus === "CRITICAL"
+      ? "text-error"
+      : healthStatus === "AT_RISK"
+        ? "text-tertiary"
+        : healthStatus === "HEALTHY"
+          ? "text-secondary"
+          : "text-on-surface-variant";
+
+  const healthBadgeClass =
+    healthStatus === "CRITICAL"
+      ? "bg-error-container text-on-error"
+      : healthStatus === "AT_RISK"
+        ? "bg-tertiary-container text-on-tertiary"
+        : healthStatus === "HEALTHY"
+          ? "bg-secondary-container text-on-secondary"
+          : "bg-surface-container-highest text-on-surface-variant";
 
   return (
     <div className="space-y-lg">
@@ -122,20 +228,18 @@ function ProjectHome() {
                   Risk Level
                 </p>
 
-                <p className="mt-xs text-title-lg font-bold text-on-surface">
-                  {project.risk}
+                <p
+                  className={`mt-xs text-title-lg font-bold ${healthTextColor}`}
+                >
+                  {isHealthLoading
+                    ? "..."
+                    : healthLabel}
                 </p>
 
               </div>
 
               <span
-                className={`material-symbols-outlined ${
-                  project.risk === "HIGH"
-                    ? "text-error"
-                    : project.risk === "MEDIUM"
-                      ? "text-tertiary"
-                      : "text-secondary"
-                }`}
+                className={`material-symbols-outlined ${healthTextColor}`}
               >
                 warning
               </span>
@@ -157,7 +261,9 @@ function ProjectHome() {
                 </p>
 
                 <p className="mt-xs text-title-lg font-bold text-on-surface">
-                  {project.progress}%
+                  {isHealthLoading
+                    ? "..."
+                    : `${progress}%`}
                 </p>
 
               </div>
@@ -249,6 +355,8 @@ function ProjectHome() {
 
           <div className="mt-lg space-y-md">
 
+            {/* Open Issues */}
+
             <div className="flex items-center justify-between">
 
               <span className="text-body-sm text-on-surface-variant">
@@ -256,24 +364,64 @@ function ProjectHome() {
               </span>
 
               <span className="font-semibold text-on-surface">
-                {project.openIssues}
+                {isHealthLoading
+                  ? "..."
+                  : health?.issues.open ?? 0}
               </span>
 
             </div>
 
+            {/* Critical Issues */}
+
             <div className="flex items-center justify-between">
 
               <span className="text-body-sm text-on-surface-variant">
-                Pending PRs
+                Critical Issues
+              </span>
+
+              <span className="font-semibold text-error">
+                {isHealthLoading
+                  ? "..."
+                  : health?.issues.critical ?? 0}
+              </span>
+
+            </div>
+
+            {/* High Priority */}
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                High Priority
+              </span>
+
+              <span className="font-semibold text-tertiary">
+                {isHealthLoading
+                  ? "..."
+                  : health?.issues.high_priority ?? 0}
+              </span>
+
+            </div>
+
+            {/* Unassigned */}
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                Unassigned
               </span>
 
               <span className="font-semibold text-on-surface">
-                {project.prsPending}
+                {isHealthLoading
+                  ? "..."
+                  : health?.issues.unassigned ?? 0}
               </span>
 
             </div>
 
             <div className="h-px bg-outline-variant" />
+
+            {/* Overall Risk */}
 
             <div className="flex items-center justify-between">
 
@@ -282,15 +430,27 @@ function ProjectHome() {
               </span>
 
               <span
-                className={`rounded-full px-sm py-xs text-caption font-semibold ${
-                  project.risk === "HIGH"
-                    ? "bg-error-container text-on-error"
-                    : project.risk === "MEDIUM"
-                      ? "bg-tertiary-container text-on-tertiary"
-                      : "bg-secondary-container text-on-secondary"
-                }`}
+                className={`rounded-full px-sm py-xs text-caption font-semibold ${healthBadgeClass}`}
               >
-                {project.risk}
+                {isHealthLoading
+                  ? "LOADING"
+                  : healthLabel}
+              </span>
+
+            </div>
+
+            {/* Health Score */}
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                Health Score
+              </span>
+
+              <span className="font-semibold text-on-surface">
+                {isHealthLoading
+                  ? "..."
+                  : `${health?.health_score ?? 0}/100`}
               </span>
 
             </div>
@@ -324,7 +484,9 @@ function ProjectHome() {
             </div>
 
             <span className="text-title-sm font-bold text-primary">
-              {project.progress}%
+              {isHealthLoading
+                ? "..."
+                : `${progress}%`}
             </span>
 
           </div>
@@ -334,11 +496,23 @@ function ProjectHome() {
             <div
               className="h-full rounded-full bg-primary transition-all"
               style={{
-                width: `${project.progress}%`,
+                width: `${progress}%`,
               }}
             />
 
           </div>
+
+          {!isHealthLoading && health && (
+            <div className="mt-md flex justify-between text-caption text-on-surface-variant">
+              <span>
+                {health.issues.done} completed
+              </span>
+
+              <span>
+                {health.issues.total} total
+              </span>
+            </div>
+          )}
 
         </div>
 
@@ -368,34 +542,42 @@ function ProjectHome() {
 
           <div className="mt-lg flex flex-wrap gap-sm">
 
-            {project.members.map((member) => (
+            {project.members.length === 0 ? (
+              <p className="text-body-sm text-on-surface-variant">
+                No team members assigned yet.
+              </p>
+            ) : (
+              project.members.map((member) => (
 
-              <div
-                key={member.id}
-                className="flex items-center gap-sm rounded-lg bg-surface-container-low px-sm py-sm"
-              >
+                <div
+                  key={member.id}
+                  className="flex items-center gap-sm rounded-lg bg-surface-container-low px-sm py-sm"
+                >
 
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-highest text-caption font-semibold text-on-surface">
-                  {member.name.charAt(0).toUpperCase()}
-                </div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-highest text-caption font-semibold text-on-surface">
+                    {member.name
+                      .charAt(0)
+                      .toUpperCase()}
+                  </div>
 
-                <div>
+                  <div>
 
-                  <span className="block text-body-sm font-medium text-on-surface">
-                    {member.name}
-                  </span>
-
-                  {member.role && (
-                    <span className="block text-caption text-on-surface-variant">
-                      {member.role}
+                    <span className="block text-body-sm font-medium text-on-surface">
+                      {member.name}
                     </span>
-                  )}
+
+                    {member.role && (
+                      <span className="block text-caption text-on-surface-variant">
+                        {member.role}
+                      </span>
+                    )}
+
+                  </div>
 
                 </div>
 
-              </div>
-
-            ))}
+              ))
+            )}
 
           </div>
 

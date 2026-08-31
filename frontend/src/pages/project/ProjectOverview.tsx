@@ -7,7 +7,10 @@ import {
 import { useEffect, useState } from "react";
 
 import { projectService } from "../../services/projectService";
+import { healthService } from "../../services/healthService";
+
 import type { Project } from "../../types/project";
+import type { ProjectHealth } from "../../types/health";
 
 function ProjectOverview() {
   const { projectId } = useParams<{
@@ -17,8 +20,18 @@ function ProjectOverview() {
   const [project, setProject] =
     useState<Project | undefined>();
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [health, setHealth] =
+    useState<ProjectHealth | undefined>();
 
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  const [isHealthLoading, setIsHealthLoading] =
+    useState(true);
+
+  /*
+   * Load project
+   */
   useEffect(() => {
     let cancelled = false;
 
@@ -56,6 +69,51 @@ function ProjectOverview() {
     };
   }, [projectId]);
 
+  /*
+   * Load real project health
+   */
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadHealth() {
+      if (!projectId) {
+        setHealth(undefined);
+        setIsHealthLoading(false);
+        return;
+      }
+
+      setIsHealthLoading(true);
+
+      try {
+        const loadedHealth =
+          await healthService.getProjectHealth(
+            projectId,
+          );
+
+        if (!cancelled) {
+          setHealth(loadedHealth);
+        }
+      } catch {
+        if (!cancelled) {
+          setHealth(undefined);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsHealthLoading(false);
+        }
+      }
+    }
+
+    loadHealth();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  /*
+   * Loading project
+   */
   if (isLoading) {
     return (
       <main className="flex min-h-full items-center justify-center px-margin py-margin">
@@ -72,6 +130,9 @@ function ProjectOverview() {
     );
   }
 
+  /*
+   * Project not found
+   */
   if (!project) {
     return (
       <main className="flex min-h-full items-center justify-center px-margin py-margin">
@@ -103,6 +164,36 @@ function ProjectOverview() {
     );
   }
 
+  /*
+   * Calculate progress from real issue data
+   */
+  const progress =
+    health && health.issues.total > 0
+      ? Math.round(
+          (health.issues.done /
+            health.issues.total) *
+            100,
+        )
+      : 0;
+
+  /*
+   * Health status
+   */
+  const healthStatus =
+    health?.health ?? "UNKNOWN";
+
+  const healthLabel =
+    healthStatus === "HEALTHY"
+      ? "HEALTHY"
+      : healthStatus === "AT_RISK"
+        ? "AT RISK"
+        : healthStatus === "CRITICAL"
+          ? "CRITICAL"
+          : "UNKNOWN";
+
+  /*
+   * Navigation tabs
+   */
   const tabs = [
     {
       label: "Overview",
@@ -149,9 +240,11 @@ function ProjectOverview() {
 
   return (
     <main className="overflow-y-auto">
+
       {/* Project Header */}
 
       <section className="border-b border-outline-variant bg-surface-container">
+
         <div className="px-margin pb-lg pt-lg">
 
           {/* Back */}
@@ -179,16 +272,22 @@ function ProjectOverview() {
                   {project.name}
                 </h1>
 
+                {/* REAL HEALTH STATUS */}
+
                 <span
                   className={`rounded-full px-sm py-xs text-caption font-semibold ${
-                    project.risk === "HIGH"
+                    healthStatus === "CRITICAL"
                       ? "bg-error-container text-on-error"
-                      : project.risk === "MEDIUM"
+                      : healthStatus === "AT_RISK"
                         ? "bg-tertiary-container text-on-tertiary"
-                        : "bg-secondary-container text-on-secondary"
+                        : healthStatus === "HEALTHY"
+                          ? "bg-secondary-container text-on-secondary"
+                          : "bg-surface-container-highest text-on-surface-variant"
                   }`}
                 >
-                  {project.risk} RISK
+                  {isHealthLoading
+                    ? "LOADING"
+                    : `${healthLabel}`}
                 </span>
 
               </div>
@@ -244,7 +343,9 @@ function ProjectOverview() {
                 </span>
 
                 <span className="text-body-md font-bold text-on-surface">
-                  {project.progress}%
+                  {isHealthLoading
+                    ? "..."
+                    : `${progress}%`}
                 </span>
 
               </div>
@@ -252,9 +353,9 @@ function ProjectOverview() {
               <div className="h-2 overflow-hidden rounded-full bg-surface-container-highest">
 
                 <div
-                  className="h-full rounded-full bg-primary"
+                  className="h-full rounded-full bg-primary transition-all"
                   style={{
-                    width: `${project.progress}%`,
+                    width: `${progress}%`,
                   }}
                 />
 
@@ -262,7 +363,7 @@ function ProjectOverview() {
 
             </div>
 
-            {/* Issues */}
+            {/* Open Issues */}
 
             <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
 
@@ -275,7 +376,11 @@ function ProjectOverview() {
                   </p>
 
                   <p className="mt-xs text-title-lg font-bold text-on-surface">
-                    {project.openIssues}
+
+                    {isHealthLoading
+                      ? "..."
+                      : health?.issues.open ?? 0}
+
                   </p>
 
                 </div>
@@ -358,7 +463,9 @@ function ProjectOverview() {
       {/* Nested Route Content */}
 
       <section className="px-margin py-lg">
+
         <Outlet />
+
       </section>
 
     </main>

@@ -8,6 +8,7 @@ from app.schemas.project import (
     ProjectUpdate,
 )
 from app.services.project_service import project_service
+from app.schemas.health import ProjectHealth
 
 
 router = APIRouter(
@@ -26,20 +27,6 @@ def list_projects(
     return project_service.get_projects(db)
 
 
-@router.get(
-    "/{project_id}",
-    response_model=Project,
-)
-def read_project(
-    project_id: str,
-    db: Session = Depends(get_db),
-):
-    return project_service.get_project(
-        db,
-        project_id,
-    )
-
-
 @router.post(
     "",
     response_model=Project,
@@ -52,6 +39,34 @@ def create_new_project(
     return project_service.create_project(
         db,
         data,
+    )
+
+
+@router.get(
+    "/{project_id}/health",
+    response_model=ProjectHealth,
+)
+def read_project_health(
+    project_id: str,
+    db: Session = Depends(get_db),
+):
+    return project_service.get_project_health(
+        db,
+        project_id,
+    )
+
+
+@router.get(
+    "/{project_id}",
+    response_model=Project,
+)
+def read_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+):
+    return project_service.get_project(
+        db,
+        project_id,
     )
 
 

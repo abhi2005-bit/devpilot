@@ -4,9 +4,11 @@ import type {
   IssuePriority,
   IssueStatus,
 } from "../../types/issue";
+import type { ProjectMember } from "../../types/member";
 
 interface EditIssueFormProps {
   issue: Issue;
+  members: ProjectMember[];
   onCancel: () => void;
   onSubmit: (
     updates: Partial<
@@ -28,12 +30,13 @@ interface FormValues {
   description: string;
   priority: IssuePriority;
   status: IssueStatus;
-  assignee: string;
+  assigneeId: string;
   labels: string;
 }
 
 function EditIssueForm({
   issue,
+  members,
   onCancel,
   onSubmit,
 }: EditIssueFormProps) {
@@ -47,7 +50,7 @@ function EditIssueForm({
       description: issue.description,
       priority: issue.priority,
       status: issue.status,
-      assignee: issue.assignee?.name ?? "",
+      assigneeId: issue.assignee?.id ?? "",
       labels: issue.labels.join(", "),
     },
   });
@@ -58,15 +61,19 @@ function EditIssueForm({
       .map((label) => label.trim())
       .filter(Boolean);
 
+    const selectedMember = members.find(
+      (member) => member.id === data.assigneeId,
+    );
+
     onSubmit({
       title: data.title.trim(),
       description: data.description.trim(),
       priority: data.priority,
       status: data.status,
-      assignee: data.assignee.trim()
+      assignee: selectedMember
         ? {
-            id: issue.assignee?.id ?? `user-${Date.now()}`,
-            name: data.assignee.trim(),
+            id: selectedMember.id,
+            name: selectedMember.name,
           }
         : undefined,
       labels,
@@ -125,7 +132,7 @@ function EditIssueForm({
             minLength: {
               value: 10,
               message:
-                "Description must contain at least 10 characters.",
+                "Description must be at least 10 characters.",
             },
           })}
           className="w-full resize-none rounded-lg border border-outline-variant bg-surface-container-low px-md py-sm text-body-sm text-on-surface outline-none placeholder:text-on-surface-variant focus:border-primary"
@@ -174,9 +181,7 @@ function EditIssueForm({
             className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-md py-sm text-body-sm text-on-surface outline-none focus:border-primary"
           >
             <option value="TODO">To Do</option>
-            <option value="IN_PROGRESS">
-              In Progress
-            </option>
+            <option value="IN_PROGRESS">In Progress</option>
             <option value="IN_REVIEW">In Review</option>
             <option value="DONE">Done</option>
           </select>
@@ -192,13 +197,22 @@ function EditIssueForm({
           Assignee
         </label>
 
-        <input
+        <select
           id="edit-issue-assignee"
-          type="text"
-          placeholder="Enter assignee name"
-          {...register("assignee")}
-          className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-md py-sm text-body-sm text-on-surface outline-none placeholder:text-on-surface-variant focus:border-primary"
-        />
+          {...register("assigneeId")}
+          className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-md py-sm text-body-sm text-on-surface outline-none focus:border-primary"
+        >
+          <option value="">Unassigned</option>
+
+          {members.map((member) => (
+            <option
+              key={member.id}
+              value={member.id}
+            >
+              {member.name} ({member.email})
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Labels */}
