@@ -60,3 +60,16 @@ class Project(Base):
     "Issue",
     back_populates="project",
     )
+    github_owner:Mapped[str | None]=mapped_column(
+        String(100),
+        nullable=True,
+    )
+    github_repo:Mapped[str | None]=mapped_column(
+        String(100),
+        nullable=True,
+    )
+    github_url:Mapped[str | None]=mapped_column(
+        String(500),
+        nullable=True,
+    )
+

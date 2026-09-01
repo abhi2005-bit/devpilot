@@ -24,6 +24,7 @@ class ProjectService:
         self,
         project: ProjectModel,
     ) -> Project:
+
         return Project(
             id=str(project.id),
             name=project.name,
@@ -35,6 +36,9 @@ class ProjectService:
             prsPending=0,
             members=[],
             aiInsight=None,
+            github_owner=project.github_owner,
+            github_repo=project.github_repo,
+            github_url=project.github_url,
         )
 
     def get_projects(
@@ -54,6 +58,28 @@ class ProjectService:
             for project in projects
         ]
 
+    def get_project_model(
+        self,
+        db: Session,
+        project_id: str,
+    ) -> ProjectModel:
+
+        try:
+            project_id_int = int(project_id)
+        except ValueError:
+            raise ProjectNotFoundError()
+
+        statement = select(ProjectModel).where(
+            ProjectModel.id == project_id_int
+        )
+
+        project = db.scalar(statement)
+
+        if project is None:
+            raise ProjectNotFoundError()
+
+        return project
+
     def get_project(
         self,
         db: Session,
@@ -62,6 +88,7 @@ class ProjectService:
 
         try:
             project_id_int = int(project_id)
+
         except ValueError:
             raise ProjectNotFoundError()
 
@@ -84,6 +111,7 @@ class ProjectService:
 
         try:
             project_id_int = int(project_id)
+
         except ValueError:
             raise ProjectNotFoundError()
 
@@ -153,6 +181,7 @@ class ProjectService:
         )
 
         # Calculate health score
+
         score = 100
 
         if total > 0:
@@ -172,10 +201,13 @@ class ProjectService:
         )
 
         # Determine health status
+
         if score >= 80:
             health = "HEALTHY"
+
         elif score >= 60:
             health = "AT_RISK"
+
         else:
             health = "CRITICAL"
 
@@ -203,10 +235,22 @@ class ProjectService:
         current_user_id: int = 1,
     ) -> Project:
 
+        github_url = None
+
+        if data.github_owner and data.github_repo:
+            github_url = (
+                f"https://github.com/"
+                f"{data.github_owner}/"
+                f"{data.github_repo}"
+            )
+
         project = ProjectModel(
             name=data.name,
             description=data.description,
             owner_id=current_user_id,
+            github_owner=data.github_owner,
+            github_repo=data.github_repo,
+            github_url=github_url,
         )
 
         db.add(project)
@@ -225,6 +269,7 @@ class ProjectService:
 
         try:
             project_id_int = int(project_id)
+
         except ValueError:
             raise ProjectNotFoundError()
 
@@ -247,15 +292,40 @@ class ProjectService:
         allowed_fields = {
             "name",
             "description",
+            "github_owner",
+            "github_repo",
         }
 
         for field, value in update_data.items():
+
             if field in allowed_fields:
                 setattr(
                     project,
                     field,
                     value,
                 )
+
+        # Rebuild GitHub URL whenever
+        # repository information changes.
+
+        if (
+            "github_owner" in update_data
+            or "github_repo" in update_data
+        ):
+
+            if (
+                project.github_owner
+                and project.github_repo
+            ):
+
+                project.github_url = (
+                    f"https://github.com/"
+                    f"{project.github_owner}/"
+                    f"{project.github_repo}"
+                )
+
+            else:
+                project.github_url = None
 
         db.commit()
         db.refresh(project)
@@ -271,6 +341,7 @@ class ProjectService:
 
         try:
             project_id_int = int(project_id)
+
         except ValueError:
             raise ProjectNotFoundError()
 

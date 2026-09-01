@@ -2,13 +2,19 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+
 from app.schemas.project import (
     Project,
     ProjectCreate,
     ProjectUpdate,
 )
-from app.services.project_service import project_service
+
 from app.schemas.health import ProjectHealth
+
+from app.schemas.github import ProjectGitHub
+
+from app.services.project_service import project_service
+from app.services.github_service import github_service
 
 
 router = APIRouter(
@@ -53,6 +59,48 @@ def read_project_health(
     return project_service.get_project_health(
         db,
         project_id,
+    )
+
+
+@router.get(
+    "/{project_id}/github",
+    response_model=ProjectGitHub,
+)
+async def read_project_github(
+    project_id: str,
+    db: Session = Depends(get_db),
+):
+    project = project_service.get_project_model(
+        db,
+        project_id,
+    )
+
+    if not project.github_owner or not project.github_repo:
+        raise ValueError(
+            "GitHub repository is not connected to this project"
+        )
+
+    repository = await github_service.get_repository(
+        project.github_owner,
+        project.github_repo,
+    )
+
+    commits = await github_service.get_commits(
+        project.github_owner,
+        project.github_repo,
+        5,
+    )
+
+    pull_requests = await github_service.get_pull_requests(
+        project.github_owner,
+        project.github_repo,
+        5,
+    )
+
+    return ProjectGitHub(
+        repository=repository,
+        commits=commits,
+        pull_requests=pull_requests,
     )
 
 
