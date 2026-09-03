@@ -102,9 +102,7 @@ async def project_member_not_found_handler(
     )
 
 
-@app.exception_handler(
-    ProjectMemberAlreadyExistsError
-)
+@app.exception_handler(ProjectMemberAlreadyExistsError)
 async def project_member_already_exists_handler(
     request: Request,
     exc: ProjectMemberAlreadyExistsError,
@@ -177,6 +175,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://devpilot33.netlify.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
