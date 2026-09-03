@@ -9,6 +9,7 @@ from app.api.routes.project_members import (
     router as project_members_router,
 )
 from app.api.routes.users import router as users_router
+from app.api.routes.cicd import router as cicd_router
 
 from app.core.exceptions import (
     IssueNotFoundError,
@@ -27,9 +28,7 @@ app = FastAPI(
 )
 
 
-
 # Exception Handlers
-
 
 
 @app.exception_handler(ProjectNotFoundError)
@@ -112,9 +111,7 @@ async def project_member_already_exists_handler(
     )
 
 
-
 # CORS
-
 
 
 app.add_middleware(
@@ -129,9 +126,7 @@ app.add_middleware(
 )
 
 
-
 # API Routes
-
 
 
 app.include_router(
@@ -159,10 +154,13 @@ app.include_router(
     prefix="/api/v1",
 )
 
+app.include_router(
+    cicd_router,
+    prefix="/api/v1",
+)
 
 
 # Health
-
 
 
 @app.get("/health")
@@ -174,9 +172,7 @@ def health_check():
     }
 
 
-
 # Root
-
 
 
 @app.get("/")

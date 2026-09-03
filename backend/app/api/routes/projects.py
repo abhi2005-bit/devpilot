@@ -97,10 +97,17 @@ async def read_project_github(
         5,
     )
 
+    workflow_runs = await github_service.get_workflow_runs(
+        project.github_owner,
+        project.github_repo,
+        5,
+    )
+
     return ProjectGitHub(
         repository=repository,
         commits=commits,
         pull_requests=pull_requests,
+        workflow_runs=workflow_runs,
     )
 
 

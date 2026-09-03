@@ -10,6 +10,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 
+
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.issue import Issue
+    from app.models.cicd_run import CICDRun
+
+
 project_members = Table(
     "project_members",
     Base.metadata,
@@ -71,5 +79,9 @@ class Project(Base):
     github_url:Mapped[str | None]=mapped_column(
         String(500),
         nullable=True,
+    )
+    cicd_runs: Mapped[list["CICDRun"]] = relationship(
+    "CICDRun",
+    back_populates="project",
     )
 

@@ -32,7 +32,30 @@ class GitHubPullRequest(BaseModel):
     url: str
 
 
+class GitHubWorkflowRun(BaseModel):
+    id: int
+    workflow_name: str
+    branch: str
+    commit_sha: str | None
+    status: str
+    conclusion: str | None
+    started_at: str
+    completed_at: str | None
+    url: str
+
+
+class GitHubJob(BaseModel):
+    id: int
+    name: str
+    status: str
+    conclusion: str | None
+    started_at: str | None
+    completed_at: str | None
+    url: str
+
+
 class ProjectGitHub(BaseModel):
     repository: GitHubRepository
     commits: list[GitHubCommit]
     pull_requests: list[GitHubPullRequest]
+    workflow_runs: list[GitHubWorkflowRun]

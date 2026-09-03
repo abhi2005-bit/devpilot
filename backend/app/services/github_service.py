@@ -2,8 +2,10 @@ import httpx
 
 from app.schemas.github import (
     GitHubCommit,
+    GitHubJob,
     GitHubPullRequest,
     GitHubRepository,
+    GitHubWorkflowRun,
 )
 
 
@@ -122,6 +124,62 @@ class GitHubService:
             )
 
         return results
+
+    async def get_workflow_runs(
+        self,
+        owner: str,
+        repo: str,
+        limit: int = 10,
+    ) -> list[GitHubWorkflowRun]:
+
+        data = await self._get(
+            f"/repos/{owner}/{repo}/actions/runs"
+            f"?per_page={limit}"
+        )
+
+        workflow_runs = data["workflow_runs"]
+
+        return [
+            GitHubWorkflowRun(
+                id=run["id"],
+                workflow_name=run["name"],
+                branch=run["head_branch"] or "",
+                commit_sha=run.get("head_sha"),
+                status=run["status"],
+                conclusion=run.get("conclusion"),
+                started_at=run["run_started_at"],
+                completed_at=run.get("updated_at"),
+                url=run["html_url"],
+            )
+            for run in workflow_runs
+        ]
+
+    async def get_jobs(
+        self,
+        owner: str,
+        repo: str,
+        run_id: int,
+    ) -> list[GitHubJob]:
+
+        data = await self._get(
+            f"/repos/{owner}/{repo}/actions/runs/"
+            f"{run_id}/jobs?per_page=100"
+        )
+
+        jobs = data["jobs"]
+
+        return [
+            GitHubJob(
+                id=job["id"],
+                name=job["name"],
+                status=job["status"],
+                conclusion=job.get("conclusion"),
+                started_at=job.get("started_at"),
+                completed_at=job.get("completed_at"),
+                url=job["html_url"],
+            )
+            for job in jobs
+        ]
 
 
 github_service = GitHubService()
