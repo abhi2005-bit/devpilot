@@ -8,6 +8,8 @@ from app.db.database import Base, settings
 # Import all models so SQLAlchemy registers their tables
 # in Base.metadata before Alembic inspects the metadata.
 from app.models import (
+    CICDJob,
+    CICDRun,
     Issue,
     IssueComment,
     Label,

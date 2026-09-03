@@ -15,7 +15,7 @@ from app.db.database import Base
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.issue import Issue
-    from app.models.cicd_run import CICDRun
+    from app.models.cicd_run import CICDRun, CICDJob
 
 
 project_members = Table(
@@ -82,6 +82,10 @@ class Project(Base):
     )
     cicd_runs: Mapped[list["CICDRun"]] = relationship(
     "CICDRun",
+    back_populates="project",
+    )
+    cicd_jobs: Mapped[list["CICDJob"]] = relationship(
+    "CICDJob",
     back_populates="project",
     )
 

@@ -13,6 +13,7 @@ from app.schemas.health import ProjectHealth
 
 from app.schemas.github import ProjectGitHub
 
+from app.core.exceptions import GitHubRepositoryNotConnectedError
 from app.services.project_service import project_service
 from app.services.github_service import github_service
 
@@ -76,9 +77,7 @@ async def read_project_github(
     )
 
     if not project.github_owner or not project.github_repo:
-        raise ValueError(
-            "GitHub repository is not connected to this project"
-        )
+        raise GitHubRepositoryNotConnectedError()
 
     repository = await github_service.get_repository(
         project.github_owner,

@@ -1,13 +1,22 @@
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import ProjectNotFoundError
-from app.models.cicd_run import CICDRun as CICDRunModel
+from app.core.exceptions import (
+    CICDRunNotFoundError,
+    GitHubRepositoryNotConnectedError,
+    InvalidGitHubResponseError,
+    ProjectNotFoundError,
+)
+from app.models.cicd_run import (
+    CICDJob as CICDJobModel,
+    CICDRun as CICDRunModel,
+)
 from app.models.project import Project as ProjectModel
 from app.schemas.cicd import (
     CICDHealth,
+    CICDJob,
     CICDRun,
     CICDRunCreate,
 )
@@ -15,6 +24,22 @@ from app.services.github_service import github_service
 
 
 class CICDService:
+    def _parse_github_datetime(
+        self,
+        value: str | None,
+    ) -> datetime | None:
+        if value is None:
+            return None
+
+        try:
+            return datetime.fromisoformat(
+                value.replace(
+                    "Z",
+                    "+00:00",
+                )
+            ).replace(tzinfo=None)
+        except ValueError as exc:
+            raise InvalidGitHubResponseError() from exc
 
     def _get_project_id(
         self,
@@ -31,10 +56,18 @@ class CICDService:
     ) -> CICDRun:
         return CICDRun.model_validate(run)
 
+    def _job_to_schema(
+        self,
+        job: CICDJobModel,
+    ) -> CICDJob:
+        return CICDJob.model_validate(job)
+
     def get_runs(
         self,
         db: Session,
         project_id: str,
+        limit: int = 50,
+        offset: int = 0,
     ) -> list[CICDRun]:
         project_id_int = self._get_project_id(project_id)
 
@@ -55,6 +88,8 @@ class CICDService:
             .order_by(
                 CICDRunModel.started_at.desc()
             )
+            .offset(offset)
+            .limit(limit)
         )
 
         runs = db.scalars(statement).all()
@@ -89,11 +124,47 @@ class CICDService:
         run = db.scalar(statement)
 
         if run is None:
-            raise ValueError(
-                "CI/CD run not found"
-            )
+            raise CICDRunNotFoundError()
 
         return self._to_schema(run)
+
+    def get_jobs(
+        self,
+        db: Session,
+        project_id: str,
+        run_id: int,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[CICDJob]:
+        project_id_int = self._get_project_id(project_id)
+
+        run = db.scalar(
+            select(CICDRunModel).where(
+                CICDRunModel.id == run_id,
+                CICDRunModel.project_id == project_id_int,
+            )
+        )
+
+        if run is None:
+            raise CICDRunNotFoundError()
+
+        statement = (
+            select(CICDJobModel)
+            .where(
+                CICDJobModel.project_id == project_id_int,
+                CICDJobModel.cicd_run_id == run_id,
+            )
+            .order_by(CICDJobModel.started_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+
+        jobs = db.scalars(statement).all()
+
+        return [
+            self._job_to_schema(job)
+            for job in jobs
+        ]
 
     def create_run(
         self,
@@ -111,6 +182,7 @@ class CICDService:
 
         run = CICDRunModel(
             project_id=data.project_id,
+            github_run_id=data.github_run_id,
             workflow_name=data.workflow_name,
             branch=data.branch,
             commit_sha=data.commit_sha,
@@ -152,10 +224,7 @@ class CICDService:
             not project.github_owner
             or not project.github_repo
         ):
-            raise ValueError(
-                "GitHub repository is not connected "
-                "to this project"
-            )
+            raise GitHubRepositoryNotConnectedError()
 
         workflow_runs = (
             await github_service.get_workflow_runs(
@@ -171,29 +240,38 @@ class CICDService:
                 select(CICDRunModel).where(
                     CICDRunModel.project_id
                     == project_id_int,
-                    CICDRunModel.url
-                    == workflow_run.url,
+                    CICDRunModel.github_run_id
+                    == workflow_run.id,
                 )
             )
 
-            started_at = datetime.fromisoformat(
-                workflow_run.started_at.replace(
-                    "Z",
-                    "+00:00",
-                )
-            ).replace(tzinfo=None)
-
-            completed_at = None
-
-            if workflow_run.completed_at:
-                completed_at = datetime.fromisoformat(
-                    workflow_run.completed_at.replace(
-                        "Z",
-                        "+00:00",
+            if existing_run is None:
+                existing_run = db.scalar(
+                    select(CICDRunModel).where(
+                        CICDRunModel.project_id
+                        == project_id_int,
+                        CICDRunModel.github_run_id.is_(None),
+                        CICDRunModel.url
+                        == workflow_run.url,
                     )
-                ).replace(tzinfo=None)
+                )
+
+            started_at = self._parse_github_datetime(
+                workflow_run.started_at
+            )
+
+            if started_at is None:
+                raise InvalidGitHubResponseError()
+
+            completed_at = self._parse_github_datetime(
+                workflow_run.completed_at
+            )
 
             if existing_run:
+
+                existing_run.github_run_id = (
+                    workflow_run.id
+                )
 
                 existing_run.workflow_name = (
                     workflow_run.workflow_name
@@ -231,6 +309,7 @@ class CICDService:
 
                 new_run = CICDRunModel(
                     project_id=project_id_int,
+                    github_run_id=workflow_run.id,
                     workflow_name=(
                         workflow_run.workflow_name
                     ),
@@ -249,6 +328,64 @@ class CICDService:
                 )
 
                 db.add(new_run)
+
+                existing_run = new_run
+
+            db.flush()
+
+            jobs = await github_service.get_jobs(
+                project.github_owner,
+                project.github_repo,
+                workflow_run.id,
+            )
+
+            failed_jobs = 0
+
+            for job in jobs:
+                if job.conclusion == "failure":
+                    failed_jobs += 1
+
+                existing_job = db.scalar(
+                    select(CICDJobModel).where(
+                        CICDJobModel.cicd_run_id
+                        == existing_run.id,
+                        CICDJobModel.github_job_id
+                        == job.id,
+                    )
+                )
+
+                started_at = self._parse_github_datetime(
+                    job.started_at
+                )
+                completed_at = self._parse_github_datetime(
+                    job.completed_at
+                )
+
+                if existing_job:
+                    existing_job.name = job.name
+                    existing_job.status = job.status
+                    existing_job.conclusion = (
+                        job.conclusion
+                    )
+                    existing_job.started_at = started_at
+                    existing_job.completed_at = completed_at
+                    existing_job.url = job.url
+                else:
+                    db.add(
+                        CICDJobModel(
+                            project_id=project_id_int,
+                            cicd_run_id=existing_run.id,
+                            github_job_id=job.id,
+                            name=job.name,
+                            status=job.status,
+                            conclusion=job.conclusion,
+                            started_at=started_at,
+                            completed_at=completed_at,
+                            url=job.url,
+                        )
+                    )
+
+            existing_run.failed_tests = failed_jobs
 
         db.commit()
 
@@ -322,6 +459,15 @@ class CICDService:
             for run in runs
         )
 
+        failed_jobs = db.scalar(
+            select(func.count())
+            .select_from(CICDJobModel)
+            .where(
+                CICDJobModel.project_id == project_id_int,
+                CICDJobModel.conclusion == "failure",
+            )
+        ) or 0
+
         completed_runs = (
             successful_runs + failed_runs
         )
@@ -356,6 +502,7 @@ class CICDService:
                 2,
             ),
             total_failed_tests=total_failed_tests,
+            failed_jobs=failed_jobs,
         )
 
 

@@ -1,9 +1,11 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CICDRunBase(BaseModel):
+    github_run_id: int | None = None
+
     workflow_name: str = Field(
         min_length=1,
         max_length=150,
@@ -46,12 +48,25 @@ class CICDRunCreate(CICDRunBase):
 
 
 class CICDRun(CICDRunBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     project_id: int
 
-    class Config:
-        from_attributes = True
 
+class CICDJob(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    project_id: int
+    cicd_run_id: int
+    github_job_id: int
+    name: str
+    status: str
+    conclusion: str | None
+    started_at: datetime | None
+    completed_at: datetime | None
+    url: str | None
 
 class CICDHealth(BaseModel):
     total_runs: int
@@ -61,3 +76,4 @@ class CICDHealth(BaseModel):
     success_rate: float
     failure_rate: float
     total_failed_tests: int
+    failed_jobs: int
