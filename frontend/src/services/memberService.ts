@@ -1,6 +1,7 @@
 import type { ProjectMember, User } from "../types/member";
+import API_URL_BASE from "../config/api";
 
-const API_URL = "http://127.0.0.1:8000/api/v1";
+const API_URL = API_URL_BASE;
 
 export const memberService = {
   async getMembers(

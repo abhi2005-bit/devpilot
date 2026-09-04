@@ -3,9 +3,10 @@ import type {
   IssuePriority,
   IssueStatus,
 } from "../types/issue";
+import API_URL_BASE from "../config/api";
 
 const API_URL =
-  "http://127.0.0.1:8000/api/v1/issues";
+  `${API_URL_BASE}/issues`;
 
 type BackendIssue = {
   id: number;

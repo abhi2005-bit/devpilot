@@ -1,8 +1,10 @@
 import type { Project } from "../types/project";
 import type { ProjectHealth } from "../types/health";
 
+import API_URL_BASE from "../config/api";
+
 const API_URL =
-  "http://127.0.0.1:8000/api/v1/projects";
+  `${API_URL_BASE}/projects`;
 
 export const projectService = {
 
