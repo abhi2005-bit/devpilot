@@ -9,7 +9,7 @@ from app.services.engineering_health_service import (
 
 
 router = APIRouter(
-    prefix="/projects/{project_id}/engineering-health",
+    prefix="/projects/{project_id}/health",
     tags=["Engineering Health"],
 )
 

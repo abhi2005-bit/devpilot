@@ -324,7 +324,7 @@ class EngineeringHealthService:
         score = _clamp(score)
 
         basis = [
-            "Base delivery score: 70.",
+            f"Base delivery score: 70.",
             f"Completed work bonus: +{completed_bonus:.2f}.",
             f"Active work bonus: +{active_work_bonus:.2f}.",
             f"Blocked/review work penalty: -{blocked_review_penalty:.2f}.",
