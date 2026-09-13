@@ -5,7 +5,7 @@ import { projectService } from "../../services/projectService";
 import { healthService } from "../../services/healthService";
 
 import type { Project } from "../../types/project";
-import type { ProjectHealth } from "../../types/health";
+import type { EngineeringHealth } from "../../types/health";
 
 function ProjectHome() {
   const { projectId } = useParams<{
@@ -16,7 +16,7 @@ function ProjectHome() {
     useState<Project | undefined>();
 
   const [health, setHealth] =
-    useState<ProjectHealth | undefined>();
+    useState<EngineeringHealth | undefined>();
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -64,7 +64,7 @@ function ProjectHome() {
   }, [projectId]);
 
   /*
-   * Load real project health
+   * Load real engineering health
    */
   useEffect(() => {
     let cancelled = false;
@@ -148,64 +148,64 @@ function ProjectHome() {
   }
 
   /*
-   * Calculate real progress
-   */
-  const progress =
-    health && health.issues.total > 0
-      ? Math.round(
-          (health.issues.done /
-            health.issues.total) *
-            100,
-        )
-      : 0;
-
-  /*
-   * Real health status
+   * Engineering health status
    */
   const healthStatus =
-    health?.health ?? "UNKNOWN";
+    health?.status ?? "at_risk";
 
   const healthLabel =
-    healthStatus === "HEALTHY"
-      ? "HEALTHY"
-      : healthStatus === "AT_RISK"
-        ? "AT RISK"
-        : healthStatus === "CRITICAL"
-          ? "CRITICAL"
-          : "UNKNOWN";
+    healthStatus === "excellent"
+      ? "EXCELLENT"
+      : healthStatus === "healthy"
+        ? "HEALTHY"
+        : healthStatus === "needs_attention"
+          ? "NEEDS ATTENTION"
+          : "AT RISK";
 
   /*
    * Health styling
    */
   const healthTextColor =
-    healthStatus === "CRITICAL"
-      ? "text-error"
-      : healthStatus === "AT_RISK"
+    healthStatus === "excellent" ||
+    healthStatus === "healthy"
+      ? "text-secondary"
+      : healthStatus === "needs_attention"
         ? "text-tertiary"
-        : healthStatus === "HEALTHY"
-          ? "text-secondary"
-          : "text-on-surface-variant";
+        : "text-error";
 
   const healthBadgeClass =
-    healthStatus === "CRITICAL"
-      ? "bg-error-container text-on-error"
-      : healthStatus === "AT_RISK"
+    healthStatus === "excellent" ||
+    healthStatus === "healthy"
+      ? "bg-secondary-container text-on-secondary"
+      : healthStatus === "needs_attention"
         ? "bg-tertiary-container text-on-tertiary"
-        : healthStatus === "HEALTHY"
-          ? "bg-secondary-container text-on-secondary"
-          : "bg-surface-container-highest text-on-surface-variant";
+        : "bg-error-container text-on-error";
+
+  /*
+   * Component scores
+   */
+  const issueScore =
+    health?.issue_health.score ?? 0;
+
+  const cicdScore =
+    health?.cicd_reliability.score ?? 0;
+
+  const deliveryScore =
+    health?.delivery_activity.score ?? 0;
+
+  const githubScore =
+    health?.github_activity.score ?? 0;
 
   return (
     <div className="space-y-lg">
 
-      {/* Project Health */}
-
+      {/* Engineering Health */}
       <section>
 
         <div className="mb-md">
 
           <h2 className="text-title-lg font-bold text-on-surface">
-            Project Health
+            Engineering Health
           </h2>
 
           <p className="mt-xs text-body-sm text-on-surface-variant">
@@ -216,8 +216,7 @@ function ProjectHome() {
 
         <div className="grid grid-cols-1 gap-md md:grid-cols-3">
 
-          {/* Risk */}
-
+          {/* Overall Health */}
           <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
 
             <div className="flex items-center justify-between">
@@ -225,7 +224,38 @@ function ProjectHome() {
               <div>
 
                 <p className="text-caption text-on-surface-variant">
-                  Risk Level
+                  Health Score
+                </p>
+
+                <p
+                  className={`mt-xs text-title-lg font-bold ${healthTextColor}`}
+                >
+                  {isHealthLoading
+                    ? "..."
+                    : `${health?.score ?? 0}/100`}
+                </p>
+
+              </div>
+
+              <span
+                className={`material-symbols-outlined ${healthTextColor}`}
+              >
+                health_and_safety
+              </span>
+
+            </div>
+
+          </div>
+
+          {/* Status */}
+          <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+            <div className="flex items-center justify-between">
+
+              <div>
+
+                <p className="text-caption text-on-surface-variant">
+                  Status
                 </p>
 
                 <p
@@ -248,36 +278,7 @@ function ProjectHome() {
 
           </div>
 
-          {/* Progress */}
-
-          <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
-
-            <div className="flex items-center justify-between">
-
-              <div>
-
-                <p className="text-caption text-on-surface-variant">
-                  Completion
-                </p>
-
-                <p className="mt-xs text-title-lg font-bold text-on-surface">
-                  {isHealthLoading
-                    ? "..."
-                    : `${progress}%`}
-                </p>
-
-              </div>
-
-              <span className="material-symbols-outlined text-primary">
-                trending_up
-              </span>
-
-            </div>
-
-          </div>
-
           {/* Team */}
-
           <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
 
             <div className="flex items-center justify-between">
@@ -306,12 +307,151 @@ function ProjectHome() {
 
       </section>
 
-      {/* AI + Risk */}
+      {/* Health Components */}
+      <section>
 
+        <div className="mb-md">
+
+          <h2 className="text-title-sm font-semibold text-on-surface">
+            Engineering Signals
+          </h2>
+
+          <p className="mt-xs text-caption text-on-surface-variant">
+            Health scores calculated from current project signals.
+          </p>
+
+        </div>
+
+        <div className="grid grid-cols-1 gap-md md:grid-cols-2">
+
+          {/* Issues */}
+          <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                Issue Health
+              </span>
+
+              <span className="font-semibold text-on-surface">
+                {isHealthLoading
+                  ? "..."
+                  : `${issueScore}/100`}
+              </span>
+
+            </div>
+
+            <div className="mt-md h-2 overflow-hidden rounded-full bg-surface-container-highest">
+
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{
+                  width: `${issueScore}%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+
+          {/* CI/CD */}
+          <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                CI/CD Reliability
+              </span>
+
+              <span className="font-semibold text-on-surface">
+                {isHealthLoading
+                  ? "..."
+                  : `${cicdScore}/100`}
+              </span>
+
+            </div>
+
+            <div className="mt-md h-2 overflow-hidden rounded-full bg-surface-container-highest">
+
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{
+                  width: `${cicdScore}%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+
+          {/* Delivery */}
+          <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                Delivery Activity
+              </span>
+
+              <span className="font-semibold text-on-surface">
+                {isHealthLoading
+                  ? "..."
+                  : `${deliveryScore}/100`}
+              </span>
+
+            </div>
+
+            <div className="mt-md h-2 overflow-hidden rounded-full bg-surface-container-highest">
+
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{
+                  width: `${deliveryScore}%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+
+          {/* GitHub */}
+          <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                GitHub Activity
+              </span>
+
+              <span className="font-semibold text-on-surface">
+                {isHealthLoading
+                  ? "..."
+                  : `${githubScore}/100`}
+              </span>
+
+            </div>
+
+            <div className="mt-md h-2 overflow-hidden rounded-full bg-surface-container-highest">
+
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{
+                  width: `${githubScore}%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* AI + Risk */}
       <section className="grid grid-cols-1 gap-lg xl:grid-cols-3">
 
         {/* AI Insight */}
-
         <div className="rounded-xl border border-outline-variant bg-surface-container p-lg xl:col-span-2">
 
           <div className="mb-md flex items-center gap-sm">
@@ -346,87 +486,76 @@ function ProjectHome() {
         </div>
 
         {/* Risk Summary */}
-
         <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
 
           <h2 className="text-title-sm font-semibold text-on-surface">
-            Risk Summary
+            Health Summary
           </h2>
 
           <div className="mt-lg space-y-md">
 
-            {/* Open Issues */}
-
             <div className="flex items-center justify-between">
 
               <span className="text-body-sm text-on-surface-variant">
-                Open Issues
+                Issue Health
               </span>
 
               <span className="font-semibold text-on-surface">
                 {isHealthLoading
                   ? "..."
-                  : health?.issues.open ?? 0}
+                  : `${issueScore}/100`}
               </span>
 
             </div>
 
-            {/* Critical Issues */}
-
             <div className="flex items-center justify-between">
 
               <span className="text-body-sm text-on-surface-variant">
-                Critical Issues
-              </span>
-
-              <span className="font-semibold text-error">
-                {isHealthLoading
-                  ? "..."
-                  : health?.issues.critical ?? 0}
-              </span>
-
-            </div>
-
-            {/* High Priority */}
-
-            <div className="flex items-center justify-between">
-
-              <span className="text-body-sm text-on-surface-variant">
-                High Priority
-              </span>
-
-              <span className="font-semibold text-tertiary">
-                {isHealthLoading
-                  ? "..."
-                  : health?.issues.high_priority ?? 0}
-              </span>
-
-            </div>
-
-            {/* Unassigned */}
-
-            <div className="flex items-center justify-between">
-
-              <span className="text-body-sm text-on-surface-variant">
-                Unassigned
+                CI/CD Reliability
               </span>
 
               <span className="font-semibold text-on-surface">
                 {isHealthLoading
                   ? "..."
-                  : health?.issues.unassigned ?? 0}
+                  : `${cicdScore}/100`}
+              </span>
+
+            </div>
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                Delivery Activity
+              </span>
+
+              <span className="font-semibold text-on-surface">
+                {isHealthLoading
+                  ? "..."
+                  : `${deliveryScore}/100`}
+              </span>
+
+            </div>
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-body-sm text-on-surface-variant">
+                GitHub Activity
+              </span>
+
+              <span className="font-semibold text-on-surface">
+                {isHealthLoading
+                  ? "..."
+                  : `${githubScore}/100`}
               </span>
 
             </div>
 
             <div className="h-px bg-outline-variant" />
 
-            {/* Overall Risk */}
-
             <div className="flex items-center justify-between">
 
               <span className="text-body-sm font-medium text-on-surface">
-                Overall Risk
+                Overall Status
               </span>
 
               <span
@@ -439,8 +568,6 @@ function ProjectHome() {
 
             </div>
 
-            {/* Health Score */}
-
             <div className="flex items-center justify-between">
 
               <span className="text-body-sm text-on-surface-variant">
@@ -450,7 +577,7 @@ function ProjectHome() {
               <span className="font-semibold text-on-surface">
                 {isHealthLoading
                   ? "..."
-                  : `${health?.health_score ?? 0}/100`}
+                  : `${health?.score ?? 0}/100`}
               </span>
 
             </div>
@@ -461,62 +588,8 @@ function ProjectHome() {
 
       </section>
 
-      {/* Progress + Team */}
-
-      <section className="grid grid-cols-1 gap-lg lg:grid-cols-2">
-
-        {/* Development Progress */}
-
-        <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-
-              <h2 className="text-title-sm font-semibold text-on-surface">
-                Development Progress
-              </h2>
-
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Overall project completion
-              </p>
-
-            </div>
-
-            <span className="text-title-sm font-bold text-primary">
-              {isHealthLoading
-                ? "..."
-                : `${progress}%`}
-            </span>
-
-          </div>
-
-          <div className="mt-lg h-3 overflow-hidden rounded-full bg-surface-container-highest">
-
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{
-                width: `${progress}%`,
-              }}
-            />
-
-          </div>
-
-          {!isHealthLoading && health && (
-            <div className="mt-md flex justify-between text-caption text-on-surface-variant">
-              <span>
-                {health.issues.done} completed
-              </span>
-
-              <span>
-                {health.issues.total} total
-              </span>
-            </div>
-          )}
-
-        </div>
-
-        {/* Project Team */}
+      {/* Project Team */}
+      <section>
 
         <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
 
@@ -586,86 +659,75 @@ function ProjectHome() {
       </section>
 
       {/* Recent Activity */}
-
       <section className="rounded-xl border border-outline-variant bg-surface-container p-lg">
 
         <div className="mb-lg">
 
           <h2 className="text-title-sm font-semibold text-on-surface">
-            Recent Activity
+            Engineering Activity
           </h2>
 
           <p className="mt-xs text-caption text-on-surface-variant">
-            Latest engineering activity in this project
+            Current signals available to DevPilot
           </p>
 
         </div>
 
-        <div className="space-y-md">
+        <div className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-4">
 
-          <div className="flex items-start gap-md">
+          <div className="rounded-lg bg-surface-container-low p-md">
 
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-container">
-              <span className="material-symbols-outlined text-primary">
-                commit
-              </span>
-            </div>
+            <p className="text-caption text-on-surface-variant">
+              Issue Health
+            </p>
 
-            <div>
-
-              <p className="text-body-sm text-on-surface">
-                New commits were pushed to the project.
-              </p>
-
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Recently
-              </p>
-
-            </div>
+            <p className="mt-xs text-title-md font-bold text-on-surface">
+              {isHealthLoading
+                ? "..."
+                : `${issueScore}/100`}
+            </p>
 
           </div>
 
-          <div className="flex items-start gap-md">
+          <div className="rounded-lg bg-surface-container-low p-md">
 
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary-container">
-              <span className="material-symbols-outlined text-secondary">
-                merge
-              </span>
-            </div>
+            <p className="text-caption text-on-surface-variant">
+              CI/CD
+            </p>
 
-            <div>
-
-              <p className="text-body-sm text-on-surface">
-                A pull request is waiting for review.
-              </p>
-
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Recently
-              </p>
-
-            </div>
+            <p className="mt-xs text-title-md font-bold text-on-surface">
+              {isHealthLoading
+                ? "..."
+                : `${cicdScore}/100`}
+            </p>
 
           </div>
 
-          <div className="flex items-start gap-md">
+          <div className="rounded-lg bg-surface-container-low p-md">
 
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-tertiary-container">
-              <span className="material-symbols-outlined text-tertiary">
-                bug_report
-              </span>
-            </div>
+            <p className="text-caption text-on-surface-variant">
+              Delivery
+            </p>
 
-            <div>
+            <p className="mt-xs text-title-md font-bold text-on-surface">
+              {isHealthLoading
+                ? "..."
+                : `${deliveryScore}/100`}
+            </p>
 
-              <p className="text-body-sm text-on-surface">
-                Engineering issues are being tracked for this project.
-              </p>
+          </div>
 
-              <p className="mt-xs text-caption text-on-surface-variant">
-                Recently
-              </p>
+          <div className="rounded-lg bg-surface-container-low p-md">
 
-            </div>
+            <p className="text-caption text-on-surface-variant">
+              GitHub
+            </p>
+
+            <p className="mt-xs text-title-md font-bold text-on-surface">
+              {isHealthLoading
+                ? "..."
+                : `${githubScore}/100`}
+            </p>
 
           </div>
 

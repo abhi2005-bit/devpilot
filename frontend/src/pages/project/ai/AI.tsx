@@ -3,6 +3,10 @@ import { useParams } from "react-router-dom";
 
 import { projectService } from "../../../services/projectService";
 import { issueService } from "../../../services/issueService";
+import {
+  aiService,
+  type AIAnalysisType,
+} from "../../../services/aiService";
 
 import type { Project } from "../../../types/project";
 import type { Issue } from "../../../types/issue";
@@ -32,6 +36,12 @@ function AI() {
 
   const [activeAnalysis, setActiveAnalysis] =
     useState<AnalysisResult | null>(null);
+
+  const [isAnalyzing, setIsAnalyzing] =
+    useState(false);
+
+  const [analysisError, setAnalysisError] =
+    useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -329,154 +339,39 @@ function AI() {
     return result;
   }, [project, metrics]);
 
-  const runAnalysis = (
-    type:
-      | "health"
-      | "risks"
-      | "bottlenecks"
-      | "summary",
+  const runAnalysis = async (
+    type: AIAnalysisType,
   ) => {
-    if (!project) {
+    if (!project || !projectId) {
       return;
     }
 
-    if (type === "health") {
-      setActiveAnalysis({
-        title: "Project Health Analysis",
-        summary: `Current project health is ${healthScore}/100 — ${healthLabel}.`,
-        points: [
-          `Project progress is ${project.progress}%.`,
-          `Issue completion rate is ${metrics.completionRate}%.`,
-          `${metrics.open} ${
-            metrics.open === 1
-              ? "issue remains"
-              : "issues remain"
-          } open.`,
-          `${metrics.critical} critical ${
-            metrics.critical === 1
-              ? "issue"
-              : "issues"
-          } detected.`,
-        ],
-        recommendation:
-          healthScore < 60
-            ? "Focus on reducing risk and completing the highest-impact open work."
-            : "Continue monitoring delivery velocity and priority issues.",
-      });
+    setIsAnalyzing(true);
+    setAnalysisError("");
+    setActiveAnalysis(null);
 
-      return;
-    }
-
-    if (type === "risks") {
-      const riskPoints: string[] = [];
-
-      if (metrics.critical > 0) {
-        riskPoints.push(
-          `${metrics.critical} critical issue(s) require immediate attention.`,
+    try {
+      const result =
+        await aiService.analyzeProject(
+          projectId,
+          type,
         );
-      }
-
-      if (metrics.high > 0) {
-        riskPoints.push(
-          `${metrics.high} high-priority issue(s) are currently open.`,
-        );
-      }
-
-      if (metrics.open >= 10) {
-        riskPoints.push(
-          `The project has a large backlog of ${metrics.open} open issues.`,
-        );
-      }
-
-      if (
-        project.prsPending >= 4
-      ) {
-        riskPoints.push(
-          `${project.prsPending} pull requests are waiting for review/merge.`,
-        );
-      }
-
-      if (riskPoints.length === 0) {
-        riskPoints.push(
-          "No significant delivery risk was detected from the available project data.",
-        );
-      }
 
       setActiveAnalysis({
-        title: "Risk Analysis",
-        summary:
-          "The analysis focuses on the highest-impact delivery risks.",
-        points: riskPoints,
-        recommendation:
-          metrics.critical > 0
-            ? "Prioritize critical issues before lower-priority work."
-            : metrics.open >= 10
-              ? "Reduce the open backlog and establish clear ownership."
-              : "Continue monitoring priority issues and delivery signals.",
+        title: result.title,
+        summary: result.summary,
+        points: result.evidence,
+        recommendation: result.recommendation,
       });
-
-      return;
+    } catch (err) {
+      setAnalysisError(
+        err instanceof Error
+          ? err.message
+          : "Failed to generate AI analysis.",
+      );
+    } finally {
+      setIsAnalyzing(false);
     }
-
-    if (type === "bottlenecks") {
-      const bottlenecks: string[] = [];
-
-      if (metrics.inReview > 0) {
-        bottlenecks.push(
-          `${metrics.inReview} issue(s) are currently waiting for review.`,
-        );
-      }
-
-      if (project.prsPending > 0) {
-        bottlenecks.push(
-          `${project.prsPending} pull request(s) are pending.`,
-        );
-      }
-
-      if (
-        metrics.inProgress > 0 &&
-        metrics.inReview > metrics.inProgress
-      ) {
-        bottlenecks.push(
-          "The review queue is larger than the active development queue.",
-        );
-      }
-
-      if (bottlenecks.length === 0) {
-        bottlenecks.push(
-          "No obvious workflow bottleneck was detected from the current project data.",
-        );
-      }
-
-      setActiveAnalysis({
-        title: "Bottleneck Analysis",
-        summary:
-          "The analysis focuses on work waiting for review, merge, or progression.",
-        points: bottlenecks,
-        recommendation:
-          metrics.inReview > 0
-            ? "Increase review throughput before taking on excessive new work."
-            : "Maintain the current workflow and monitor review queues.",
-      });
-
-      return;
-    }
-
-    setActiveAnalysis({
-      title: "Project Summary",
-      summary: aiSummary,
-      points: [
-        `${metrics.total} total issues tracked.`,
-        `${metrics.done} completed.`,
-        `${metrics.inProgress} currently in progress.`,
-        `${metrics.inReview} currently in review.`,
-        `${metrics.critical} critical issues.`,
-      ],
-      recommendation:
-        healthScore >= 80
-          ? "Maintain the current delivery momentum."
-          : "Focus on the highest-impact engineering signals first.",
-    });
   };
 
   if (isLoading) {
@@ -699,7 +594,8 @@ function AI() {
           <button
             type="button"
             onClick={() => runAnalysis("health")}
-            className="group rounded-xl border border-outline-variant bg-surface-container-low p-md text-left transition-colors hover:border-primary hover:bg-surface-container-high"
+            disabled={isAnalyzing}
+            className="group rounded-xl border border-outline-variant bg-surface-container-low p-md text-left transition-colors hover:border-primary hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="material-symbols-outlined text-primary">
               health_and_safety
@@ -717,7 +613,8 @@ function AI() {
           <button
             type="button"
             onClick={() => runAnalysis("risks")}
-            className="group rounded-xl border border-outline-variant bg-surface-container-low p-md text-left transition-colors hover:border-error hover:bg-surface-container-high"
+            disabled={isAnalyzing}
+            className="group rounded-xl border border-outline-variant bg-surface-container-low p-md text-left transition-colors hover:border-error hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="material-symbols-outlined text-error">
               warning
@@ -737,7 +634,8 @@ function AI() {
             onClick={() =>
               runAnalysis("bottlenecks")
             }
-            className="group rounded-xl border border-outline-variant bg-surface-container-low p-md text-left transition-colors hover:border-tertiary hover:bg-surface-container-high"
+            disabled={isAnalyzing}
+            className="group rounded-xl border border-outline-variant bg-surface-container-low p-md text-left transition-colors hover:border-tertiary hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="material-symbols-outlined text-tertiary">
               speed
@@ -755,7 +653,8 @@ function AI() {
           <button
             type="button"
             onClick={() => runAnalysis("summary")}
-            className="group rounded-xl border border-outline-variant bg-surface-container-low p-md text-left transition-colors hover:border-secondary hover:bg-surface-container-high"
+            disabled={isAnalyzing}
+            className="group rounded-xl border border-outline-variant bg-surface-container-low p-md text-left transition-colors hover:border-secondary hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="material-symbols-outlined text-secondary">
               summarize
@@ -773,6 +672,52 @@ function AI() {
         </div>
 
       </section>
+
+      {/* AI Loading */}
+      {isAnalyzing && (
+        <section className="rounded-xl border border-secondary/30 bg-surface-container p-lg">
+          <div className="flex items-center gap-md">
+
+            <span className="material-symbols-outlined animate-spin text-secondary">
+              progress_activity
+            </span>
+
+            <div>
+              <h3 className="text-title-sm font-semibold text-on-surface">
+                DevPilot AI is analyzing...
+              </h3>
+
+              <p className="mt-xs text-caption text-on-surface-variant">
+                Reviewing the project's engineering signals and generating an evidence-based insight.
+              </p>
+            </div>
+
+          </div>
+        </section>
+      )}
+
+      {/* AI Error */}
+      {analysisError && (
+        <section className="rounded-xl border border-error/30 bg-error-container p-lg">
+          <div className="flex items-start gap-md">
+
+            <span className="material-symbols-outlined text-error">
+              error
+            </span>
+
+            <div>
+              <h3 className="text-body-sm font-semibold text-error">
+                AI analysis failed
+              </h3>
+
+              <p className="mt-xs text-caption leading-6 text-on-surface">
+                {analysisError}
+              </p>
+            </div>
+
+          </div>
+        </section>
+      )}
 
       {/* Analysis Result */}
       {activeAnalysis && (
@@ -841,6 +786,7 @@ function AI() {
                     key={`${point}-${index}`}
                     className="flex items-start gap-sm rounded-lg border border-outline-variant bg-surface-container-low p-md"
                   >
+
                     <span className="material-symbols-outlined text-body-md text-primary">
                       arrow_right
                     </span>
@@ -848,6 +794,7 @@ function AI() {
                     <p className="text-caption leading-6 text-on-surface-variant">
                       {point}
                     </p>
+
                   </div>
                 ),
               )}
@@ -915,9 +862,11 @@ function AI() {
                           : "bg-primary-container text-primary"
                   }`}
                 >
+
                   <span className="material-symbols-outlined">
                     {signal.icon}
                   </span>
+
                 </div>
 
                 <div className="min-w-0 flex-1">
@@ -967,39 +916,51 @@ function AI() {
         <div className="mt-lg grid grid-cols-2 gap-md md:grid-cols-4">
 
           <div className="rounded-lg bg-surface-container-low p-md">
+
             <p className="text-caption text-on-surface-variant">
               Total Issues
             </p>
+
             <p className="mt-xs text-title-sm font-bold text-on-surface">
               {metrics.total}
             </p>
+
           </div>
 
           <div className="rounded-lg bg-surface-container-low p-md">
+
             <p className="text-caption text-on-surface-variant">
               Completed
             </p>
+
             <p className="mt-xs text-title-sm font-bold text-on-surface">
               {metrics.done}
             </p>
+
           </div>
 
           <div className="rounded-lg bg-surface-container-low p-md">
+
             <p className="text-caption text-on-surface-variant">
               In Progress
             </p>
+
             <p className="mt-xs text-title-sm font-bold text-on-surface">
               {metrics.inProgress}
             </p>
+
           </div>
 
           <div className="rounded-lg bg-surface-container-low p-md">
+
             <p className="text-caption text-on-surface-variant">
               Critical
             </p>
+
             <p className="mt-xs text-title-sm font-bold text-error">
               {metrics.critical}
             </p>
+
           </div>
 
         </div>

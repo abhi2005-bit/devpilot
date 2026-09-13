@@ -12,6 +12,11 @@ from app.api.routes.users import router as users_router
 from app.api.routes.cicd import router as cicd_router
 from app.api.routes.metrics import router as metrics_router
 from app.api.routes.health import router as health_router
+from app.api.routes.ai import router as ai_router
+
+from app.api.routes.dashboard import (
+    router as dashboard_router,
+)
 
 from app.core.exceptions import (
     CICDRunNotFoundError,
@@ -223,6 +228,16 @@ app.include_router(
 
 app.include_router(
     health_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    dashboard_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    ai_router,
     prefix="/api/v1",
 )
 

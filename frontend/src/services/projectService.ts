@@ -1,5 +1,5 @@
 import type { Project } from "../types/project";
-import type { ProjectHealth } from "../types/health";
+import type { EngineeringHealth } from "../types/health";
 
 import API_URL_BASE from "../config/api";
 
@@ -38,9 +38,9 @@ export const projectService = {
 
   async getHealth(
     id: string,
-  ): Promise<ProjectHealth> {
+  ): Promise<EngineeringHealth> {
     const response = await fetch(
-      `${API_URL}/${id}/health`,
+      `${API_URL}/${id}/engineering-health`,
     );
 
     if (response.status === 404) {
@@ -49,7 +49,7 @@ export const projectService = {
 
     if (!response.ok) {
       throw new Error(
-        "Failed to load project health",
+        "Failed to load engineering health",
       );
     }
 

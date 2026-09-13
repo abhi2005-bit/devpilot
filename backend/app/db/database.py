@@ -5,6 +5,8 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 class Settings(BaseSettings):
     database_url: str
+    groq_api_key: str
+    groq_model: str = "openai/gpt-oss-20b"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -12,7 +14,7 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings() # type: ignore
+settings = Settings()  # type: ignore
 
 
 class Base(DeclarativeBase):
@@ -34,7 +36,6 @@ SessionLocal = sessionmaker(
 
 def get_db():
     db = SessionLocal()
-
     try:
         yield db
     finally:

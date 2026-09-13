@@ -1,23 +1,38 @@
-export interface IssueMetrics {
-  total: number;
-  open: number;
-  todo: number;
-  in_progress: number;
-  in_review: number;
-  done: number;
-  critical: number;
-  high_priority: number;
-  unassigned: number;
+export type EngineeringHealthStatus =
+  | "excellent"
+  | "healthy"
+  | "needs_attention"
+  | "at_risk";
+
+export type HealthImpact =
+  | "positive"
+  | "negative"
+  | "neutral";
+
+export interface HealthEvidence {
+  label: string;
+  value: string;
+  impact: HealthImpact;
 }
 
-export type ProjectHealthStatus =
-  | "HEALTHY"
-  | "AT_RISK"
-  | "CRITICAL";
+export interface HealthComponent {
+  score: number;
+  weight: number;
+  weighted_score: number;
+  calculation_basis: string[];
+}
 
-export interface ProjectHealth {
+export interface EngineeringHealth {
   project_id: number;
-  health: ProjectHealthStatus;
-  health_score: number;
-  issues: IssueMetrics;
+  score: number;
+  status: EngineeringHealthStatus;
+  generated_at: string;
+  lookback_days: number;
+
+  issue_health: HealthComponent;
+  cicd_reliability: HealthComponent;
+  delivery_activity: HealthComponent;
+  github_activity: HealthComponent;
+
+  evidence: HealthEvidence[];
 }
