@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_mvp_user
 from app.db.database import get_db
+from app.models.user import User as UserModel
 from app.schemas.comment import (
     IssueComment,
     IssueCommentCreate,
@@ -38,9 +40,11 @@ def create_issue_comment(
     issue_id: int,
     data: IssueCommentCreate,
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_mvp_user),
 ):
     return comment_service.create_comment(
         db,
         issue_id,
         data,
+        current_user.id,
     )

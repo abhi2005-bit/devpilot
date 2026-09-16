@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     database_url: str
     groq_api_key: str
     groq_model: str = "openai/gpt-oss-20b"
+    dev_user_email: str = "devpilot@example.com"
+    dev_user_name: str = "DevPilot User"
 
     model_config = SettingsConfigDict(
         env_file=".env",

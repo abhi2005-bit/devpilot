@@ -232,7 +232,7 @@ class ProjectService:
         self,
         db: Session,
         data: ProjectCreate,
-        current_user_id: int = 1,
+        current_user_id: int,
     ) -> Project:
 
         github_url = None
@@ -264,7 +264,7 @@ class ProjectService:
         db: Session,
         project_id: str,
         data: ProjectUpdate,
-        current_user_id: int = 1,
+        current_user_id: int,
     ) -> Project:
 
         try:
@@ -336,7 +336,7 @@ class ProjectService:
         self,
         db: Session,
         project_id: str,
-        current_user_id: int = 1,
+        current_user_id: int,
     ) -> bool:
 
         try:

@@ -66,7 +66,7 @@ class ProjectMemberService:
         db: Session,
         project_id: int,
         data: ProjectMemberAdd,
-        current_user_id: int = 1,
+        current_user_id: int,
     ) -> ProjectMember:
 
         project = self._get_project(
@@ -109,7 +109,7 @@ class ProjectMemberService:
         db: Session,
         project_id: int,
         user_id: int,
-        current_user_id: int = 1,
+        current_user_id: int,
     ) -> None:
 
         project = self._get_project(

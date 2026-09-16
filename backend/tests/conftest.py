@@ -14,6 +14,7 @@ class TestSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
 
 
@@ -58,5 +59,3 @@ def override_database(db: Session):
     app.dependency_overrides[get_db] = override_get_db
 
     yield
-
-    app.dependency_overrides.clear()

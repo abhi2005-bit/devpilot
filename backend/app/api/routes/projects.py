@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_mvp_user
 from app.db.database import get_db
+from app.models.user import User as UserModel
 
 from app.schemas.project import (
     Project,
@@ -42,10 +44,12 @@ def list_projects(
 def create_new_project(
     data: ProjectCreate,
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_mvp_user),
 ):
     return project_service.create_project(
         db,
         data,
+        current_user.id,
     )
 
 
@@ -132,11 +136,13 @@ def update_existing_project(
     project_id: str,
     data: ProjectUpdate,
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_mvp_user),
 ):
     return project_service.update_project(
         db,
         project_id,
         data,
+        current_user.id,
     )
 
 
@@ -147,10 +153,12 @@ def update_existing_project(
 def delete_existing_project(
     project_id: str,
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_mvp_user),
 ):
     project_service.delete_project(
         db,
         project_id,
+        current_user.id,
     )
 
     return None

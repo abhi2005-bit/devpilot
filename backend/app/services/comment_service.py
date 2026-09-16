@@ -66,7 +66,7 @@ class CommentService:
         db: Session,
         issue_id: int,
         data: IssueCommentCreate,
-        current_user_id: int = 1,
+        current_user_id: int,
     ) -> IssueComment:
 
         issue = db.scalar(
