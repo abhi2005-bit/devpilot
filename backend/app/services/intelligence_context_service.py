@@ -37,6 +37,7 @@ class IntelligenceContextService:
             include_github=True,
             lookback_days=lookback_days,
             github_limit=github_limit,
+            persist_snapshot=False,
         )
 
         signals = engineering_signal_service.get_project_signals(

@@ -1,7 +1,8 @@
-from datetime import datetime
+﻿from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from app.models.engineering_health_snapshot import EngineeringHealthSnapshot
 from app.schemas.health import (
     EngineeringHealth,
     HealthComponent,
@@ -41,6 +42,7 @@ class EngineeringHealthService:
         include_github: bool = True,
         lookback_days: int = 14,
         github_limit: int = 25,
+        persist_snapshot: bool = False,
     ) -> EngineeringHealth:
         metrics = await engineering_metrics_service.get_project_metrics(
             db,
@@ -114,6 +116,8 @@ class EngineeringHealthService:
             2,
         )
 
+        status = self._get_status(final_score)
+
         evidence = [
             *issue_evidence,
             *cicd_evidence,
@@ -121,11 +125,29 @@ class EngineeringHealthService:
             *github_evidence,
         ]
 
+        generated_at = datetime.utcnow()
+
+        if persist_snapshot and db is not None:
+            snapshot = EngineeringHealthSnapshot(
+                project_id=metrics.project_id,
+                generated_at=generated_at,
+                score=final_score,
+                status=status,
+                issue_health=issue_component.score,
+                cicd_reliability=cicd_component.score,
+                delivery_activity=delivery_component.score,
+                github_activity=github_component.score,
+                lookback_days=metrics.lookback_days,
+            )
+
+            db.add(snapshot)
+            db.commit()
+
         return EngineeringHealth(
             project_id=metrics.project_id,
             score=final_score,
-            status=self._get_status(final_score),
-            generated_at=datetime.utcnow(),
+            status=status,
+            generated_at=generated_at,
             lookback_days=metrics.lookback_days,
             issue_health=issue_component,
             cicd_reliability=cicd_component,
@@ -324,7 +346,7 @@ class EngineeringHealthService:
         score = _clamp(score)
 
         basis = [
-            f"Base delivery score: 70.",
+            "Base delivery score: 70.",
             f"Completed work bonus: +{completed_bonus:.2f}.",
             f"Active work bonus: +{active_work_bonus:.2f}.",
             f"Blocked/review work penalty: -{blocked_review_penalty:.2f}.",

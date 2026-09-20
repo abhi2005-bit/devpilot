@@ -9,6 +9,7 @@ import {
 } from "../../services/aiService";
 
 import type {
+  EngineeringHealthHistory,
   EngineeringIntelligenceContext,
   EngineeringSignal,
 } from "../../services/intelligenceService";
@@ -111,6 +112,248 @@ function getAIIcon(severity: AIInsight["severity"]) {
 
 import EngineeringActionCenter from "./EngineeringActionCenter";
 
+
+function formatHistoryDate(value: string) {
+  const date = new Date(value);
+
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function getTrendDelta(history: EngineeringHealthHistory) {
+  if (history.snapshots.length < 2) {
+    return undefined;
+  }
+
+  const previous =
+    history.snapshots[history.snapshots.length - 2].score;
+
+  const current =
+    history.snapshots[history.snapshots.length - 1].score;
+
+  return current - previous;
+}
+
+function HealthTrendChart({
+  history,
+}: {
+  history: EngineeringHealthHistory;
+}) {
+  const snapshots = history.snapshots;
+
+  if (snapshots.length === 0) {
+    return (
+      <div className="rounded-lg bg-surface-container-low p-lg">
+        <p className="text-body-sm text-on-surface-variant">
+          No historical health snapshots are available yet.
+        </p>
+      </div>
+    );
+  }
+
+  if (snapshots.length === 1) {
+    const snapshot = snapshots[0];
+
+    return (
+      <div className="rounded-lg bg-surface-container-low p-lg">
+        <div className="flex flex-wrap items-end justify-between gap-md">
+          <div>
+            <p className="text-caption text-on-surface-variant">
+              First recorded snapshot
+            </p>
+
+            <p className="mt-xs text-title-lg font-bold text-on-surface">
+              {snapshot.score.toFixed(1)}/100
+            </p>
+
+            <p className="mt-xs text-caption capitalize text-on-surface-variant">
+              {snapshot.status.replace("_", " ")}
+            </p>
+          </div>
+
+          <div className="text-right">
+            <p className="text-caption text-on-surface-variant">
+              Recorded
+            </p>
+
+            <p className="mt-xs text-caption font-medium text-on-surface">
+              {formatHistoryDate(snapshot.generated_at)}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-lg rounded-lg border border-outline-variant bg-surface-container px-md py-sm">
+          <p className="text-caption text-on-surface-variant">
+            One snapshot is currently recorded. More snapshots will
+            automatically build the historical engineering health trend.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const scores = snapshots.map((snapshot) => snapshot.score);
+  const minScore = Math.max(0, Math.floor(Math.min(...scores) / 10) * 10);
+  const maxScore = Math.min(
+    100,
+    Math.ceil(Math.max(...scores) / 10) * 10,
+  );
+
+  const range = Math.max(10, maxScore - minScore);
+
+  const width = 760;
+  const height = 260;
+  const paddingX = 32;
+  const paddingTop = 24;
+  const paddingBottom = 42;
+
+  const chartWidth = width - paddingX * 2;
+  const chartHeight = height - paddingTop - paddingBottom;
+
+  const points = snapshots.map((snapshot, index) => {
+    const x =
+      snapshots.length === 1
+        ? width / 2
+        : paddingX +
+          (index / (snapshots.length - 1)) * chartWidth;
+
+    const y =
+      paddingTop +
+      ((maxScore - snapshot.score) / range) * chartHeight;
+
+    return {
+      x,
+      y,
+      snapshot,
+    };
+  });
+
+  const pathData = points
+    .map((point, index) =>
+      index === 0
+        ? `M ${point.x} ${point.y}`
+        : `L ${point.x} ${point.y}`,
+    )
+    .join(" ");
+
+  const firstDate = snapshots[0].generated_at;
+  const lastDate = snapshots[snapshots.length - 1].generated_at;
+  const delta = getTrendDelta(history);
+
+  return (
+    <div>
+      <div className="mb-lg flex flex-wrap items-end justify-between gap-md">
+        <div>
+          <p className="text-caption text-on-surface-variant">
+            Historical engineering health
+          </p>
+
+          <p className="mt-xs text-title-lg font-bold text-on-surface">
+            {snapshots[snapshots.length - 1].score.toFixed(1)}/100
+          </p>
+        </div>
+
+        <div className="text-right">
+          <p className="text-caption text-on-surface-variant">
+            Latest change
+          </p>
+
+          <p className="mt-xs text-body-sm font-semibold text-on-surface">
+            {delta === undefined
+              ? "?"
+              : `${delta >= 0 ? "+" : ""}${delta.toFixed(1)} points`}
+          </p>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="min-w-[680px] w-full"
+          role="img"
+          aria-label="Engineering health history chart"
+        >
+          {[0, 0.5, 1].map((position) => {
+            const y = paddingTop + position * chartHeight;
+            const value = maxScore - position * range;
+
+            return (
+              <g key={position}>
+                <line
+                  x1={paddingX}
+                  y1={y}
+                  x2={width - paddingX}
+                  y2={y}
+                  stroke="currentColor"
+                  strokeOpacity="0.12"
+                  strokeDasharray="4 4"
+                />
+
+                <text
+                  x={paddingX - 8}
+                  y={y + 4}
+                  textAnchor="end"
+                  className="fill-on-surface-variant text-[11px]"
+                >
+                  {Math.round(value)}
+                </text>
+              </g>
+            );
+          })}
+
+          <path
+            d={pathData}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            className="text-primary"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {points.map((point) => (
+            <g key={point.snapshot.generated_at}>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="5"
+                className="fill-primary"
+              />
+
+              <title>
+                {`${point.snapshot.score.toFixed(1)}/100 ? ${formatHistoryDate(point.snapshot.generated_at)}`}
+              </title>
+            </g>
+          ))}
+
+          <text
+            x={paddingX}
+            y={height - 12}
+            className="fill-on-surface-variant text-[11px]"
+          >
+            {formatHistoryDate(firstDate)}
+          </text>
+
+          <text
+            x={width - paddingX}
+            y={height - 12}
+            textAnchor="end"
+            className="fill-on-surface-variant text-[11px]"
+          >
+            {formatHistoryDate(lastDate)}
+          </text>
+        </svg>
+      </div>
+
+      <p className="mt-sm text-caption text-on-surface-variant">
+        {snapshots.length} historical snapshots ? last {history.days} days
+      </p>
+    </div>
+  );
+}
+
 function EngineeringIntelligence({
   projectId,
 }: EngineeringIntelligenceProps) {
@@ -119,6 +362,11 @@ function EngineeringIntelligence({
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
+
+  const [healthHistory, setHealthHistory] =
+    useState<EngineeringHealthHistory | undefined>();
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState<string | undefined>();
 
   const [aiInsight, setAIInsight] =
     useState<AIInsight | undefined>();
@@ -135,13 +383,18 @@ function EngineeringIntelligence({
     async function loadIntelligence() {
       setIsLoading(true);
       setError(undefined);
+      setIsHistoryLoading(true);
+      setHistoryError(undefined);
 
       try {
-        const loadedContext =
-          await intelligenceService.getContext(projectId);
+        const [loadedContext, loadedHistory] = await Promise.all([
+          intelligenceService.getContext(projectId),
+          intelligenceService.getHealthHistory(projectId, 30, 30),
+        ]);
 
         if (!cancelled) {
           setContext(loadedContext);
+          setHealthHistory(loadedHistory);
         }
       } catch (err) {
         if (!cancelled) {
@@ -152,10 +405,19 @@ function EngineeringIntelligence({
               ? err.message
               : "Unable to load engineering intelligence.",
           );
+
+          setHealthHistory(undefined);
+
+          setHistoryError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load health history.",
+          );
         }
       } finally {
         if (!cancelled) {
           setIsLoading(false);
+          setIsHistoryLoading(false);
         }
       }
     }
@@ -667,6 +929,56 @@ function EngineeringIntelligence({
               </p>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Health trend */}
+      <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
+        <div className="flex flex-wrap items-center justify-between gap-md">
+          <div>
+            <h3 className="text-title-sm font-semibold text-on-surface">
+              Engineering Health Trend
+            </h3>
+
+            <p className="mt-xs text-caption text-on-surface-variant">
+              Historical health snapshots recorded by DevPilot.
+            </p>
+          </div>
+
+          {healthHistory && (
+            <span className="rounded-full bg-surface-container-high px-sm py-xs text-caption text-on-surface-variant">
+              {healthHistory.snapshots.length} snapshot
+              {healthHistory.snapshots.length === 1 ? "" : "s"}
+            </span>
+          )}
+        </div>
+
+        <div className="mt-lg">
+          {isHistoryLoading ? (
+            <div className="flex items-center justify-center rounded-lg bg-surface-container-low py-xl">
+              <span className="material-symbols-outlined animate-spin text-2xl text-secondary">
+                progress_activity
+              </span>
+
+              <span className="ml-sm text-body-sm text-on-surface-variant">
+                Loading health history...
+              </span>
+            </div>
+          ) : historyError ? (
+            <div className="rounded-lg border border-error/30 bg-error-container/20 p-md">
+              <p className="text-body-sm text-error">
+                {historyError}
+              </p>
+            </div>
+          ) : healthHistory ? (
+            <HealthTrendChart history={healthHistory} />
+          ) : (
+            <div className="rounded-lg bg-surface-container-low p-lg">
+              <p className="text-body-sm text-on-surface-variant">
+                Health history is unavailable.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

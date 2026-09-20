@@ -10,6 +10,7 @@ from app.db.database import Base, settings
 from app.models import (
     CICDJob,
     CICDRun,
+    EngineeringHealthSnapshot,
     Issue,
     IssueComment,
     Label,

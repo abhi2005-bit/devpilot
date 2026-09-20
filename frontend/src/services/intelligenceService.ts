@@ -128,6 +128,23 @@ export interface EngineeringMetrics {
   activity: ActivityEngineeringMetrics;
 }
 
+
+export interface EngineeringHealthHistoryItem {
+  generated_at: string;
+  score: number;
+  status: string;
+  issue_health: number;
+  cicd_reliability: number;
+  delivery_activity: number;
+  github_activity: number;
+}
+
+export interface EngineeringHealthHistory {
+  project_id: number;
+  days: number;
+  snapshots: EngineeringHealthHistoryItem[];
+}
+
 export interface EngineeringIntelligenceContext {
   project_id: number;
   generated_at: string;
@@ -174,6 +191,21 @@ export const intelligenceService = {
 
     return getJson<EngineeringSignals>(
       `${API_URL}/${projectId}/engineering-signals?${params.toString()}`,
+    );
+  },
+
+  async getHealthHistory(
+    projectId: string,
+    days = 30,
+    limit = 30,
+  ): Promise<EngineeringHealthHistory> {
+    const params = new URLSearchParams({
+      days: String(days),
+      limit: String(limit),
+    });
+
+    return getJson<EngineeringHealthHistory>(
+      `${API_URL}/${projectId}/engineering-health/history?${params.toString()}`,
     );
   },
 

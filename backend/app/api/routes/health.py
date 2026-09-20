@@ -39,4 +39,5 @@ async def read_project_engineering_health(
         include_github=include_github,
         lookback_days=lookback_days,
         github_limit=github_limit,
+        persist_snapshot=True,
     )
