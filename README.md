@@ -1266,3 +1266,5 @@ DevPilot is built around a simple progression:
 The ultimate objective is to transform software development from a workflow where engineers must continuously search for, interpret, and connect fragmented signals into a workflow where the system proactively surfaces useful engineering intelligence.
 DevPilot is therefore intended to become more than a project-management application.
 It is a developer-focused engineering intelligence and decision-support platform.
+Product Link:https://devpilot33.netlify.app/dashboard
+
