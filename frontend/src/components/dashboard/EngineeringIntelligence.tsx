@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   intelligenceService,
@@ -108,6 +108,8 @@ function getAIIcon(severity: AIInsight["severity"]) {
 
   return "check_circle";
 }
+
+import EngineeringActionCenter from "./EngineeringActionCenter";
 
 function EngineeringIntelligence({
   projectId,
@@ -361,6 +363,16 @@ function EngineeringIntelligence({
           </p>
         </div>
       </div>
+
+      {/* Action Center */}
+
+      {/* Action Center */}
+
+      {/* Action Center */}
+      <EngineeringActionCenter
+        projectId={projectId}
+        signals={signals.signals}
+      />
 
       {/* Engineering signals */}
       <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
