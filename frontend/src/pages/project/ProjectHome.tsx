@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { projectService } from "../../services/projectService";
 import { healthService } from "../../services/healthService";
+import EngineeringIntelligence from "../../components/dashboard/EngineeringIntelligence";
 
 import type { Project } from "../../types/project";
 import type { EngineeringHealth } from "../../types/health";
@@ -198,6 +199,10 @@ function ProjectHome() {
 
   return (
     <div className="space-y-lg">
+
+      {/* Engineering Intelligence */}
+      <EngineeringIntelligence projectId={projectId!} />
+
 
       {/* Engineering Health */}
       <section>
