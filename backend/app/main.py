@@ -16,6 +16,7 @@ from app.api.routes.engineering_health_history import router as engineering_heal
 from app.api.routes.ai import router as ai_router
 from app.api.routes.signals import router as signals_router
 from app.api.routes.intelligence import router as intelligence_router
+from app.api.routes.auth import router as auth_router
 
 from app.api.routes.dashboard import (
     router as dashboard_router,
@@ -255,6 +256,11 @@ app.include_router(
 
 app.include_router(
     intelligence_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    auth_router,
     prefix="/api/v1",
 )
 

@@ -1,14 +1,15 @@
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from app.models.project import Project
-    from app.models.issue import Issue
 from datetime import datetime
 
 from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
+
+if TYPE_CHECKING:
+    from app.models.project import Project
+    from app.models.issue import Issue
 
 
 class User(Base):
@@ -30,6 +31,11 @@ class User(Base):
         nullable=False,
     )
 
+    password_hash: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -39,7 +45,8 @@ class User(Base):
         "Project",
         back_populates="owner",
     )
+
     assigned_issues: Mapped[list["Issue"]] = relationship(
-    "Issue",
-    back_populates="assignee",
+        "Issue",
+        back_populates="assignee",
     )

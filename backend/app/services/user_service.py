@@ -21,6 +21,17 @@ class UserService:
             email=user.email,
         )
 
+    def get_by_id(
+        self,
+        db: Session,
+        user_id: int,
+    ) -> UserModel | None:
+        statement = select(UserModel).where(
+            UserModel.id == user_id
+        )
+
+        return db.scalar(statement)
+
     def get_users(
         self,
         db: Session,

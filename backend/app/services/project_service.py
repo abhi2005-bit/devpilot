@@ -44,10 +44,12 @@ class ProjectService:
     def get_projects(
         self,
         db: Session,
+        current_user_id: int,
     ) -> list[Project]:
 
         statement = (
             select(ProjectModel)
+            .where(ProjectModel.owner_id == current_user_id)
             .order_by(ProjectModel.id)
         )
 
