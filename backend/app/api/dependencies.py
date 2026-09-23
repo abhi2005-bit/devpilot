@@ -1,9 +1,11 @@
-from fastapi import Depends, HTTPException, status
+﻿from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.security import decode_access_token
 from app.db.database import get_db
+from app.models.project import Project as ProjectModel
 from app.models.user import User
 from app.services.auth_service import auth_service
 
@@ -46,6 +48,35 @@ def get_current_user(
         db,
         user_id,
     )
+
+
+def get_current_user_project(
+    project_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ProjectModel:
+    try:
+        project_id_int = int(project_id)
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found.",
+        ) from exc
+
+    statement = select(ProjectModel).where(
+        ProjectModel.id == project_id_int,
+        ProjectModel.owner_id == current_user.id,
+    )
+
+    project = db.scalar(statement)
+
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found.",
+        )
+
+    return project
 
 
 def get_current_mvp_user(

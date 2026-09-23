@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Depends
+﻿from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_current_user
+from app.api.dependencies import (
+    get_current_user,
+    get_current_user_project,
+)
 from app.db.database import get_db
 from app.models.user import User as UserModel
 
@@ -64,6 +67,7 @@ def create_new_project(
 def read_project_health(
     project_id: str,
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     return project_service.get_project_health(
         db,
@@ -78,6 +82,7 @@ def read_project_health(
 async def read_project_github(
     project_id: str,
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     project = project_service.get_project_model(
         db,
@@ -125,6 +130,7 @@ async def read_project_github(
 def read_project(
     project_id: str,
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     return project_service.get_project(
         db,
