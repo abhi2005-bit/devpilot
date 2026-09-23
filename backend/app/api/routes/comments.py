@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends
+﻿from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_current_mvp_user
+from app.api.dependencies import get_current_user
 from app.db.database import get_db
 from app.models.user import User as UserModel
 from app.schemas.comment import (
@@ -24,10 +24,12 @@ router = APIRouter(
 def list_issue_comments(
     issue_id: int,
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
 ):
     return comment_service.get_comments(
         db,
         issue_id,
+        current_user.id,
     )
 
 
@@ -40,7 +42,7 @@ def create_issue_comment(
     issue_id: int,
     data: IssueCommentCreate,
     db: Session = Depends(get_db),
-    current_user: UserModel = Depends(get_current_mvp_user),
+    current_user: UserModel = Depends(get_current_user),
 ):
     return comment_service.create_comment(
         db,
