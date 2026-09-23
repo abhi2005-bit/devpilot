@@ -1,10 +1,14 @@
-from datetime import datetime
+﻿from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import IssueNotFoundError
+from app.core.exceptions import (
+    IssueNotFoundError,
+    ProjectNotFoundError,
+)
 from app.models.issue import Issue as IssueModel
+from app.models.project import Project as ProjectModel
 from app.schemas.issue import (
     Issue,
     IssueCreate,
@@ -14,7 +18,10 @@ from app.schemas.issue import (
 
 class IssueService:
 
-    def _to_schema(self, issue: IssueModel) -> Issue:
+    def _to_schema(
+        self,
+        issue: IssueModel,
+    ) -> Issue:
         return Issue(
             id=issue.id,
             project_id=issue.project_id,
@@ -25,19 +32,71 @@ class IssueService:
             priority=issue.priority,
         )
 
+    def _get_owned_project(
+        self,
+        db: Session,
+        project_id: int,
+        current_user_id: int,
+    ) -> ProjectModel:
+        statement = select(ProjectModel).where(
+            ProjectModel.id == project_id,
+            ProjectModel.owner_id == current_user_id,
+        )
+
+        project = db.scalar(statement)
+
+        if project is None:
+            raise ProjectNotFoundError()
+
+        return project
+
+    def _get_owned_issue(
+        self,
+        db: Session,
+        issue_id: int,
+        current_user_id: int,
+    ) -> IssueModel:
+        statement = (
+            select(IssueModel)
+            .join(
+                ProjectModel,
+                IssueModel.project_id == ProjectModel.id,
+            )
+            .where(
+                IssueModel.id == issue_id,
+                ProjectModel.owner_id == current_user_id,
+            )
+        )
+
+        issue = db.scalar(statement)
+
+        if issue is None:
+            raise IssueNotFoundError()
+
+        return issue
+
     def get_issues(
         self,
         db: Session,
+        current_user_id: int,
         project_id: int | None = None,
     ) -> list[Issue]:
 
-        statement = select(IssueModel).order_by(
-            IssueModel.id
+        statement = (
+            select(IssueModel)
+            .join(
+                ProjectModel,
+                IssueModel.project_id == ProjectModel.id,
+            )
+            .where(
+                ProjectModel.owner_id == current_user_id,
+            )
+            .order_by(IssueModel.id)
         )
 
         if project_id is not None:
             statement = statement.where(
-                IssueModel.project_id == project_id
+                IssueModel.project_id == project_id,
             )
 
         issues = db.scalars(statement).all()
@@ -51,16 +110,14 @@ class IssueService:
         self,
         db: Session,
         issue_id: int,
+        current_user_id: int,
     ) -> Issue:
 
-        statement = select(IssueModel).where(
-            IssueModel.id == issue_id
+        issue = self._get_owned_issue(
+            db,
+            issue_id,
+            current_user_id,
         )
-
-        issue = db.scalar(statement)
-
-        if issue is None:
-            raise IssueNotFoundError()
 
         return self._to_schema(issue)
 
@@ -68,7 +125,14 @@ class IssueService:
         self,
         db: Session,
         data: IssueCreate,
+        current_user_id: int,
     ) -> Issue:
+
+        self._get_owned_project(
+            db,
+            data.project_id,
+            current_user_id,
+        )
 
         issue = IssueModel(
             project_id=data.project_id,
@@ -91,23 +155,25 @@ class IssueService:
         db: Session,
         issue_id: int,
         data: IssueUpdate,
+        current_user_id: int,
     ) -> Issue:
 
-        statement = select(IssueModel).where(
-            IssueModel.id == issue_id
+        issue = self._get_owned_issue(
+            db,
+            issue_id,
+            current_user_id,
         )
 
-        issue = db.scalar(statement)
-
-        if issue is None:
-            raise IssueNotFoundError()
-
         update_data = data.model_dump(
-            exclude_unset=True
+            exclude_unset=True,
         )
 
         for field, value in update_data.items():
-            setattr(issue, field, value)
+            setattr(
+                issue,
+                field,
+                value,
+            )
 
         db.commit()
         db.refresh(issue)
@@ -118,16 +184,14 @@ class IssueService:
         self,
         db: Session,
         issue_id: int,
+        current_user_id: int,
     ) -> bool:
 
-        statement = select(IssueModel).where(
-            IssueModel.id == issue_id
+        issue = self._get_owned_issue(
+            db,
+            issue_id,
+            current_user_id,
         )
-
-        issue = db.scalar(statement)
-
-        if issue is None:
-            raise IssueNotFoundError()
 
         db.delete(issue)
         db.commit()

@@ -1,4 +1,4 @@
-from datetime import datetime
+﻿from datetime import datetime
 
 from app.models.project import Project
 from app.models.user import User
@@ -71,6 +71,7 @@ def test_create_issue(db):
     issue = service.create_issue(
         db,
         data,
+        user.id,
     )
 
     assert issue.id is not None
@@ -78,3 +79,4 @@ def test_create_issue(db):
     assert issue.title == "Test Issue"
     assert issue.status == "TODO"
     assert issue.priority == "MEDIUM"
+

@@ -1,27 +1,32 @@
-import type {
+﻿import type {
   Issue,
   IssuePriority,
   IssueStatus,
 } from "../types/issue";
 import API_URL_BASE from "../config/api";
+import { authenticatedFetch } from "./apiClient";
+
 
 const API_URL =
   `${API_URL_BASE}/issues`;
+
 
 type BackendIssue = {
   id: number;
   project_id: number;
   assignee_id: number | null;
   title: string;
-  description: string;
+  description: string | null;
   status: IssueStatus;
   priority: IssuePriority;
 };
+
 
 type FrontendIssueInput = Omit<
   Issue,
   "id" | "createdAt" | "updatedAt"
 >;
+
 
 type IssueUpdateFields = Partial<
   Pick<
@@ -34,6 +39,7 @@ type IssueUpdateFields = Partial<
     | "labels"
   >
 >;
+
 
 function toFrontendIssue(
   issue: BackendIssue,
@@ -59,6 +65,7 @@ function toFrontendIssue(
   };
 }
 
+
 function getAssigneeId(
   assignee: Issue["assignee"],
 ): number | null {
@@ -73,10 +80,13 @@ function getAssigneeId(
     : null;
 }
 
+
 export const issueService = {
 
   async getAll(): Promise<Issue[]> {
-    const response = await fetch(API_URL);
+    const response = await authenticatedFetch(
+      API_URL,
+    );
 
     if (!response.ok) {
       throw new Error("Failed to load issues");
@@ -88,10 +98,11 @@ export const issueService = {
     return data.map(toFrontendIssue);
   },
 
+
   async getByProject(
     projectId: string,
   ): Promise<Issue[]> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}?project_id=${encodeURIComponent(
         projectId,
       )}`,
@@ -109,10 +120,11 @@ export const issueService = {
     return data.map(toFrontendIssue);
   },
 
+
   async getIssue(
     issueId: string,
   ): Promise<Issue | undefined> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/${issueId}`,
     );
 
@@ -130,28 +142,32 @@ export const issueService = {
     return toFrontendIssue(data);
   },
 
+
   async createIssue(
     issue: FrontendIssueInput,
   ): Promise<Issue> {
 
-    const response = await fetch(API_URL, {
-      method: "POST",
+    const response = await authenticatedFetch(
+      API_URL,
+      {
+        method: "POST",
 
-      headers: {
-        "Content-Type": "application/json",
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          project_id: Number(issue.projectId),
+          assignee_id: getAssigneeId(
+            issue.assignee,
+          ),
+          title: issue.title,
+          description: issue.description,
+          status: issue.status,
+          priority: issue.priority,
+        }),
       },
-
-      body: JSON.stringify({
-        project_id: Number(issue.projectId),
-        assignee_id: getAssigneeId(
-          issue.assignee,
-        ),
-        title: issue.title,
-        description: issue.description,
-        status: issue.status,
-        priority: issue.priority,
-      }),
-    });
+    );
 
     if (!response.ok) {
       throw new Error("Failed to create issue");
@@ -162,6 +178,7 @@ export const issueService = {
 
     return toFrontendIssue(data);
   },
+
 
   async updateIssue(
     issueId: string,
@@ -195,7 +212,7 @@ export const issueService = {
       );
     }
 
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/${issueId}`,
       {
         method: "PUT",
@@ -222,6 +239,7 @@ export const issueService = {
     return toFrontendIssue(data);
   },
 
+
   async updateIssueStatus(
     issueId: string,
     status: IssueStatus,
@@ -231,6 +249,7 @@ export const issueService = {
       { status },
     );
   },
+
 
   async updateIssuePriority(
     issueId: string,
@@ -242,11 +261,12 @@ export const issueService = {
     );
   },
 
+
   async deleteIssue(
     issueId: string,
   ): Promise<boolean> {
 
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/${issueId}`,
       {
         method: "DELETE",

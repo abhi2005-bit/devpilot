@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends
+﻿from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user
 from app.db.database import get_db
+from app.models.user import User as UserModel
 from app.schemas.issue import (
     Issue,
     IssueCreate,
@@ -23,9 +25,11 @@ router = APIRouter(
 def list_issues(
     project_id: int | None = None,
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
 ):
     return issue_service.get_issues(
         db,
+        current_user.id,
         project_id,
     )
 
@@ -37,10 +41,12 @@ def list_issues(
 def read_issue(
     issue_id: int,
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
 ):
     return issue_service.get_issue(
         db,
         issue_id,
+        current_user.id,
     )
 
 
@@ -52,10 +58,12 @@ def read_issue(
 def create_new_issue(
     data: IssueCreate,
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
 ):
     return issue_service.create_issue(
         db,
         data,
+        current_user.id,
     )
 
 
@@ -67,11 +75,13 @@ def update_existing_issue(
     issue_id: int,
     data: IssueUpdate,
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
 ):
     return issue_service.update_issue(
         db,
         issue_id,
         data,
+        current_user.id,
     )
 
 
@@ -82,10 +92,12 @@ def update_existing_issue(
 def delete_existing_issue(
     issue_id: int,
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
 ):
     issue_service.delete_issue(
         db,
         issue_id,
+        current_user.id,
     )
 
     return None
