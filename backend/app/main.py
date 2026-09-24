@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+﻿from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -39,7 +39,7 @@ from app.core.exceptions import (
 app = FastAPI(
     title="DevPilot API",
     description="Engineering Intelligence Platform API",
-    version="0.1.0",
+    version="0.1.1",
 )
 
 
@@ -273,7 +273,7 @@ def health_check():
     return {
         "status": "healthy",
         "service": "devpilot-backend",
-        "version": "0.1.0",
+        "version": "0.1.1",
     }
 
 
@@ -285,3 +285,4 @@ def root():
     return {
         "message": "DevPilot API is running",
     }
+
