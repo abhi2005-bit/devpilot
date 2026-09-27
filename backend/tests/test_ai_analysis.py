@@ -2,6 +2,10 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from fastapi.testclient import TestClient
+
+
+from app.main import app
 
 from app.schemas.ai import AIInsight
 from app.schemas.health import (
@@ -23,6 +27,13 @@ from app.schemas.signals import (
     EngineeringSignals,
 )
 from app.services.ai_analysis_service import AIAnalysisService
+from datetime import datetime
+
+from app.core.security import create_access_token
+from app.models.project import Project
+from app.models.user import User
+
+client = TestClient(app)
 
 
 def make_context() -> EngineeringIntelligenceContext:
@@ -261,3 +272,58 @@ def test_ai_analysis_rejects_invalid_json():
                     analysis_type="summary",
                 )
             )
+def test_ai_analysis_requires_authentication():
+    response = client.post(
+        "/api/v1/projects/7/ai/analyze",
+        json={},
+    )
+
+    assert response.status_code == 401
+
+def test_ai_analysis_rejects_non_owner(db):
+    user_a = User(
+        name="AI Project Owner",
+        email="ai.owner@example.com",
+        created_at=datetime.now(),
+    )
+
+    user_b = User(
+        name="AI Other User",
+        email="ai.other@example.com",
+        created_at=datetime.now(),
+    )
+
+    db.add_all([user_a, user_b])
+    db.flush()
+
+    project = Project(
+        name="AI Authorization Project",
+        description="Project used to verify AI ownership authorization.",
+        owner_id=user_a.id,
+        created_at=datetime.now(),
+    )
+
+    db.add(project)
+    db.commit()
+    db.refresh(project)
+
+    other_user_token = create_access_token(user_b.id)
+
+    with patch(
+        "app.api.routes.ai.ai_analysis_service.analyze_project",
+        new_callable=AsyncMock,
+    ) as mock_analyze:
+        response = client.post(
+            f"/api/v1/projects/{project.id}/ai/analyze",
+            headers={
+                "Authorization": f"Bearer {other_user_token}",
+            },
+            json={},
+        )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Project not found."
+    }
+
+    mock_analyze.assert_not_awaited()

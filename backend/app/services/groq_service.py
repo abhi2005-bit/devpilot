@@ -5,15 +5,23 @@ from app.db.database import settings
 
 class GroqService:
     def __init__(self) -> None:
-        self.client = AsyncGroq(
-            api_key=settings.groq_api_key,
-        )
+        self.client = None
 
     async def generate(
         self,
         system_prompt: str,
         user_prompt: str,
     ) -> str:
+        if self.client is None:
+            if settings.groq_api_key is None:
+                raise RuntimeError(
+                    "GROQ_API_KEY is not configured."
+                )
+
+            self.client = AsyncGroq(
+                api_key=settings.groq_api_key,
+            )
+
         response = await self.client.chat.completions.create(
             model=settings.groq_model,
             messages=[

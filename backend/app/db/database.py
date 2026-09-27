@@ -5,7 +5,7 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 class Settings(BaseSettings):
     database_url: str
-    groq_api_key: str
+    groq_api_key: str | None = None
     groq_model: str = "openai/gpt-oss-20b"
 
     dev_user_email: str = "devpilot@example.com"

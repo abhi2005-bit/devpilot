@@ -9,6 +9,9 @@ from app.schemas.ai import (
 from app.services.ai_analysis_service import (
     ai_analysis_service,
 )
+from app.api.dependencies import (
+    get_current_user_project,
+)
 
 
 router = APIRouter(
@@ -25,6 +28,7 @@ async def analyze_project(
     project_id: str,
     request: AIAnalysisRequest,
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project)
 ):
     return await ai_analysis_service.analyze_project(
         db=db,
