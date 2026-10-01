@@ -1,6 +1,7 @@
 ﻿from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user_project
 from app.db.database import get_db
 from app.schemas.intelligence import EngineeringIntelligenceContext
 from app.services.intelligence_context_service import (
@@ -31,6 +32,7 @@ async def read_project_intelligence_context(
         le=100,
     ),
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     return await intelligence_context_service.build_project_context(
         db=db,

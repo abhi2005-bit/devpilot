@@ -1,5 +1,7 @@
 import type { ProjectMember, User } from "../types/member";
+import type { ProjectMemberRole } from "../types/project";
 import API_URL_BASE from "../config/api";
+import { authenticatedFetch } from "./apiClient";
 
 const API_URL = API_URL_BASE;
 
@@ -7,7 +9,7 @@ export const memberService = {
   async getMembers(
     projectId: string,
   ): Promise<ProjectMember[]> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/projects/${projectId}/members`,
     );
 
@@ -21,7 +23,7 @@ export const memberService = {
   },
 
   async getUsers(): Promise<User[]> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/users`,
     );
 
@@ -35,8 +37,9 @@ export const memberService = {
   async addMember(
     projectId: string,
     userId: number,
+    role: Exclude<ProjectMemberRole, "OWNER">,
   ): Promise<ProjectMember> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/projects/${projectId}/members`,
       {
         method: "POST",
@@ -45,6 +48,7 @@ export const memberService = {
         },
         body: JSON.stringify({
           user_id: userId,
+          role,
         }),
       },
     );
@@ -74,7 +78,7 @@ export const memberService = {
     projectId: string,
     userId: string,
   ): Promise<void> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/projects/${projectId}/members/${userId}`,
       {
         method: "DELETE",

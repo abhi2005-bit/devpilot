@@ -1,0 +1,5 @@
+{
+  "auth_pwd_masked": true,
+  "auth_invalid_handled": true,
+  "auth_registration_reachable": true
+}

@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Modal from "../../../components/common/Modal";
+import IssueEngineeringContext from "../../../components/issues/IssueEngineeringContext";
 import EditIssueForm from "../../../components/issues/EditIssueForm";
 
 import { issueService } from "../../../services/issueService";
+import { sprintService } from "../../../services/sprintService";
+import type { Sprint } from "../../../types/sprint";
 import { memberService } from "../../../services/memberService";
 import { commentService } from "../../../services/commentService";
 
@@ -79,6 +82,7 @@ function IssueDetail() {
 
 
   const [issue, setIssue] = useState<Issue | undefined>();
+  const [sprints, setSprints] = useState<Sprint[]>([]);
   const [members, setMembers] = useState<ProjectMember[]>([]);
 
   // Comments
@@ -119,10 +123,12 @@ function IssueDetail() {
           loadedIssue,
           loadedMembers,
           loadedComments,
+          loadedSprints,
         ] = await Promise.all([
           issueService.getIssue(issueId),
           memberService.getMembers(projectId),
           commentService.getComments(issueId),
+          sprintService.getSprints(projectId).catch(() => []),
         ]);
 
         if (!loadedIssue) {
@@ -145,6 +151,7 @@ function IssueDetail() {
         setIssue(loadedIssue);
         setMembers(loadedMembers);
         setComments(loadedComments);
+        setSprints(loadedSprints as any);
       } catch (err) {
         console.error(err);
 
@@ -174,6 +181,7 @@ function IssueDetail() {
         | "priority"
         | "assignee"
         | "labels"
+        | "sprintId"
       >
     >,
   ) => {
@@ -506,6 +514,10 @@ function IssueDetail() {
           </div>
 
 
+          
+          {/* Engineering Context */}
+          <IssueEngineeringContext issue={issue} onUpdateStatus={(status) => handleUpdate({ status })} />
+
           {/* Activity / Comments */}
           <div className="rounded-xl border border-outline-variant bg-surface-container p-lg">
 
@@ -666,6 +678,23 @@ function IssueDetail() {
 
 
             <div className="mt-lg space-y-lg">
+
+                            {/* Sprint */}
+              <div>
+                <p className="text-caption text-on-surface-variant mb-xs">
+                  Sprint
+                </p>
+                <select
+                  value={issue.sprintId || ""}
+                  onChange={(e) => handleUpdate({ sprintId: e.target.value || undefined })}
+                  className="w-full rounded-lg border border-outline bg-surface px-md py-sm text-body-sm text-on-surface"
+                >
+                  <option value="">Backlog</option>
+                  {sprints.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
 
               {/* Status */}
               <div>

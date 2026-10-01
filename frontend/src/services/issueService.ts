@@ -19,6 +19,7 @@ type BackendIssue = {
   description: string | null;
   status: IssueStatus;
   priority: IssuePriority;
+  sprint_id?: number | null;
 };
 
 
@@ -37,6 +38,7 @@ type IssueUpdateFields = Partial<
     | "priority"
     | "assignee"
     | "labels"
+    | "sprintId"
   >
 >;
 
@@ -53,6 +55,7 @@ function toFrontendIssue(
     description: issue.description ?? "",
     status: issue.status,
     priority: issue.priority,
+    sprintId: issue.sprint_id ? String(issue.sprint_id) : undefined,
     assignee: issue.assignee_id
       ? {
           id: String(issue.assignee_id),
@@ -165,6 +168,7 @@ export const issueService = {
           description: issue.description,
           status: issue.status,
           priority: issue.priority,
+    sprint_id: issue.sprintId ? Number(issue.sprintId) : undefined,
         }),
       },
     );
@@ -210,6 +214,10 @@ export const issueService = {
       body.assignee_id = getAssigneeId(
         updates.assignee,
       );
+    }
+
+    if (updates.sprintId !== undefined) {
+      body.sprint_id = updates.sprintId ? Number(updates.sprintId) : null;
     }
 
     const response = await authenticatedFetch(

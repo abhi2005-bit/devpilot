@@ -7,6 +7,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import Modal from "../../../components/common/Modal";
 import CreateIssueForm from "../../../components/issues/CreateIssueForm";
+import SprintSelector from "./SprintSelector";
+import SprintManagerModal from "./SprintManagerModal";
 import { issueService } from "../../../services/issueService";
 
 import type {
@@ -96,6 +98,10 @@ function Issues() {
   const [search, setSearch] =
     useState("");
 
+  const [selectedSprintId, setSelectedSprintId] = useState<string | null>(null);
+  const [isSprintModalOpen, setIsSprintModalOpen] = useState(false);
+
+
   const [statusFilter, setStatusFilter] =
     useState<IssueStatus | "ALL">("ALL");
 
@@ -166,47 +172,57 @@ function Issues() {
     };
   }, [projectId]);
 
-  const filteredIssues = useMemo(() => {
-    const query =
-      search.trim().toLowerCase();
-
+    const filteredIssues = useMemo(() => {
     return projectIssues.filter((issue) => {
-      const matchesSearch =
-        query === "" ||
-        issue.title
+      // Status filter
+      if (
+        statusFilter !== "ALL" &&
+        issue.status !== statusFilter
+      ) {
+        return false;
+      }
+
+      // Priority filter
+      if (
+        priorityFilter !== "ALL" &&
+        issue.priority !== priorityFilter
+      ) {
+        return false;
+      }
+
+      // Search filter
+      if (search) {
+        const searchLower = search.toLowerCase();
+        const matchesTitle = issue.title
           .toLowerCase()
-          .includes(query) ||
-        issue.description
-          .toLowerCase()
-          .includes(query) ||
-        issue.labels.some((label) =>
-          label
+          .includes(searchLower);
+        const matchesAssignee =
+          issue.assignee?.name
             .toLowerCase()
-            .includes(query),
-        ) ||
-        issue.assignee?.name
-          .toLowerCase()
-          .includes(query);
+            .includes(searchLower);
 
-      const matchesStatus =
-        statusFilter === "ALL" ||
-        issue.status === statusFilter;
+        if (!matchesTitle && !matchesAssignee) {
+          return false;
+        }
+      }
 
-      const matchesPriority =
-        priorityFilter === "ALL" ||
-        issue.priority === priorityFilter;
+      // Sprint filter
+      if (selectedSprintId) {
+        if (selectedSprintId === "BACKLOG") {
+          if (issue.sprintId) return false;
+        } else {
+          if (issue.sprintId !== selectedSprintId) return false;
+        }
+      }
 
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesPriority
-      );
+      return true;
     });
   }, [
     projectIssues,
-    search,
     statusFilter,
     priorityFilter,
+    search,
+    selectedSprintId,
   ]);
 
   const issuesByStatus = useMemo(() => {
@@ -539,6 +555,16 @@ function Issues() {
       {/* Toolbar */}
 
       <section className="rounded-xl border border-outline-variant bg-surface-container p-md">
+                  {/* Sprint Selector */}
+          <div className="mb-md">
+            <SprintSelector
+              projectId={projectId || ""}
+              selectedSprintId={selectedSprintId}
+              onSprintSelect={setSelectedSprintId}
+              onSprintAction={() => setIsSprintModalOpen(true)}
+            />
+          </div>
+
         <div className="flex flex-col gap-md xl:flex-row xl:items-center xl:justify-between">
           {/* Search */}
 
@@ -656,7 +682,7 @@ function Issues() {
         <>
           {/* Summary */}
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-sm">
             <p className="text-body-sm text-on-surface-variant">
               Showing{" "}
               <span className="font-semibold text-on-surface">
@@ -667,6 +693,29 @@ function Issues() {
                 : "issues"}
             </p>
           </div>
+          
+          {/* Workload Visibility */}
+          {Object.keys(projectIssues.reduce((acc, issue) => { if (issue.status !== "DONE" && issue.assignee) { acc[issue.assignee.name] = 1; } return acc; }, {} as Record<string, number>)).length > 0 && (
+            <div className="flex flex-wrap gap-sm mb-md">
+              {Object.entries(
+                 projectIssues.reduce((acc, issue) => {
+                   if (issue.status !== "DONE" && issue.assignee) {
+                     acc[issue.assignee.name] = (acc[issue.assignee.name] || 0) + 1;
+                   }
+                   return acc;
+                 }, {} as Record<string, number>)
+              ).map(([name, count]) => (
+                 <div key={name} className="flex items-center gap-sm rounded-full border border-outline-variant bg-surface-container px-md py-xs">
+                   <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-container text-caption font-bold text-primary">
+                      {name.charAt(0).toUpperCase()}
+                   </div>
+                   <span className="text-body-sm font-medium text-on-surface">{name}</span>
+                   <span className="text-caption text-on-surface-variant ml-xs">{count} active issue{count !== 1 ? 's' : ''}</span>
+                 </div>
+              ))}
+            </div>
+          )}
+
 
           {/* BOARD */}
 
@@ -752,6 +801,13 @@ function Issues() {
                       {/* Cards */}
 
                       <div className="space-y-sm">
+                        {columnIssues.length === 0 && !isDropTarget && (
+                           <div className="p-md text-center border-2 border-dashed border-outline-variant rounded-lg mt-sm">
+                              <p className="text-caption text-on-surface-variant">
+                                {status === "DONE" ? "No completed work yet." : "No issues here."}
+                              </p>
+                           </div>
+                        )}
                         {columnIssues.map(
                           (issue) => (
                             <article
@@ -1265,6 +1321,11 @@ function Issues() {
           </div>
         )}
       </Modal>
+      <SprintManagerModal
+        projectId={projectId || ""}
+        isOpen={isSprintModalOpen}
+        onClose={() => setIsSprintModalOpen(false)}
+      />
     </div>
   );
 }

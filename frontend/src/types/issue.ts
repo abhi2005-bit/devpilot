@@ -19,6 +19,7 @@ export interface IssueAssignee {
 export interface Issue {
   id: string;
   projectId: string;
+  sprintId?: string;
   title: string;
   description: string;
   status: IssueStatus;

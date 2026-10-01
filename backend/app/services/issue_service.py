@@ -30,6 +30,7 @@ class IssueService:
             description=issue.description,
             status=issue.status,
             priority=issue.priority,
+            sprint_id=issue.sprint_id,
         )
 
     def _get_owned_project(
@@ -141,6 +142,7 @@ class IssueService:
             description=data.description,
             status=data.status,
             priority=data.priority,
+            sprint_id=data.sprint_id,
             created_at=datetime.now(),
         )
 

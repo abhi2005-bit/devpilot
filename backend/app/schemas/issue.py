@@ -9,11 +9,13 @@ class Issue(BaseModel):
     description: str | None
     status: str
     priority: str
+    sprint_id: int | None = None
 
 
 class IssueCreate(BaseModel):
     project_id: int
     assignee_id: int | None = None
+    sprint_id: int | None = None
     title: str = Field(
         min_length=1,
         max_length=200,
@@ -21,6 +23,7 @@ class IssueCreate(BaseModel):
     description: str | None = None
     status: str = "TODO"
     priority: str = "MEDIUM"
+    sprint_id: int | None = None
 
 
 class IssueUpdate(BaseModel):
@@ -33,3 +36,4 @@ class IssueUpdate(BaseModel):
     status: str | None = None
     priority: str | None = None
     assignee_id: int | None = None
+    sprint_id: int | None = None

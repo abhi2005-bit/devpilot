@@ -17,6 +17,7 @@ from app.api.routes.ai import router as ai_router
 from app.api.routes.signals import router as signals_router
 from app.api.routes.intelligence import router as intelligence_router
 from app.api.routes.auth import router as auth_router
+from app.api.routes.sprints import router as sprints_router
 
 from app.api.routes.dashboard import (
     router as dashboard_router,
@@ -286,3 +287,9 @@ def root():
         "message": "DevPilot API is running",
     }
 
+
+app.include_router(
+    sprints_router,
+    prefix="/api/v1",
+    tags=["Sprints"],
+)

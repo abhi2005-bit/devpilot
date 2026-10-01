@@ -136,6 +136,27 @@ function ProjectOverview() {
         return;
       }
 
+      if (
+        isLoading ||
+        !project ||
+        project.id !== projectId
+      ) {
+        setGithub(undefined);
+        setGithubError(undefined);
+        setIsGithubLoading(true);
+        return;
+      }
+
+      if (
+        !project.github_owner?.trim() ||
+        !project.github_repo?.trim()
+      ) {
+        setGithub(undefined);
+        setGithubError(undefined);
+        setIsGithubLoading(false);
+        return;
+      }
+
       setIsGithubLoading(true);
       setGithubError(undefined);
 
@@ -167,7 +188,7 @@ function ProjectOverview() {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [isLoading, project, projectId]);
 
   /*
    * Loading project
@@ -551,6 +572,26 @@ function ProjectOverview() {
 
                   <p className="mt-xs text-body-sm text-on-surface-variant">
                     {githubError}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!isGithubLoading && !githubError && !github && (
+            <div className="rounded-xl border border-outline-variant bg-surface-container-low p-lg">
+              <div className="flex items-start gap-md">
+                <span className="material-symbols-outlined text-on-surface-variant">
+                  code
+                </span>
+
+                <div>
+                  <p className="text-body-md font-semibold text-on-surface">
+                    No GitHub repository connected
+                  </p>
+
+                  <p className="mt-xs text-body-sm text-on-surface-variant">
+                    A project owner can connect a public repository from the project edit form.
                   </p>
                 </div>
               </div>

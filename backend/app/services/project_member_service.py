@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import (
@@ -9,6 +9,7 @@ from app.core.exceptions import (
     UserNotFoundError,
 )
 from app.models.project import Project as ProjectModel
+from app.models.project import project_members
 from app.models.user import User as UserModel
 from app.schemas.member import (
     ProjectMember,
@@ -21,11 +22,13 @@ class ProjectMemberService:
     def _to_schema(
         self,
         user: UserModel,
+        role: str,
     ) -> ProjectMember:
         return ProjectMember(
             id=str(user.id),
             name=user.name,
             email=user.email,
+            role=role,
         )
 
     def _get_project(
@@ -56,8 +59,19 @@ class ProjectMemberService:
             project_id,
         )
 
+        member_roles = dict(
+            db.execute(
+                select(
+                    project_members.c.user_id,
+                    project_members.c.role,
+                ).where(
+                    project_members.c.project_id == project_id
+                )
+            ).all()
+        )
+
         return [
-            self._to_schema(user)
+            self._to_schema(user, member_roles[user.id])
             for user in project.members
         ]
 
@@ -98,11 +112,17 @@ class ProjectMemberService:
         if existing_member is not None:
             raise ProjectMemberAlreadyExistsError()
 
-        project.members.append(user)
+        db.execute(
+            project_members.insert().values(
+                project_id=project.id,
+                user_id=user.id,
+                role=data.role,
+            )
+        )
 
         db.commit()
 
-        return self._to_schema(user)
+        return self._to_schema(user, data.role)
 
     def remove_member(
         self,
@@ -135,7 +155,12 @@ class ProjectMemberService:
         if member.id == project.owner_id:
             raise PermissionDeniedError()
 
-        project.members.remove(member)
+        db.execute(
+            delete(project_members).where(
+                project_members.c.project_id == project.id,
+                project_members.c.user_id == user_id,
+            )
+        )
 
         db.commit()
 

@@ -2,11 +2,13 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from app.schemas.member import ProjectMemberRole
+
 
 class ProjectMember(BaseModel):
     id: str
     name: str
-    role: Optional[str] = None
+    role: ProjectMemberRole
     avatar: Optional[str] = None
 
 

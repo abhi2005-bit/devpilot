@@ -1,4 +1,5 @@
 ﻿import API_URL_BASE from "../config/api";
+import { authenticatedFetch } from "./apiClient";
 
 const API_URL = `${API_URL_BASE}/projects`;
 
@@ -156,7 +157,7 @@ export interface EngineeringIntelligenceContext {
 }
 
 async function getJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
+  const response = await authenticatedFetch(url);
 
   if (!response.ok) {
     let message = "Failed to load engineering intelligence.";

@@ -16,3 +16,5 @@ __all__ = [
     "CICDJob",
     "EngineeringHealthSnapshot",
 ]
+
+from .sprint import Sprint

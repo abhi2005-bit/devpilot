@@ -1,15 +1,14 @@
-import type { Project } from "../types/project";
+﻿import type { Project } from "../types/project";
 import type { EngineeringHealth } from "../types/health";
 
 import API_URL_BASE from "../config/api";
+import { authenticatedFetch } from "./apiClient";
 
-const API_URL =
-  `${API_URL_BASE}/projects`;
+const API_URL = `${API_URL_BASE}/projects`;
 
 export const projectService = {
-
   async getAll(): Promise<Project[]> {
-    const response = await fetch(API_URL);
+    const response = await authenticatedFetch(API_URL);
 
     if (!response.ok) {
       throw new Error("Failed to load projects");
@@ -21,7 +20,7 @@ export const projectService = {
   async getById(
     id: string,
   ): Promise<Project | undefined> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/${id}`,
     );
 
@@ -39,7 +38,7 @@ export const projectService = {
   async getHealth(
     id: string,
   ): Promise<EngineeringHealth> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/${id}/engineering-health`,
     );
 
@@ -59,17 +58,21 @@ export const projectService = {
   async create(
     project: Project,
   ): Promise<Project> {
-
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await authenticatedFetch(
+      API_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: project.name,
+          description: project.description,
+          github_owner: project.github_owner?.trim() || null,
+          github_repo: project.github_repo?.trim() || null,
+        }),
       },
-      body: JSON.stringify({
-        name: project.name,
-        description: project.description,
-      }),
-    });
+    );
 
     if (!response.ok) {
       throw new Error("Failed to create project");
@@ -81,8 +84,7 @@ export const projectService = {
   async update(
     project: Project,
   ): Promise<Project> {
-
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/${project.id}`,
       {
         method: "PUT",
@@ -92,6 +94,8 @@ export const projectService = {
         body: JSON.stringify({
           name: project.name,
           description: project.description,
+          github_owner: project.github_owner?.trim() || null,
+          github_repo: project.github_repo?.trim() || null,
         }),
       },
     );
@@ -106,8 +110,7 @@ export const projectService = {
   async delete(
     id: string,
   ): Promise<void> {
-
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/${id}`,
       {
         method: "DELETE",

@@ -9,6 +9,7 @@ interface CreateIssueFormProps {
   projectId: string;
   onCancel: () => void;
   onSubmit: (issue: Issue) => void;
+  initialValues?: Partial<FormValues>;
 }
 
 interface FormValues {
@@ -33,6 +34,7 @@ function CreateIssueForm({
   projectId,
   onCancel,
   onSubmit,
+  initialValues,
 }: CreateIssueFormProps) {
   const {
     register,
@@ -40,7 +42,7 @@ function CreateIssueForm({
     reset,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
-    defaultValues,
+    defaultValues: { ...defaultValues, ...initialValues },
   });
 
   const submitForm = (data: FormValues) => {

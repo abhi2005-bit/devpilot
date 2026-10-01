@@ -11,13 +11,23 @@ class DashboardService:
     def get_summary(
         self,
         db: Session,
+        current_user,
     ) -> DashboardSummary:
         projects = db.scalars(
-            select(ProjectModel)
+            select(ProjectModel).where(
+                ProjectModel.owner_id == current_user.id
+            )
         ).all()
 
         issues = db.scalars(
             select(IssueModel)
+            .join(
+                ProjectModel,
+                IssueModel.project_id == ProjectModel.id,
+            )
+            .where(
+                ProjectModel.owner_id == current_user.id
+            )
         ).all()
 
         active_projects = len(projects)

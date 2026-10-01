@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user_project
 from app.db.database import get_db
 from app.schemas.health import EngineeringHealth
 from app.services.engineering_health_service import (
@@ -32,6 +33,7 @@ async def read_project_engineering_health(
         le=100,
     ),
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     return await engineering_health_service.get_project_health(
         db,

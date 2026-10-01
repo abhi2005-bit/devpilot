@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.issue import Issue
+    from app.models.sprint import Sprint
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String, Text, Table, Column, Integer, text
@@ -15,6 +16,7 @@ from app.db.database import Base
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.issue import Issue
+    from app.models.sprint import Sprint
     from app.models.cicd_run import CICDRun, CICDJob
 
 
@@ -23,6 +25,12 @@ project_members = Table(
     Base.metadata,
     Column("project_id", Integer, ForeignKey("projects.id"), primary_key=True),
     Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column(
+        "role",
+        String(20),
+        nullable=False,
+        server_default="ENGINEER",
+    ),
 )
 
 
@@ -66,6 +74,10 @@ class Project(Base):
     )
     issues: Mapped[list["Issue"]] = relationship(
     "Issue",
+    back_populates="project",
+    )
+    sprints: Mapped[list["Sprint"]] = relationship(
+    "Sprint",
     back_populates="project",
     )
     github_owner:Mapped[str | None]=mapped_column(

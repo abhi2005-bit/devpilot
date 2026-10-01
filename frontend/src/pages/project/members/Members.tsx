@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { issues } from "../../../data/issues";
+import { issueService } from "../../../services/issueService";
 import { projectService } from "../../../services/projectService";
 import { memberService } from "../../../services/memberService";
 
@@ -14,6 +14,7 @@ import type {
   ProjectMember as BackendProjectMember,
   User,
 } from "../../../types/member";
+import type { Issue } from "../../../types/issue";
 
 const roleLabels: Record<ProjectMemberRole, string> = {
   OWNER: "Owner",
@@ -23,7 +24,7 @@ const roleLabels: Record<ProjectMemberRole, string> = {
   QA: "QA",
 };
 
-const roles: ProjectMemberRole[] = [
+const roles: Exclude<ProjectMemberRole, "OWNER">[] = [
   "ENGINEER",
   "DESIGNER",
   "PRODUCT",
@@ -76,6 +77,9 @@ function Members() {
     BackendProjectMember[]
   >([]);
 
+  const [projectIssues, setProjectIssues] =
+    useState<Issue[]>([]);
+
   const [users, setUsers] = useState<User[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -91,7 +95,9 @@ function Members() {
     useState("");
 
   const [newRole, setNewRole] =
-    useState<ProjectMemberRole>("ENGINEER");
+    useState<Exclude<ProjectMemberRole, "OWNER">>(
+      "ENGINEER",
+    );
 
   const [error, setError] =
     useState("");
@@ -103,6 +109,7 @@ function Members() {
       if (!projectId) {
         setProject(undefined);
         setMembers([]);
+        setProjectIssues([]);
         setUsers([]);
         setIsLoading(false);
         return;
@@ -115,22 +122,26 @@ function Members() {
         const [
           loadedProject,
           loadedMembers,
+          loadedIssues,
           loadedUsers,
         ] = await Promise.all([
           projectService.getById(projectId),
           memberService.getMembers(projectId),
+          issueService.getByProject(projectId),
           memberService.getUsers(),
         ]);
 
         if (!cancelled) {
           setProject(loadedProject);
           setMembers(loadedMembers);
+          setProjectIssues(loadedIssues);
           setUsers(loadedUsers);
         }
       } catch {
         if (!cancelled) {
           setProject(undefined);
           setMembers([]);
+          setProjectIssues([]);
           setUsers([]);
           setError(
             "Unable to load project members.",
@@ -164,7 +175,7 @@ function Members() {
       role:
         member.id === project?.ownerId
           ? ("OWNER" as ProjectMemberRole)
-          : ("ENGINEER" as ProjectMemberRole),
+          : member.role,
       avatar: undefined,
     }));
   }, [members, project?.ownerId]);
@@ -185,10 +196,8 @@ function Members() {
       };
     }
 
-    const memberIssues = issues.filter(
-      (issue) =>
-        issue.projectId === projectId &&
-        issue.assignee?.id === memberId,
+    const memberIssues = projectIssues.filter(
+      (issue) => issue.assignee?.id === memberId,
     );
 
     const total = memberIssues.length;
@@ -302,6 +311,7 @@ function Members() {
         await memberService.addMember(
           projectId,
           userId,
+          newRole,
         );
 
       setMembers((current) => [
@@ -898,7 +908,10 @@ function Members() {
                   onChange={(event) => {
                     setNewRole(
                       event.target
-                        .value as ProjectMemberRole,
+                        .value as Exclude<
+                          ProjectMemberRole,
+                          "OWNER"
+                        >,
                     );
 
                     setError("");
@@ -919,9 +932,7 @@ function Members() {
 
               <p className="text-caption text-on-surface-variant">
                 The selected user will be added to
-                this project. Roles are currently
-                displayed in the frontend and are
-                not yet stored by the backend.
+                this project.
               </p>
             </div>
 

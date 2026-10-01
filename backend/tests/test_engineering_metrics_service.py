@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from fastapi.testclient import TestClient
 
+from app.core.security import create_access_token
 from app.main import app
 from app.models.cicd_run import CICDJob, CICDRun
 from app.models.issue import Issue
@@ -294,7 +295,10 @@ def test_engineering_metrics_api_returns_project_metrics(db):
     db.commit()
 
     response = client.get(
-        f"/api/v1/projects/{project.id}/metrics"
+        f"/api/v1/projects/{project.id}/metrics",
+        headers={
+            "Authorization": f"Bearer {create_access_token(project.owner_id)}",
+        },
     )
 
     assert response.status_code == 200

@@ -3,6 +3,7 @@ import type {
   CreateIssueComment,
 } from "../types/comment";
 import API_URL_BASE from "../config/api";
+import { authenticatedFetch } from "./apiClient";
 
 const API_URL = API_URL_BASE;
 
@@ -10,7 +11,7 @@ export const commentService = {
   async getComments(
     issueId: string,
   ): Promise<IssueComment[]> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/issues/${issueId}/comments`,
     );
 
@@ -27,7 +28,7 @@ export const commentService = {
     issueId: string,
     data: CreateIssueComment,
   ): Promise<IssueComment> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/issues/${issueId}/comments`,
       {
         method: "POST",

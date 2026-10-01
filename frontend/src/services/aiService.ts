@@ -1,4 +1,5 @@
 import API_URL_BASE from "../config/api";
+import { authenticatedFetch } from "./apiClient";
 
 const API_URL = `${API_URL_BASE}/projects`;
 
@@ -26,7 +27,7 @@ export const aiService = {
     projectId: string,
     analysisType: AIAnalysisType,
   ): Promise<AIInsight> {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_URL}/${projectId}/ai/analyze`,
       {
         method: "POST",

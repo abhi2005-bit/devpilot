@@ -7,12 +7,14 @@ from app.core.exceptions import (
 )
 from app.models.issue import Issue as IssueModel
 from app.models.project import Project as ProjectModel
+from app.models.project import project_members
 from app.schemas.health import (
     IssueMetrics,
     ProjectHealth,
 )
 from app.schemas.project import (
     Project,
+    ProjectMember,
     ProjectCreate,
     ProjectUpdate,
 )
@@ -22,8 +24,20 @@ class ProjectService:
 
     def _to_schema(
         self,
+        db: Session,
         project: ProjectModel,
     ) -> Project:
+
+        member_roles = dict(
+            db.execute(
+                select(
+                    project_members.c.user_id,
+                    project_members.c.role,
+                ).where(
+                    project_members.c.project_id == project.id
+                )
+            ).all()
+        )
 
         return Project(
             id=str(project.id),
@@ -34,7 +48,14 @@ class ProjectService:
             progress=0,
             openIssues=0,
             prsPending=0,
-            members=[],
+            members=[
+                ProjectMember(
+                    id=str(member.id),
+                    name=member.name,
+                    role=member_roles[member.id],
+                )
+                for member in project.members
+            ],
             aiInsight=None,
             github_owner=project.github_owner,
             github_repo=project.github_repo,
@@ -56,7 +77,7 @@ class ProjectService:
         projects = db.scalars(statement).all()
 
         return [
-            self._to_schema(project)
+            self._to_schema(db, project)
             for project in projects
         ]
 
@@ -103,7 +124,7 @@ class ProjectService:
         if project is None:
             raise ProjectNotFoundError()
 
-        return self._to_schema(project)
+        return self._to_schema(db, project)
 
     def get_project_health(
         self,
@@ -259,7 +280,7 @@ class ProjectService:
         db.commit()
         db.refresh(project)
 
-        return self._to_schema(project)
+        return self._to_schema(db, project)
 
     def update_project(
         self,
@@ -332,7 +353,7 @@ class ProjectService:
         db.commit()
         db.refresh(project)
 
-        return self._to_schema(project)
+        return self._to_schema(db, project)
 
     def delete_project(
         self,

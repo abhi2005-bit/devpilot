@@ -1,6 +1,7 @@
 ﻿from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user_project
 from app.db.database import get_db
 from app.schemas.signals import EngineeringSignals
 from app.services.engineering_metrics_service import (
@@ -35,6 +36,7 @@ async def read_project_engineering_signals(
         le=100,
     ),
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     metrics = await engineering_metrics_service.get_project_metrics(
         db,

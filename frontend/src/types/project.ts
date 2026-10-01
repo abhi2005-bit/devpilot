@@ -11,7 +11,7 @@ export interface ProjectMember {
   id: string;
   name: string;
   avatar?: string;
-  role?: ProjectMemberRole;
+  role: ProjectMemberRole;
 }
 
 export interface Project {
@@ -25,4 +25,7 @@ export interface Project {
   prsPending: number;
   members: ProjectMember[];
   aiInsight?: string;
+  github_owner?: string | null;
+  github_repo?: string | null;
+  github_url?: string | null;
 }

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user_project
 from app.db.database import get_db
 from app.schemas.cicd import (
     CICDHealth,
@@ -26,6 +27,7 @@ def list_cicd_runs(
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     return cicd_service.get_runs(
         db,
@@ -42,6 +44,7 @@ def list_cicd_runs(
 def read_cicd_health(
     project_id: str,
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     return cicd_service.get_health(
         db,
@@ -57,6 +60,7 @@ def read_cicd_run(
     project_id: str,
     run_id: int,
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     return cicd_service.get_run(
         db,
@@ -75,6 +79,7 @@ def list_cicd_jobs(
     limit: int = Query(default=100, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     return cicd_service.get_jobs(
         db,
@@ -93,6 +98,7 @@ async def sync_cicd_runs(
     project_id: str,
     limit: int = Query(default=10, ge=1, le=50),
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     return await cicd_service.sync_github_runs(
         db,
@@ -110,6 +116,7 @@ def create_cicd_run(
     project_id: str,
     data: CICDRunCreate,
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     data.project_id = int(project_id)
 

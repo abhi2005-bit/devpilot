@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_current_mvp_user
+from app.api.dependencies import (
+    get_current_user,
+    get_current_user_project,
+)
 from app.db.database import get_db
 from app.models.user import User as UserModel
 from app.schemas.member import (
@@ -26,6 +29,7 @@ router = APIRouter(
 def list_project_members(
     project_id: int,
     db: Session = Depends(get_db),
+    _project: object = Depends(get_current_user_project),
 ):
     return project_member_service.get_members(
         db,
@@ -42,7 +46,8 @@ def add_project_member(
     project_id: int,
     data: ProjectMemberAdd,
     db: Session = Depends(get_db),
-    current_user: UserModel = Depends(get_current_mvp_user),
+    _project: object = Depends(get_current_user_project),
+    current_user: UserModel = Depends(get_current_user),
 ):
     return project_member_service.add_member(
         db,
@@ -60,7 +65,8 @@ def remove_project_member(
     project_id: int,
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: UserModel = Depends(get_current_mvp_user),
+    _project: object = Depends(get_current_user_project),
+    current_user: UserModel = Depends(get_current_user),
 ):
     project_member_service.remove_member(
         db,

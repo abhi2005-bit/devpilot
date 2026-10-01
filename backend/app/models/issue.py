@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from app.models.label import Label
     from app.models.project import Project
     from app.models.user import User
+    from app.models.sprint import Sprint
 
 
 issue_labels = Table(
@@ -50,6 +51,11 @@ class Issue(Base):
         nullable=True,
     )
 
+    sprint_id: Mapped[int | None] = mapped_column(
+        ForeignKey("sprints.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
     title: Mapped[str] = mapped_column(
         String(200),
         nullable=False,
@@ -85,6 +91,11 @@ class Issue(Base):
     assignee: Mapped["User | None"] = relationship(
         "User",
         back_populates="assigned_issues",
+    )
+
+    sprint: Mapped["Sprint | None"] = relationship(
+        "Sprint",
+        back_populates="issues",
     )
 
     comments: Mapped[list["IssueComment"]] = relationship(
