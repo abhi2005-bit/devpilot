@@ -1,4 +1,4 @@
-﻿from app.models.user import User
+from app.models.user import User
 from app.models.project import Project
 from app.models.issue import Issue
 from app.models.issue_comment import IssueComment
@@ -15,6 +15,11 @@ __all__ = [
     "CICDRun",
     "CICDJob",
     "EngineeringHealthSnapshot",
+    "Sprint",
+    "Goal",
+    "Milestone",
 ]
 
 from .sprint import Sprint
+from .goal import Goal
+from .milestone import Milestone

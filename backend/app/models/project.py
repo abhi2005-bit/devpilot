@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from app.models.user import User
     from app.models.issue import Issue
     from app.models.sprint import Sprint
+    from app.models.goal import Goal
     from app.models.cicd_run import CICDRun, CICDJob
 
 
@@ -79,6 +80,11 @@ class Project(Base):
     sprints: Mapped[list["Sprint"]] = relationship(
     "Sprint",
     back_populates="project",
+    )
+    goals: Mapped[list["Goal"]] = relationship(
+        "Goal",
+        back_populates="project",
+        cascade="all, delete-orphan",
     )
     github_owner:Mapped[str | None]=mapped_column(
         String(100),

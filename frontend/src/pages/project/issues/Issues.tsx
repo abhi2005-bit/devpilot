@@ -10,6 +10,8 @@ import CreateIssueForm from "../../../components/issues/CreateIssueForm";
 import SprintSelector from "./SprintSelector";
 import SprintManagerModal from "./SprintManagerModal";
 import { issueService } from "../../../services/issueService";
+import { traceabilityService } from "../../../services/traceabilityService";
+import type { TraceabilityContext } from "../../../services/traceabilityService";
 
 import type {
   Issue,
@@ -97,6 +99,8 @@ function Issues() {
 
   const [search, setSearch] =
     useState("");
+    
+  const [traceabilityMatrix, setTraceabilityMatrix] = useState<Record<string, TraceabilityContext>>({});
 
   const [selectedSprintId, setSelectedSprintId] = useState<string | null>(null);
   const [isSprintModalOpen, setIsSprintModalOpen] = useState(false);
@@ -146,11 +150,18 @@ function Issues() {
       setError("");
 
       try {
-        const loadedIssues =
-          await issueService.getByProject(projectId);
+        const [loadedIssuesRes, traceMatrixRes] = await Promise.allSettled([
+          issueService.getByProject(projectId),
+          traceabilityService.getProjectTraceabilityMatrix(projectId).catch(() => ({}))
+        ]);
 
         if (!cancelled) {
-          setProjectIssues(loadedIssues);
+          if (loadedIssuesRes.status === "fulfilled") {
+            setProjectIssues(loadedIssuesRes.value);
+          }
+          if (traceMatrixRes.status === "fulfilled" && traceMatrixRes.value) {
+            setTraceabilityMatrix(traceMatrixRes.value);
+          }
         }
       } catch {
         if (!cancelled) {
@@ -899,6 +910,23 @@ function Issues() {
                                         </span>
                                       ),
                                     )}
+                                </div>
+                              )}
+
+                              {traceabilityMatrix[issue.id] && (traceabilityMatrix[issue.id].pull_requests.length > 0 || traceabilityMatrix[issue.id].ci_runs.length > 0) && (
+                                <div className="mt-sm flex gap-sm items-center bg-surface-container-low rounded p-1">
+                                  {traceabilityMatrix[issue.id].pull_requests.length > 0 && (
+                                    <div className="flex items-center gap-1 text-caption text-secondary font-medium">
+                                      <span className="material-symbols-outlined text-[14px]">merge</span>
+                                      {traceabilityMatrix[issue.id].pull_requests.length}
+                                    </div>
+                                  )}
+                                  {traceabilityMatrix[issue.id].ci_runs.length > 0 && (
+                                    <div className={`flex items-center gap-1 text-caption font-medium ${traceabilityMatrix[issue.id].ci_runs.some((r: any) => r.conclusion !== 'success') ? 'text-error' : 'text-secondary'}`}>
+                                      <span className="material-symbols-outlined text-[14px]">rocket_launch</span>
+                                      {traceabilityMatrix[issue.id].ci_runs.length}
+                                    </div>
+                                  )}
                                 </div>
                               )}
 

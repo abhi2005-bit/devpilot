@@ -9,6 +9,7 @@ class SprintBase(BaseModel):
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     status: str = "PLANNED"
+    milestone_id: Optional[int] = None
 
 class SprintCreate(SprintBase):
     pass
@@ -19,6 +20,7 @@ class SprintUpdate(BaseModel):
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     status: Optional[str] = None
+    milestone_id: Optional[int] = None
 
 class SprintInDBBase(SprintBase):
     id: int

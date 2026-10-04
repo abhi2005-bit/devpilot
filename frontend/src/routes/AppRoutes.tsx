@@ -18,6 +18,9 @@ import IssueDetail from "../pages/project/issues/IssueDetail";
 import Analytics from "../pages/project/analytics/Analytics";
 import AI from "../pages/project/ai/AI";
 import Members from "../pages/project/members/Members";
+import Goals from "../pages/project/goals/Goals";
+import GoalDetail from "../pages/project/goals/GoalDetail";
+import GitHubCallback from "../pages/github/GitHubCallback";
 
 function AppRoutes() {
   return (
@@ -43,6 +46,8 @@ function AppRoutes() {
       {/* ======================================== */}
 
       <Route element={<ProtectedRoute />}>
+        <Route path="/github/callback" element={<GitHubCallback />} />
+        
         <Route element={<AppLayout />}>
           {/* ====================================== */}
           {/* GLOBAL ROUTES */}
@@ -74,6 +79,16 @@ function AppRoutes() {
             <Route
               index
               element={<ProjectHome />}
+            />
+
+            <Route
+              path="goals"
+              element={<Goals />}
+            />
+
+            <Route
+              path="goals/:goalId"
+              element={<GoalDetail />}
             />
 
             <Route

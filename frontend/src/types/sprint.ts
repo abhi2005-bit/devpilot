@@ -8,6 +8,7 @@ export interface Sprint {
   startDate?: string;
   endDate?: string;
   status: SprintStatus;
+  milestoneId?: string | null;
   createdAt: string;
   updatedAt: string;
 }

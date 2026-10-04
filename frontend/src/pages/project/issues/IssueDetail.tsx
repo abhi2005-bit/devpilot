@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import Modal from "../../../components/common/Modal";
 import IssueEngineeringContext from "../../../components/issues/IssueEngineeringContext";
+import InvestigationModal from "../../../components/projects/InvestigationModal";
 import EditIssueForm from "../../../components/issues/EditIssueForm";
 
 import { issueService } from "../../../services/issueService";
@@ -96,6 +97,7 @@ function IssueDetail() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isInvestigationModalOpen, setIsInvestigationModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -419,6 +421,15 @@ function IssueDetail() {
 
           {/* Actions */}
           <div className="flex shrink-0 gap-sm">
+
+            <button
+              type="button"
+              onClick={() => setIsInvestigationModalOpen(true)}
+              className="flex items-center gap-sm rounded-lg bg-primary px-md py-sm text-body-sm font-bold text-on-primary hover:bg-primary-container"
+            >
+              <span className="material-symbols-outlined text-[18px]">troubleshoot</span>
+              Investigate
+            </button>
 
             <button
               type="button"
@@ -912,6 +923,24 @@ function IssueDetail() {
         </div>
 
       </Modal>
+
+      {issue && (
+        <InvestigationModal
+          projectId={projectId || ""}
+          item={{
+            id: String(issue.id),
+            title: issue.title,
+            severity: issue.priority === "CRITICAL" || issue.priority === "HIGH" ? "risk" : "warning",
+            description: issue.description,
+            evidence: "Investigating issue details, related PRs, Commits, and CI runs...",
+            category: "issues"
+          }}
+          isOpen={isInvestigationModalOpen}
+          onClose={() => setIsInvestigationModalOpen(false)}
+          onNavigateTo={() => {}}
+          onIssueCreated={() => {}}
+        />
+      )}
 
     </div>
   );

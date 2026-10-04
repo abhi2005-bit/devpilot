@@ -33,6 +33,7 @@ class SprintService:
 
         sprint = SprintModel(
             project_id=project_id,
+            milestone_id=data.milestone_id,
             name=data.name,
             description=data.description,
             start_date=data.start_date,

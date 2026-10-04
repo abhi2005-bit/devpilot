@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { githubService } from "../../services/githubService";
-import { cicdService } from "../../services/cicdService";
+import { traceabilityService } from "../../services/traceabilityService";
+import type { TraceabilityContext } from "../../services/traceabilityService";
 import type { Issue, IssueStatus } from "../../types/issue";
 import type { ProjectGitHub } from "../../types/github";
-import type { CICDRun } from "../../types/cicd";
 
 interface Props {
   issue: Issue;
@@ -12,7 +12,7 @@ interface Props {
 
 export default function IssueEngineeringContext({ issue, onUpdateStatus }: Props) {
   const [github, setGithub] = useState<ProjectGitHub | null>(null);
-  const [runs, setRuns] = useState<CICDRun[]>([]);
+  const [traceability, setTraceability] = useState<TraceabilityContext | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -20,15 +20,15 @@ export default function IssueEngineeringContext({ issue, onUpdateStatus }: Props
     setIsLoading(true);
     Promise.allSettled([
       githubService.getProjectGitHub(issue.projectId),
-      cicdService.getRuns(issue.projectId, 20)
-    ]).then(([ghRes, cicdRes]) => {
+      traceabilityService.getIssueTraceability(issue.id)
+    ]).then(([ghRes, traceRes]) => {
       if (!isMounted) return;
       if (ghRes.status === "fulfilled") setGithub(ghRes.value);
-      if (cicdRes.status === "fulfilled") setRuns(cicdRes.value);
+      if (traceRes.status === "fulfilled") setTraceability(traceRes.value);
       setIsLoading(false);
     });
     return () => { isMounted = false; };
-  }, [issue.projectId]);
+  }, [issue.id, issue.projectId]);
 
   if (isLoading) {
     return (
@@ -41,8 +41,9 @@ export default function IssueEngineeringContext({ issue, onUpdateStatus }: Props
     );
   }
 
-  const relatedPRs = github?.pull_requests.filter(pr => pr.title.includes(`#${issue.id}`) || pr.title.includes(`issue-${issue.id}`) || pr.title.includes(issue.title)) || [];
-  const relatedCommits = github?.commits.filter(c => c.message.includes(`#${issue.id}`) || c.message.includes(`issue-${issue.id}`)) || [];
+  const relatedPRs = traceability?.pull_requests || [];
+  const relatedCommits = traceability?.commits || [];
+  const relatedRuns = traceability?.ci_runs || [];
 
   // Verification Logic
   const problemMatch = issue.description.match(/CI Run Failed: (.*)/) || issue.title.match(/CI Run Failed: (.*)/);
@@ -52,9 +53,9 @@ export default function IssueEngineeringContext({ issue, onUpdateStatus }: Props
   if (issue.status === "DONE") {
     verificationState = "resolved";
     verificationMessage = "Issue is marked as done.";
-  } else if (problemMatch && runs.length > 0) {
+  } else if (problemMatch && relatedRuns.length > 0) {
     const workflowName = problemMatch[1].split("\n")[0].trim();
-    const latestRun = runs.find(r => r.workflow_name.includes(workflowName) || workflowName.includes(r.workflow_name));
+    const latestRun = relatedRuns.find(r => r.workflow_name.includes(workflowName) || workflowName.includes(r.workflow_name));
     if (latestRun) {
       if (latestRun.conclusion === "success") {
         verificationState = "suggest_resolved";
@@ -123,14 +124,14 @@ export default function IssueEngineeringContext({ issue, onUpdateStatus }: Props
               <span className="material-symbols-outlined text-tertiary">rocket_launch</span>
               <h3 className="text-body-md font-semibold text-on-surface">CI/CD Status</h3>
             </div>
-            {runs.length > 0 ? (
+            {relatedRuns.length > 0 ? (
               <div className="space-y-xs">
-                <p className="text-body-sm text-on-surface-variant">Latest Run: <span className="font-medium text-on-surface">{runs[0].workflow_name}</span> on <span className="font-medium text-on-surface">{runs[0].branch}</span></p>
+                <p className="text-body-sm text-on-surface-variant">Latest Run: <span className="font-medium text-on-surface">{relatedRuns[0].workflow_name}</span> on <span className="font-medium text-on-surface">{relatedRuns[0].branch}</span></p>
                 <div className="flex items-center gap-xs">
-                  <span className={`material-symbols-outlined text-sm ${runs[0].conclusion === 'success' ? 'text-secondary' : 'text-error'}`}>
-                    {runs[0].conclusion === 'success' ? 'check_circle' : 'error'}
+                  <span className={`material-symbols-outlined text-sm ${relatedRuns[0].conclusion === 'success' ? 'text-secondary' : 'text-error'}`}>
+                    {relatedRuns[0].conclusion === 'success' ? 'check_circle' : 'error'}
                   </span>
-                  <span className="text-body-sm capitalize text-on-surface">{runs[0].conclusion || runs[0].status}</span>
+                  <span className="text-body-sm capitalize text-on-surface">{relatedRuns[0].conclusion || relatedRuns[0].status}</span>
                 </div>
               </div>
             ) : (

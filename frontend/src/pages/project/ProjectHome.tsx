@@ -6,6 +6,7 @@ import { intelligenceService } from "../../services/intelligenceService";
 import { issueService } from "../../services/issueService";
 import { githubService } from "../../services/githubService";
 import { cicdService } from "../../services/cicdService";
+import { traceabilityService } from "../../services/traceabilityService";
 
 import InvestigationModal, { type InvestigationItem } from "../../components/projects/InvestigationModal";
 import ProjectCICDPanel from "../../components/projects/ProjectCICDPanel";
@@ -17,6 +18,10 @@ import type { Sprint } from "../../types/sprint";
 import { sprintService } from "../../services/sprintService";
 import type { ProjectGitHub } from "../../types/github";
 import type { CICDRun } from "../../types/cicd";
+
+import { goalService } from "../../services/goalService";
+import type { GoalWithMilestones } from "../../types/goal";
+
 
 function getSignalIcon(signal: EngineeringSignal) {
   if (signal.severity === "risk") return "error";
@@ -64,6 +69,8 @@ type TimelineEvent = {
   status?: string;
 };
 
+import GitHubConnectionModal from "../../components/projects/github/GitHubConnectionModal";
+
 function ProjectHome() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
@@ -73,6 +80,10 @@ function ProjectHome() {
   
   const [issues, setIssues] = useState<Issue[]>([]);
   const [activeSprint, setActiveSprint] = useState<Sprint | null>(null);
+  const [engineeringProgress, setEngineeringProgress] = useState<any>(null);
+
+  const [goals, setGoals] = useState<GoalWithMilestones[]>([]);
+
 
   const [githubData, setGithubData] = useState<ProjectGitHub | undefined>();
   const [cicdRuns, setCicdRuns] = useState<CICDRun[]>([]);
@@ -80,10 +91,33 @@ function ProjectHome() {
   
   const [investigationItem, setInvestigationItem] = useState<InvestigationItem | null>(null);
   const [isInvestigationOpen, setIsInvestigationOpen] = useState(false);
+  const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
   const [intelligenceRefreshKey, setIntelligenceRefreshKey] = useState(0);
+
+  
+  const handleDisconnectGitHub = async () => {
+    if (!project) return;
+    if (!confirm("Are you sure you want to disconnect this repository? Data will not be deleted but sync will stop.")) return;
+    try {
+      await githubService.disconnectRepository(project.id);
+      window.location.reload();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to disconnect.");
+    }
+  };
+  
+  const handleConnectGitHub = async (_owner: string, _repo: string) => {
+    setSyncing(true);
+    setTimeout(() => {
+      window.location.reload();
+    }, 2000);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -103,12 +137,14 @@ function ProjectHome() {
         setProject(loadedProject);
 
         if (loadedProject) {
-          const [contextRes, issuesRes, githubRes, cicdRes, sprintsRes] = await Promise.allSettled([
+          const [contextRes, issuesRes, githubRes, cicdRes, sprintsRes, goalsRes, progressRes] = await Promise.allSettled([
             intelligenceService.getContext(projectId),
             issueService.getByProject(projectId),
             githubService.getProjectGitHub(projectId),
             cicdService.getRuns(projectId, 20),
-            sprintService.getSprints(projectId)
+            sprintService.getSprints(projectId),
+            goalService.getGoals(projectId),
+            traceabilityService.getProjectEngineeringProgress(projectId).catch(() => null)
           ]);
 
           if (cancelled) return;
@@ -118,6 +154,8 @@ function ProjectHome() {
           if (githubRes.status === "fulfilled") setGithubData(githubRes.value);
           if (cicdRes.status === "fulfilled") setCicdRuns(cicdRes.value);
           if (sprintsRes.status === "fulfilled") { const active = sprintsRes.value.find((s: Sprint) => s.status === "ACTIVE"); setActiveSprint(active || null); }
+          if (goalsRes.status === "fulfilled") setGoals(goalsRes.value);
+          if (progressRes && progressRes.status === "fulfilled" && progressRes.value) setEngineeringProgress(progressRes.value);
         }
       } catch (err) {
         if (!cancelled) {
@@ -204,8 +242,19 @@ function ProjectHome() {
           severity: signal.severity,
           description: signal.description,
           evidence: signal.evidence.join(", "),
-          actionText: "Investigate Signal",
-          onAction: () => document.getElementById("engineering-signals")?.scrollIntoView({ behavior: 'smooth' })
+          actionText: "Investigate",
+          onAction: () => {
+            setInvestigationItem({
+              id: `signal-${signal.title}`,
+              title: signal.title,
+              severity: signal.severity,
+              description: signal.description,
+              evidence: signal.evidence.join(", "),
+              category: signal.category,
+              originalData: signal,
+            });
+            setIsInvestigationOpen(true);
+          }
         });
       });
     }
@@ -218,8 +267,19 @@ function ProjectHome() {
         severity: "risk",
         description: "Open critical issue requires attention.",
         evidence: `Status: ${issue.status}`,
-        actionText: "View Issue",
-        onAction: () => navigate(`/projects/${projectId}/issues/${issue.id}`)
+        actionText: "Investigate",
+        onAction: () => {
+            setInvestigationItem({
+              id: `issue-${issue.id}`,
+              title: issue.title,
+              severity: "risk",
+              description: "Open critical issue requires attention.",
+              evidence: `Status: ${issue.status}`,
+              category: "issues",
+              originalData: issue,
+            });
+            setIsInvestigationOpen(true);
+        }
       });
     });
 
@@ -231,8 +291,19 @@ function ProjectHome() {
         severity: "risk",
         description: `Failed on branch ${run.branch}`,
         evidence: `Failed tests: ${run.failed_tests}`,
-        actionText: "View CI/CD",
-        onAction: () => document.getElementById("project-cicd")?.scrollIntoView({ behavior: 'smooth' })
+        actionText: "Investigate",
+        onAction: () => {
+            setInvestigationItem({
+              id: `cicd-${run.id}`,
+              title: `CI/CD Failure: ${run.workflow_name}`,
+              severity: "risk",
+              description: `Failed on branch ${run.branch}`,
+              evidence: `Failed tests: ${run.failed_tests}`,
+              category: "cicd",
+              originalData: run,
+            });
+            setIsInvestigationOpen(true);
+        }
       });
     });
 
@@ -264,6 +335,51 @@ function ProjectHome() {
 
   return (
     <div className="space-y-lg">
+      {/* GitHub Connection State */}
+      <div className="bg-surface-container rounded-xl p-md border border-outline-variant/30 flex items-center justify-between">
+        <div>
+          <h2 className="text-title-md font-bold text-on-surface flex items-center gap-sm">
+            <span className="material-symbols-outlined text-on-surface-variant">terminal</span>
+            GitHub Connection
+          </h2>
+          {project?.github_owner && project?.github_repo ? (
+            <p className="text-body-sm text-on-surface-variant mt-xs">
+              Connected to <a href={project.github_url || "#"} target="_blank" rel="noreferrer" className="text-primary hover:underline">{project.github_owner}/{project.github_repo}</a>
+            </p>
+          ) : (
+            <p className="text-body-sm text-on-surface-variant mt-xs">
+              Connect your GitHub repository to start analyzing this project.
+            </p>
+          )}
+        </div>
+        <div>
+          {project?.github_owner && project?.github_repo ? (
+            <div className="flex items-center gap-sm">
+              {syncing ? (
+                <span className="text-body-sm text-on-surface-variant flex items-center gap-xs">
+                  <span className="material-symbols-outlined animate-spin text-[18px]">sync</span> Syncing...
+                </span>
+              ) : (
+                <span className="text-body-sm text-success flex items-center gap-xs">
+                  <span className="material-symbols-outlined text-[18px]">check_circle</span> Synced
+                </span>
+              )}
+              <button onClick={() => window.location.reload()} className="px-md py-sm bg-surface-variant text-on-surface-variant rounded-full text-body-sm hover:bg-surface-container-high ml-md">
+                Sync Now
+              </button>
+              <button onClick={handleDisconnectGitHub} className="px-md py-sm bg-error-container text-on-error-container rounded-full text-body-sm hover:bg-error-container/80">
+                Disconnect
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setIsGitHubModalOpen(true)} className="px-xl py-sm bg-primary text-on-primary rounded-full font-medium hover:bg-primary/90 flex items-center gap-sm">
+              <span className="material-symbols-outlined text-[20px]">link</span>
+              Connect GitHub
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* 1. PROJECT HEADER */}
       <section className="rounded-xl border border-outline-variant bg-surface-container p-lg">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-md">
@@ -294,7 +410,115 @@ function ProjectHome() {
       </section>
 
       
-            {/* Active Sprint Banner */}
+            
+      {/* 1.5. PLANNING CONTEXT */}
+      <section className="rounded-xl border border-outline-variant bg-surface p-lg">
+        <div className="flex items-center justify-between mb-md">
+          <h2 className="text-title-md font-semibold text-on-surface flex items-center gap-xs">
+            <span className="material-symbols-outlined text-primary">target</span>
+            Strategic Planning
+          </h2>
+          <Link to={`/projects/${projectId}/goals`} className="text-primary text-body-sm font-medium hover:underline">
+            View All Goals &rarr;
+          </Link>
+        </div>
+        
+        {goals.length === 0 ? (
+          <div className="text-center py-md bg-surface-variant rounded-lg">
+            <p className="text-body-sm text-on-surface-variant">No project goals defined yet.</p>
+            <Link to={`/projects/${projectId}/goals`} className="text-primary text-body-sm font-medium mt-xs inline-block hover:underline">
+              Create First Goal
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+            {goals.filter(g => g.status !== "COMPLETED").slice(0, 2).map(goal => {
+              const activeMilestone = goal.milestones.find(m => m.status === "ACTIVE") || goal.milestones[0];
+              
+              // Calculate derived progress from Sprint/Issues
+              // In this MVP, we can mock it or calculate based on issues linked to active sprint
+              // if we don't have direct issue-milestone relation loaded. 
+              // For now, we'll just show the goal and milestone info as a summary.
+
+              return (
+                <div key={goal.id} className="border border-outline-variant rounded-lg p-md bg-surface-container-low">
+                  <div className="flex justify-between items-start mb-sm">
+                    <h3 className="text-title-sm font-semibold text-on-surface truncate pr-2" title={goal.title}>{goal.title}</h3>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-secondary-container text-secondary-on-container">
+                      {goal.status}
+                    </span>
+                  </div>
+                  
+                  {activeMilestone ? (
+                    <div className="mt-md pt-md border-t border-outline-variant/50">
+                      <p className="text-caption text-on-surface-variant mb-1">Active Milestone</p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-body-sm font-medium text-on-surface truncate pr-2">{activeMilestone.title}</p>
+                        <span className="text-caption px-2 py-0.5 bg-surface-variant rounded-full text-on-surface-variant">{activeMilestone.status}</span>
+                      </div>
+                    </div>
+                  ) : (
+                     <div className="mt-md pt-md border-t border-outline-variant/50 text-caption text-on-surface-variant">
+                       No milestones defined
+                     </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+            {engineeringProgress && (
+        <section className="mb-lg">
+          <h2 className="text-title-md font-bold text-on-surface mb-md flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">route</span>
+            Engineering Progress
+          </h2>
+          <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-lg gap-x-md">
+              <div>
+                <p className="text-caption text-on-surface-variant mb-1">Current Goal</p>
+                <p className="text-body-sm font-medium text-on-surface truncate" title={engineeringProgress.current_goal_title || 'None'}>{engineeringProgress.current_goal_title || 'None'}</p>
+              </div>
+              <div>
+                <p className="text-caption text-on-surface-variant mb-1">Active Milestone</p>
+                <p className="text-body-sm font-medium text-on-surface truncate" title={engineeringProgress.active_milestone_title || 'None'}>{engineeringProgress.active_milestone_title || 'None'}</p>
+              </div>
+              <div>
+                <p className="text-caption text-on-surface-variant mb-1">Current Sprint</p>
+                <p className="text-body-sm font-medium text-on-surface truncate" title={engineeringProgress.current_sprint_name || 'None'}>{engineeringProgress.current_sprint_name || 'None'}</p>
+              </div>
+              
+              <div className="pt-2 border-t border-outline-variant/30">
+                <p className="text-caption text-on-surface-variant mb-1">Active Issues</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-title-md font-bold text-on-surface">{engineeringProgress.active_issues}</p>
+                  <span className="text-caption text-on-surface-variant">open</span>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-outline-variant/30">
+                <p className="text-caption text-on-surface-variant mb-1">Linked PRs</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-title-md font-bold text-on-surface">{engineeringProgress.linked_prs}</p>
+                  <span className="material-symbols-outlined text-sm text-secondary">merge</span>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-outline-variant/30">
+                <p className="text-caption text-on-surface-variant mb-1">CI Success</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-title-md font-bold text-on-surface">{engineeringProgress.ci_success_rate}%</p>
+                  <span className={`material-symbols-outlined text-sm ${engineeringProgress.ci_success_rate >= 80 ? 'text-secondary' : 'text-error'}`}>
+                    {engineeringProgress.ci_success_rate >= 80 ? 'check_circle' : 'warning'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Active Sprint Banner */}
       {activeSprint && (
         <div className="mb-lg rounded-xl border-2 border-primary bg-primary-container/20 p-md">
           <div className="flex items-center justify-between">
@@ -571,6 +795,7 @@ function ProjectHome() {
       </div>
 
       {/* 8. INVESTIGATION MODAL */}
+      <GitHubConnectionModal projectId={projectId!} isOpen={isGitHubModalOpen} onClose={() => setIsGitHubModalOpen(false)} onConnected={handleConnectGitHub} />
       <InvestigationModal
         projectId={projectId!}
         item={investigationItem}

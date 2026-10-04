@@ -287,6 +287,11 @@ function ProjectOverview() {
       icon: "dashboard",
     },
     {
+      label: "Goals",
+      path: `/projects/${project.id}/goals`,
+      icon: "target",
+    },
+    {
       label: "Issues",
       path: `/projects/${project.id}/issues`,
       icon: "bug_report",

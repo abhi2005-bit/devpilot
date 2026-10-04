@@ -1,4 +1,4 @@
-﻿from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -18,6 +18,12 @@ from app.api.routes.signals import router as signals_router
 from app.api.routes.intelligence import router as intelligence_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.sprints import router as sprints_router
+from app.api.routes.goals import router as goals_router
+from app.api.routes.milestones import router as milestones_router
+from app.api.routes.traceability import router as traceability_router
+from app.api.routes.investigations import router as investigations_router
+from app.api.routes.github import router as github_router
+
 
 from app.api.routes.dashboard import (
     router as dashboard_router,
@@ -293,3 +299,29 @@ app.include_router(
     prefix="/api/v1",
     tags=["Sprints"],
 )
+app.include_router(
+    goals_router,
+    prefix="/api/v1",
+    tags=["Goals"],
+)
+app.include_router(
+    milestones_router,
+    prefix="/api/v1",
+    tags=["Milestones"],
+)
+app.include_router(
+    traceability_router,
+    prefix="/api/v1",
+    tags=["Traceability"],
+)
+app.include_router(
+    investigations_router,
+    prefix="/api/v1",
+    tags=["Investigations"],
+)
+app.include_router(
+    github_router,
+    prefix="/api/v1",
+    tags=["GitHub"],
+)
+

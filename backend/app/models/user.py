@@ -36,6 +36,11 @@ class User(Base):
         nullable=True,
     )
 
+    github_token: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
