@@ -409,11 +409,11 @@ def test_project_owner_can_sync_github_actions(db, monkeypatch):
     )
     calls = []
 
-    async def get_workflow_runs(github_owner, github_repo, limit=10):
+    async def get_workflow_runs(github_owner, github_repo, limit=10, token=None):
         calls.append(("runs", github_owner, github_repo, limit))
         return [workflow_run]
 
-    async def get_jobs(github_owner, github_repo, run_id):
+    async def get_jobs(github_owner, github_repo, run_id, token=None):
         calls.append(("jobs", github_owner, github_repo, run_id))
         return [github_job]
 

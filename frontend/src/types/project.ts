@@ -28,4 +28,7 @@ export interface Project {
   github_owner?: string | null;
   github_repo?: string | null;
   github_url?: string | null;
+  github_sync_status?: string;
+  github_last_synced_at?: string | null;
+  github_sync_error?: string | null;
 }

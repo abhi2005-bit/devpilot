@@ -79,10 +79,10 @@ def _job(
 
 
 def _mock_github(monkeypatch, workflow_runs, jobs_by_run):
-    async def get_workflow_runs(owner, repo, limit=10):
+    async def get_workflow_runs(owner, repo, limit=10, token=None):
         return workflow_runs[:limit]
 
-    async def get_jobs(owner, repo, run_id):
+    async def get_jobs(owner, repo, run_id, token=None):
         return jobs_by_run.get(run_id, [])
 
     monkeypatch.setattr(

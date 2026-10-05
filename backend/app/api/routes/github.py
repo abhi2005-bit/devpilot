@@ -8,6 +8,8 @@ from app.models.user import User
 from app.services.project_service import project_service
 from app.services.github_service import github_service
 from app.services.traceability_service import traceability_service
+from app.services.cicd_service import cicd_service
+from datetime import datetime
 from app.schemas.github import GitHubRepository
 
 router = APIRouter(
@@ -20,8 +22,7 @@ async def get_github_auth_url(current_user: User = Depends(get_current_user)):
     """Returns the GitHub OAuth URL."""
     client_id = settings.github_client_id
     if not client_id:
-        # Fallback for dev/testing if not configured
-        return {"url": f"http://localhost:5173/github/callback?code=dev-mock-code"}
+        raise HTTPException(status_code=500, detail="GitHub Client ID not configured")
     
     url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope=repo,read:user"
     return {"url": url}
@@ -41,10 +42,7 @@ async def github_callback(
     client_secret = settings.github_client_secret
     
     if not client_id or not client_secret:
-        # Mock testing fallback
-        current_user.github_token = "mock_github_token"
-        db.commit()
-        return {"status": "success"}
+        raise HTTPException(status_code=500, detail="GitHub credentials not configured")
 
     async with httpx.AsyncClient() as client:
         resp = await client.post(
@@ -78,21 +76,6 @@ async def list_github_repositories(
     """Lists repositories accessible by the user's token."""
     if not current_user.github_token:
         raise HTTPException(status_code=401, detail="GitHub account not connected")
-        
-    if current_user.github_token == "mock_github_token":
-        return [
-            GitHubRepository(
-                owner="openai",
-                name="openai-python",
-                full_name="openai/openai-python",
-                description="The official Python library for the OpenAI API",
-                url="https://github.com/openai/openai-python",
-                default_branch="main",
-                stars=1000,
-                forks=100,
-                open_issues=10,
-            )
-        ]
         
     async with httpx.AsyncClient() as client:
         resp = await client.get(
@@ -147,25 +130,23 @@ async def connect_repository(
         raise HTTPException(status_code=404, detail="Project not found")
         
     # Verify access
-    if current_user.github_token != "mock_github_token":
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"https://api.github.com/repos/{owner}/{repo}",
-                headers={
-                    "Authorization": f"Bearer {current_user.github_token}",
-                    "Accept": "application/vnd.github+json"
-                }
-            )
-            if resp.status_code != 200:
-                raise HTTPException(status_code=403, detail="Cannot access this repository")
-            
-            repo_data = resp.json()
-            project.github_url = repo_data["html_url"]
-    else:
-        project.github_url = f"https://github.com/{owner}/{repo}"
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"https://api.github.com/repos/{owner}/{repo}",
+            headers={
+                "Authorization": f"Bearer {current_user.github_token}",
+                "Accept": "application/vnd.github+json"
+            }
+        )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=403, detail="Cannot access this repository")
+        
+        repo_data = resp.json()
+        project.github_url = repo_data["html_url"]
         
     project.github_owner = owner
     project.github_repo = repo
+    project.github_sync_status = "NOT_CONNECTED"
     db.commit()
     
     # Trigger initial sync if required, but traceability sync happens on demand currently.
@@ -190,6 +171,58 @@ async def disconnect_repository(
     project.github_owner = None
     project.github_repo = None
     project.github_url = None
+    project.github_sync_status = "NOT_CONNECTED"
+    project.github_last_synced_at = None
+    project.github_sync_error = None
     db.commit()
     
     return {"status": "disconnected"}
+
+@router.post("/projects/{project_id}/sync")
+async def sync_repository(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _project: object = Depends(get_current_user_project)
+):
+    """Performs real backend synchronization for the connected GitHub repository."""
+    project = project_service.get_project_model(db, project_id)
+    if not project or not project.github_owner or not project.github_repo:
+        raise HTTPException(status_code=400, detail="Project is not connected to GitHub")
+
+    if not current_user.github_token:
+        raise HTTPException(status_code=401, detail="GitHub token missing")
+
+    # Pre-sync state update
+    project.github_sync_status = "SYNCING"
+    db.commit()
+
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"https://api.github.com/repos/{project.github_owner}/{project.github_repo}",
+                headers={
+                    "Authorization": f"Bearer {current_user.github_token}",
+                    "Accept": "application/vnd.github+json"
+                }
+            )
+            if resp.status_code != 200:
+                raise Exception("Cannot access repository from GitHub")
+
+        # Synchronize CI/CD information to the database
+        await cicd_service.sync_github_runs(db, project_id, limit=20, token=current_user.github_token)
+        
+        # Test fetching PRs and commits
+        await github_service.get_pull_requests(project.github_owner, project.github_repo, limit=10, token=current_user.github_token)
+        await github_service.get_commits(project.github_owner, project.github_repo, limit=10, token=current_user.github_token)
+            
+        project.github_sync_status = "SYNCED"
+        project.github_last_synced_at = datetime.utcnow()
+        project.github_sync_error = None
+        db.commit()
+        return {"status": "synced", "last_synced_at": project.github_last_synced_at.isoformat()}
+    except Exception as e:
+        project.github_sync_status = "SYNC_FAILED"
+        project.github_sync_error = str(e)
+        db.commit()
+        raise HTTPException(status_code=400, detail=str(e))

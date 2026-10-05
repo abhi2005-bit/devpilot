@@ -19,6 +19,8 @@ if TYPE_CHECKING:
     from app.models.sprint import Sprint
     from app.models.goal import Goal
     from app.models.cicd_run import CICDRun, CICDJob
+    from app.models.pull_request import PullRequest
+    from app.models.commit import Commit
 
 
 project_members = Table(
@@ -98,6 +100,19 @@ class Project(Base):
         String(500),
         nullable=True,
     )
+    github_sync_status: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        server_default='NOT_CONNECTED',
+    )
+    github_last_synced_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+    github_sync_error: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
     cicd_runs: Mapped[list["CICDRun"]] = relationship(
     "CICDRun",
     back_populates="project",
@@ -105,5 +120,13 @@ class Project(Base):
     cicd_jobs: Mapped[list["CICDJob"]] = relationship(
     "CICDJob",
     back_populates="project",
+    )
+    pull_requests: Mapped[list["PullRequest"]] = relationship(
+        "PullRequest",
+        back_populates="project",
+    )
+    commits: Mapped[list["Commit"]] = relationship(
+        "Commit",
+        back_populates="project",
     )
 

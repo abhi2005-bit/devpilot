@@ -54,6 +54,14 @@ export const githubService = {
     if (!res.ok) throw new Error("Failed to connect repository");
   },
 
+  async syncRepository(projectId: string): Promise<{status: string, last_synced_at: string}> {
+    const res = await authenticatedFetch(`${API_URL}/github/projects/${projectId}/sync`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error("Failed to sync repository");
+    return res.json();
+  },
+
   async disconnectRepository(projectId: string): Promise<void> {
     const res = await authenticatedFetch(`${API_URL}/github/projects/${projectId}/disconnect`, {
       method: "POST",

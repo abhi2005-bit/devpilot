@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -170,12 +170,29 @@ class IssueService:
             exclude_unset=True,
         )
 
+        old_assignee_id = issue.assignee_id
+
         for field, value in update_data.items():
             setattr(
                 issue,
                 field,
                 value,
             )
+
+        if "assignee_id" in update_data and update_data["assignee_id"] != old_assignee_id and update_data["assignee_id"] is not None:
+            from app.models.notification import Notification as NotificationModel
+            from datetime import datetime
+            notif = NotificationModel(
+                user_id=update_data["assignee_id"],
+                type="ISSUE_ASSIGNED",
+                title="Issue Assigned",
+                message=f"You have been assigned to issue '{issue.title}'",
+                project_id=issue.project_id,
+                entity_id=str(issue.id),
+                entity_type="issue",
+                created_at=datetime.now()
+            )
+            db.add(notif)
 
         db.commit()
         db.refresh(issue)

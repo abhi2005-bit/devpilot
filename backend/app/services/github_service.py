@@ -21,9 +21,20 @@ class GitHubService:
     async def _get(
         self,
         endpoint: str,
+        token: str = None,
     ) -> dict | list:
 
-        url = f"{self.BASE_URL}{endpoint}"
+        if not endpoint.startswith("http"):
+            url = f"{self.BASE_URL}{endpoint}"
+        else:
+            url = endpoint
+
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
 
         async with httpx.AsyncClient(
             timeout=10.0,
@@ -33,13 +44,15 @@ class GitHubService:
             try:
                 response = await client.get(
                     url,
-                    headers={
-                        "Accept": "application/vnd.github+json",
-                        "X-GitHub-Api-Version": "2022-11-28",
-                    },
+                    headers=headers,
                 )
             except httpx.RequestError as exc:
                 raise GitHubAPIError() from exc
+
+            if response.status_code == 401:
+                raise GitHubAPIError("Invalid or expired GitHub token")
+            elif response.status_code in (403, 404):
+                raise GitHubAPIError("Repository inaccessible or not found")
 
             try:
                 response.raise_for_status()
@@ -51,14 +64,45 @@ class GitHubService:
             except ValueError as exc:
                 raise InvalidGitHubResponseError() from exc
 
+    async def _get_paginated(
+        self,
+        endpoint: str,
+        token: str,
+        limit: int,
+        data_key: str = None,
+    ) -> list:
+        results = []
+        page = 1
+        per_page = min(limit, 100)
+        
+        separator = "&" if "?" in endpoint else "?"
+        
+        while len(results) < limit:
+            url = f"{endpoint}{separator}per_page={per_page}&page={page}"
+            data = await self._get(url, token=token)
+            
+            items = data.get(data_key, []) if data_key else data
+            if not items:
+                break
+                
+            results.extend(items)
+            if len(items) < per_page:
+                break
+                
+            page += 1
+            
+        return results[:limit]
+
     async def get_repository(
         self,
         owner: str,
         repo: str,
+        token: str = None,
     ) -> GitHubRepository:
 
         data = await self._get(
-            f"/repos/{owner}/{repo}"
+            f"/repos/{owner}/{repo}",
+            token=token,
         )
 
         try:
@@ -66,7 +110,7 @@ class GitHubService:
                 owner=data["owner"]["login"],
                 name=data["name"],
                 full_name=data["full_name"],
-                description=data["description"],
+                description=data.get("description"),
                 url=data["html_url"],
                 default_branch=data["default_branch"],
                 stars=data["stargazers_count"],
@@ -81,11 +125,13 @@ class GitHubService:
         owner: str,
         repo: str,
         limit: int = 10,
+        token: str = None,
     ) -> list[GitHubCommit]:
 
-        data = await self._get(
-            f"/repos/{owner}/{repo}/commits"
-            f"?per_page={limit}"
+        data = await self._get_paginated(
+            f"/repos/{owner}/{repo}/commits",
+            token=token,
+            limit=limit,
         )
 
         try:
@@ -111,11 +157,13 @@ class GitHubService:
         owner: str,
         repo: str,
         limit: int = 10,
+        token: str = None,
     ) -> list[GitHubPullRequest]:
 
-        data = await self._get(
-            f"/repos/{owner}/{repo}/pulls"
-            f"?state=all&per_page={limit}"
+        data = await self._get_paginated(
+            f"/repos/{owner}/{repo}/pulls?state=all",
+            token=token,
+            limit=limit,
         )
 
         results = []
@@ -153,16 +201,17 @@ class GitHubService:
         owner: str,
         repo: str,
         limit: int = 10,
+        token: str = None,
     ) -> list[GitHubWorkflowRun]:
 
-        data = await self._get(
-            f"/repos/{owner}/{repo}/actions/runs"
-            f"?per_page={limit}"
+        data = await self._get_paginated(
+            f"/repos/{owner}/{repo}/actions/runs",
+            token=token,
+            limit=limit,
+            data_key="workflow_runs",
         )
 
         try:
-            workflow_runs = data["workflow_runs"]
-
             return [
                 GitHubWorkflowRun(
                     id=run["id"],
@@ -175,7 +224,7 @@ class GitHubService:
                     completed_at=run.get("updated_at"),
                     url=run["html_url"],
                 )
-                for run in workflow_runs
+                for run in data
             ]
         except (KeyError, TypeError, ValidationError) as exc:
             raise InvalidGitHubResponseError() from exc
@@ -185,16 +234,17 @@ class GitHubService:
         owner: str,
         repo: str,
         run_id: int,
+        token: str = None,
     ) -> list[GitHubJob]:
 
-        data = await self._get(
-            f"/repos/{owner}/{repo}/actions/runs/"
-            f"{run_id}/jobs?per_page=100"
+        data = await self._get_paginated(
+            f"/repos/{owner}/{repo}/actions/runs/{run_id}/jobs",
+            token=token,
+            limit=100,
+            data_key="jobs",
         )
 
         try:
-            jobs = data["jobs"]
-
             return [
                 GitHubJob(
                     id=job["id"],
@@ -205,7 +255,7 @@ class GitHubService:
                     completed_at=job.get("completed_at"),
                     url=job["html_url"],
                 )
-                for job in jobs
+                for job in data
             ]
         except (KeyError, TypeError, ValidationError) as exc:
             raise InvalidGitHubResponseError() from exc

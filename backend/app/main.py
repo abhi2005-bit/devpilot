@@ -23,6 +23,8 @@ from app.api.routes.milestones import router as milestones_router
 from app.api.routes.traceability import router as traceability_router
 from app.api.routes.investigations import router as investigations_router
 from app.api.routes.github import router as github_router
+from app.api.routes.search import router as search_router
+from app.api.routes.notifications import router as notifications_router
 
 
 from app.api.routes.dashboard import (
@@ -323,5 +325,15 @@ app.include_router(
     github_router,
     prefix="/api/v1",
     tags=["GitHub"],
+)
+app.include_router(
+    search_router,
+    prefix="/api/v1",
+    tags=["Search"],
+)
+app.include_router(
+    notifications_router,
+    prefix="/api/v1",
+    tags=["Notifications"],
 )
 

@@ -79,6 +79,7 @@ function ProjectHome() {
   const [context, setContext] = useState<EngineeringIntelligenceContext | undefined>();
   
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [sprints, setSprints] = useState<Sprint[]>([]);
   const [activeSprint, setActiveSprint] = useState<Sprint | null>(null);
   const [engineeringProgress, setEngineeringProgress] = useState<any>(null);
 
@@ -113,10 +114,21 @@ function ProjectHome() {
   };
   
   const handleConnectGitHub = async (_owner: string, _repo: string) => {
+    setIsGitHubModalOpen(false);
+    handleSyncGitHub();
+  };
+
+  const handleSyncGitHub = async () => {
+    if (!project) return;
     setSyncing(true);
-    setTimeout(() => {
+    try {
+      await githubService.syncRepository(project.id);
       window.location.reload();
-    }, 2000);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to sync repository.");
+      setSyncing(false);
+    }
   };
 
   useEffect(() => {
@@ -153,7 +165,11 @@ function ProjectHome() {
           if (issuesRes.status === "fulfilled") setIssues(issuesRes.value);
           if (githubRes.status === "fulfilled") setGithubData(githubRes.value);
           if (cicdRes.status === "fulfilled") setCicdRuns(cicdRes.value);
-          if (sprintsRes.status === "fulfilled") { const active = sprintsRes.value.find((s: Sprint) => s.status === "ACTIVE"); setActiveSprint(active || null); }
+          if (sprintsRes.status === "fulfilled") { 
+            const active = sprintsRes.value.find((s: Sprint) => s.status === "ACTIVE"); 
+            setActiveSprint(active || null);
+            setSprints(sprintsRes.value);
+          }
           if (goalsRes.status === "fulfilled") setGoals(goalsRes.value);
           if (progressRes && progressRes.status === "fulfilled" && progressRes.value) setEngineeringProgress(progressRes.value);
         }
@@ -355,16 +371,20 @@ function ProjectHome() {
         <div>
           {project?.github_owner && project?.github_repo ? (
             <div className="flex items-center gap-sm">
-              {syncing ? (
+              {syncing || project?.github_sync_status === "SYNCING" ? (
                 <span className="text-body-sm text-on-surface-variant flex items-center gap-xs">
                   <span className="material-symbols-outlined animate-spin text-[18px]">sync</span> Syncing...
+                </span>
+              ) : project?.github_sync_status === "SYNC_FAILED" ? (
+                <span className="text-body-sm text-error flex items-center gap-xs" title={project.github_sync_error || ""}>
+                  <span className="material-symbols-outlined text-[18px]">error</span> Sync Failed
                 </span>
               ) : (
                 <span className="text-body-sm text-success flex items-center gap-xs">
                   <span className="material-symbols-outlined text-[18px]">check_circle</span> Synced
                 </span>
               )}
-              <button onClick={() => window.location.reload()} className="px-md py-sm bg-surface-variant text-on-surface-variant rounded-full text-body-sm hover:bg-surface-container-high ml-md">
+              <button onClick={handleSyncGitHub} disabled={syncing || project?.github_sync_status === "SYNCING"} className="px-md py-sm bg-surface-variant text-on-surface-variant rounded-full text-body-sm hover:bg-surface-container-high ml-md disabled:opacity-50">
                 Sync Now
               </button>
               <button onClick={handleDisconnectGitHub} className="px-md py-sm bg-error-container text-on-error-container rounded-full text-body-sm hover:bg-error-container/80">
@@ -436,9 +456,22 @@ function ProjectHome() {
               const activeMilestone = goal.milestones.find(m => m.status === "ACTIVE") || goal.milestones[0];
               
               // Calculate derived progress from Sprint/Issues
-              // In this MVP, we can mock it or calculate based on issues linked to active sprint
-              // if we don't have direct issue-milestone relation loaded. 
-              // For now, we'll just show the goal and milestone info as a summary.
+              let progressPercent = 0;
+              let milestoneIssuesCount = 0;
+              let doneIssuesCount = 0;
+              
+              if (activeMilestone) {
+                const milestoneSprints = sprints.filter(s => s.milestoneId === activeMilestone.id);
+                const sprintIds = milestoneSprints.map(s => s.id);
+                const milestoneIssues = issues.filter(i => i.sprintId && sprintIds.includes(i.sprintId));
+                
+                milestoneIssuesCount = milestoneIssues.length;
+                doneIssuesCount = milestoneIssues.filter(i => i.status === "DONE").length;
+                
+                if (milestoneIssuesCount > 0) {
+                  progressPercent = Math.round((doneIssuesCount / milestoneIssuesCount) * 100);
+                }
+              }
 
               return (
                 <div key={goal.id} className="border border-outline-variant rounded-lg p-md bg-surface-container-low">
@@ -451,10 +484,21 @@ function ProjectHome() {
                   
                   {activeMilestone ? (
                     <div className="mt-md pt-md border-t border-outline-variant/50">
-                      <p className="text-caption text-on-surface-variant mb-1">Active Milestone</p>
-                      <div className="flex justify-between items-center">
-                        <p className="text-body-sm font-medium text-on-surface truncate pr-2">{activeMilestone.title}</p>
+                      <p className="text-caption text-on-surface-variant mb-2 flex justify-between">
+                        <span>Active Milestone: {activeMilestone.title}</span>
+                        <span>{doneIssuesCount} / {milestoneIssuesCount} issues</span>
+                      </p>
+                      
+                      {/* Real deterministic progress bar */}
+                      <div className="w-full bg-surface-variant rounded-full h-1.5 mb-1 overflow-hidden">
+                        <div 
+                          className="bg-primary h-1.5 rounded-full transition-all duration-500"
+                          style={{ width: `${progressPercent}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
                         <span className="text-caption px-2 py-0.5 bg-surface-variant rounded-full text-on-surface-variant">{activeMilestone.status}</span>
+                        <span className="text-caption text-on-surface font-medium">{progressPercent}%</span>
                       </div>
                     </div>
                   ) : (

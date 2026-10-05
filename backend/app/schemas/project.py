@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import datetime
 
 from pydantic import BaseModel, Field
 
@@ -27,6 +28,9 @@ class Project(BaseModel):
     github_owner: Optional[str] = None
     github_repo: Optional[str] = None
     github_url: Optional[str] = None
+    github_sync_status: str = "NOT_CONNECTED"
+    github_last_synced_at: Optional[datetime] = None
+    github_sync_error: Optional[str] = None
 
 
 class ProjectCreate(BaseModel):

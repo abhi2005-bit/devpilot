@@ -1,14 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
+import SearchModal from "./SearchModal";
+import NotificationsPanel from "./NotificationsPanel";
+import HelpModal from "./HelpModal";
 
 function Navbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const [isProfileOpen, setIsProfileOpen] =
-    useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      fetch("/api/v1/notifications", {
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setUnreadCount(data.filter((n: any) => !n.is_read).length);
+        }
+      })
+      .catch(console.error);
+    }
+  }, [user, isNotificationsOpen]);
 
   const handleLogout = () => {
     logout();
@@ -28,17 +49,20 @@ function Navbar() {
       {/* Left side */}
       <div className="flex min-w-0 items-center space-x-sm">
         {/* Search */}
-        <div className="relative flex shrink-0 items-center rounded-lg border border-transparent bg-surface-container-highest px-sm py-[6px] transition-all focus-within:border-primary">
+        <button
+          type="button"
+          onClick={() => setIsSearchOpen(true)}
+          className="relative flex shrink-0 items-center rounded-lg border border-transparent bg-surface-container-highest px-sm py-[6px] transition-all hover:border-primary w-64 text-left"
+        >
           <span className="material-symbols-outlined mr-xs text-[18px] text-on-surface-variant">
             search
           </span>
+          <span className="font-body-sm text-body-sm text-on-surface-variant">
+            Search...
+          </span>
+        </button>
 
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-48 border-none bg-transparent p-0 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:ring-0"
-          />
-        </div>
+        <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
         {/* Breadcrumb */}
         <div className="ml-md flex min-w-0 items-center space-x-xs font-body-sm text-body-sm text-on-surface-variant">
@@ -60,19 +84,27 @@ function Navbar() {
       {/* Right side */}
       <div className="flex shrink-0 items-center space-x-md">
         {/* Notifications */}
-        <button
-          type="button"
-          className="text-on-surface-variant transition-colors hover:text-on-surface"
-          aria-label="Notifications"
-        >
-          <span className="material-symbols-outlined">
-            notifications
-          </span>
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+            className="text-on-surface-variant transition-colors hover:text-on-surface relative"
+            aria-label="Notifications"
+          >
+            <span className="material-symbols-outlined">
+              notifications
+            </span>
+            {unreadCount > 0 && (
+              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-primary"></span>
+            )}
+          </button>
+          <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
+        </div>
 
         {/* Help */}
         <button
           type="button"
+          onClick={() => setIsHelpOpen(true)}
           className="text-on-surface-variant transition-colors hover:text-on-surface"
           aria-label="Help"
         >
@@ -80,6 +112,7 @@ function Navbar() {
             help_outline
           </span>
         </button>
+        <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
         {/* User profile */}
         <div className="relative">

@@ -119,6 +119,20 @@ class ProjectMemberService:
                 role=data.role,
             )
         )
+        
+        from app.models.notification import Notification as NotificationModel
+        from datetime import datetime
+        notif = NotificationModel(
+            user_id=user.id,
+            type="PROJECT_ADDED",
+            title="Added to Project",
+            message=f"You have been added to project '{project.name}' as a {data.role}",
+            project_id=project.id,
+            entity_id=str(project.id),
+            entity_type="project",
+            created_at=datetime.now()
+        )
+        db.add(notif)
 
         db.commit()
 

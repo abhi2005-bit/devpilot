@@ -205,6 +205,7 @@ class CICDService:
         db: Session,
         project_id: str,
         limit: int = 10,
+        token: str = None,
     ) -> list[CICDRun]:
 
         project_id_int = self._get_project_id(
@@ -231,6 +232,7 @@ class CICDService:
                 project.github_owner,
                 project.github_repo,
                 limit,
+                token=token,
             )
         )
 
@@ -255,6 +257,8 @@ class CICDService:
                         == workflow_run.url,
                     )
                 )
+
+            old_conclusion = existing_run.conclusion if existing_run else None
 
             started_at = self._parse_github_datetime(
                 workflow_run.started_at
@@ -333,10 +337,27 @@ class CICDService:
 
             db.flush()
 
+            if old_conclusion != "failure" and workflow_run.conclusion == "failure":
+                from app.models.notification import Notification as NotificationModel
+                from datetime import datetime
+                notif = NotificationModel(
+                    user_id=project.owner_id,
+                    type="CICD_FAILURE",
+                    title="Important CI Failure",
+                    message=f"CI/CD run '{workflow_run.workflow_name}' failed on branch '{workflow_run.branch}'.",
+                    project_id=project.id,
+                    entity_id=str(existing_run.id),
+                    entity_type="cicd_run",
+                    created_at=datetime.now()
+                )
+                db.add(notif)
+                db.flush()
+
             jobs = await github_service.get_jobs(
                 project.github_owner,
                 project.github_repo,
                 workflow_run.id,
+                token=token,
             )
 
             failed_jobs = 0
