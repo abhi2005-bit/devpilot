@@ -1,4 +1,4 @@
-﻿import type { Project } from "../types/project";
+import type { Project } from "../types/project";
 import type { EngineeringHealth } from "../types/health";
 
 import API_URL_BASE from "../config/api";
@@ -70,6 +70,8 @@ export const projectService = {
           description: project.description,
           github_owner: project.github_owner?.trim() || null,
           github_repo: project.github_repo?.trim() || null,
+          risk: project.risk,
+          progress: project.progress,
         }),
       },
     );
@@ -96,6 +98,8 @@ export const projectService = {
           description: project.description,
           github_owner: project.github_owner?.trim() || null,
           github_repo: project.github_repo?.trim() || null,
+          risk: project.risk,
+          progress: project.progress,
         }),
       },
     );

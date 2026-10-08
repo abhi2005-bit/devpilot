@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -128,20 +128,28 @@ class EngineeringHealthService:
         generated_at = datetime.utcnow()
 
         if persist_snapshot and db is not None:
-            snapshot = EngineeringHealthSnapshot(
-                project_id=metrics.project_id,
-                generated_at=generated_at,
-                score=final_score,
-                status=status,
-                issue_health=issue_component.score,
-                cicd_reliability=cicd_component.score,
-                delivery_activity=delivery_component.score,
-                github_activity=github_component.score,
-                lookback_days=metrics.lookback_days,
+            from app.models.project import Project as ProjectModel
+            from sqlalchemy import select
+            
+            project_exists = db.scalar(
+                select(ProjectModel).where(ProjectModel.id == metrics.project_id)
             )
+            
+            if project_exists is not None:
+                snapshot = EngineeringHealthSnapshot(
+                    project_id=metrics.project_id,
+                    generated_at=generated_at,
+                    score=final_score,
+                    status=status,
+                    issue_health=issue_component.score,
+                    cicd_reliability=cicd_component.score,
+                    delivery_activity=delivery_component.score,
+                    github_activity=github_component.score,
+                    lookback_days=metrics.lookback_days,
+                )
 
-            db.add(snapshot)
-            db.commit()
+                db.add(snapshot)
+                db.commit()
 
         return EngineeringHealth(
             project_id=metrics.project_id,

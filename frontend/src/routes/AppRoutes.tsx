@@ -21,6 +21,8 @@ import Members from "../pages/project/members/Members";
 import Goals from "../pages/project/goals/Goals";
 import GoalDetail from "../pages/project/goals/GoalDetail";
 import GitHubCallback from "../pages/github/GitHubCallback";
+import ProjectSettings from "../pages/project/settings/ProjectSettings";
+import DocumentDetail from "../pages/documents/DocumentDetail";
 
 function AppRoutes() {
   return (
@@ -114,6 +116,26 @@ function AppRoutes() {
             <Route
               path="members"
               element={<Members />}
+            />
+
+            <Route
+              path="board"
+              element={<Issues />}
+            />
+
+            <Route
+              path="documents"
+              element={<Documents />}
+            />
+
+            <Route
+              path="documents/:documentId"
+              element={<DocumentDetail />}
+            />
+
+            <Route
+              path="settings"
+              element={<ProjectSettings />}
             />
           </Route>
         </Route>

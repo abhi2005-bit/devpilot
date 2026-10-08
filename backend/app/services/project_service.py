@@ -251,6 +251,28 @@ class ProjectService:
             ),
         )
 
+    def _normalize_github_repo(
+        self,
+        owner: str | None,
+        repo: str | None,
+    ) -> tuple[str | None, str | None]:
+        if not repo:
+            return owner, repo
+            
+        repo = repo.replace(".git", "")
+        if "github.com/" in repo:
+            parts = repo.split("github.com/")[-1].split("/")
+            if len(parts) >= 2:
+                owner = parts[0]
+                repo = parts[1]
+        elif "/" in repo:
+            parts = repo.split("/")
+            if len(parts) >= 2:
+                owner = parts[0]
+                repo = parts[1]
+                
+        return owner, repo
+
     def create_project(
         self,
         db: Session,
@@ -258,25 +280,33 @@ class ProjectService:
         current_user_id: int,
     ) -> Project:
 
+        owner, repo = self._normalize_github_repo(
+            data.github_owner, data.github_repo
+        )
+        
         github_url = None
-
-        if data.github_owner and data.github_repo:
-            github_url = (
-                f"https://github.com/"
-                f"{data.github_owner}/"
-                f"{data.github_repo}"
-            )
+        if owner and repo:
+            github_url = f"https://github.com/{owner}/{repo}"
 
         project = ProjectModel(
             name=data.name,
             description=data.description,
             owner_id=current_user_id,
-            github_owner=data.github_owner,
-            github_repo=data.github_repo,
+            github_owner=owner,
+            github_repo=repo,
             github_url=github_url,
         )
 
         db.add(project)
+        db.flush()
+        
+        db.execute(
+            project_members.insert().values(
+                project_id=project.id,
+                user_id=current_user_id,
+                role="OWNER",
+            )
+        )
         db.commit()
         db.refresh(project)
 
@@ -315,12 +345,11 @@ class ProjectService:
         allowed_fields = {
             "name",
             "description",
-            "github_owner",
-            "github_repo",
+            "risk",
+            "progress",
         }
 
         for field, value in update_data.items():
-
             if field in allowed_fields:
                 setattr(
                     project,
@@ -328,25 +357,17 @@ class ProjectService:
                     value,
                 )
 
-        # Rebuild GitHub URL whenever
-        # repository information changes.
+        if "github_owner" in update_data or "github_repo" in update_data:
+            owner = update_data.get("github_owner", project.github_owner)
+            repo = update_data.get("github_repo", project.github_repo)
+            
+            owner, repo = self._normalize_github_repo(owner, repo)
+            
+            project.github_owner = owner
+            project.github_repo = repo
 
-        if (
-            "github_owner" in update_data
-            or "github_repo" in update_data
-        ):
-
-            if (
-                project.github_owner
-                and project.github_repo
-            ):
-
-                project.github_url = (
-                    f"https://github.com/"
-                    f"{project.github_owner}/"
-                    f"{project.github_repo}"
-                )
-
+            if owner and repo:
+                project.github_url = f"https://github.com/{owner}/{repo}"
             else:
                 project.github_url = None
 

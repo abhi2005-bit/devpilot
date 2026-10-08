@@ -1,4 +1,4 @@
-﻿from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -65,7 +65,8 @@ def get_current_user_project(
 
     statement = select(ProjectModel).where(
         ProjectModel.id == project_id_int,
-        ProjectModel.owner_id == current_user.id,
+        (ProjectModel.owner_id == current_user.id) | 
+        ProjectModel.members.any(User.id == current_user.id)
     )
 
     project = db.scalar(statement)

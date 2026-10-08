@@ -212,9 +212,9 @@ async def sync_repository(
         # Synchronize CI/CD information to the database
         await cicd_service.sync_github_runs(db, project_id, limit=20, token=current_user.github_token)
         
-        # Test fetching PRs and commits
-        await github_service.get_pull_requests(project.github_owner, project.github_repo, limit=10, token=current_user.github_token)
-        await github_service.get_commits(project.github_owner, project.github_repo, limit=10, token=current_user.github_token)
+        # Synchronize PRs and Commits to the database
+        from app.services.github_sync_service import github_sync_service
+        await github_sync_service.sync_github_data(db, project.id, project.github_owner, project.github_repo, token=current_user.github_token, limit=20)
             
         project.github_sync_status = "SYNCED"
         project.github_last_synced_at = datetime.utcnow()

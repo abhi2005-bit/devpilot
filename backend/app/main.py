@@ -337,3 +337,9 @@ app.include_router(
     tags=["Notifications"],
 )
 
+from app.api.routes.documents import router as documents_router
+app.include_router(
+    documents_router,
+    prefix="/api/v1",
+)
+

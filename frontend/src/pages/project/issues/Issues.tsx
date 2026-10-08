@@ -3,7 +3,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import Modal from "../../../components/common/Modal";
 import CreateIssueForm from "../../../components/issues/CreateIssueForm";
@@ -121,8 +121,14 @@ function Issues() {
   const [deletingIssue, setDeletingIssue] =
     useState<Issue | null>(null);
 
+  const location = useLocation();
+
   const [viewMode, setViewMode] =
-    useState<"LIST" | "BOARD">("BOARD");
+    useState<"LIST" | "BOARD">(location.pathname.endsWith("/board") ? "BOARD" : "LIST");
+
+  useEffect(() => {
+    setViewMode(location.pathname.endsWith("/board") ? "BOARD" : "LIST");
+  }, [location.pathname]);
 
   const [updatingIssueId, setUpdatingIssueId] =
     useState<string | null>(null);

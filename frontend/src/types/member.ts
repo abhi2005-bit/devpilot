@@ -4,7 +4,7 @@ export interface ProjectMember {
   id: string;
   name: string;
   email: string;
-  role: Exclude<ProjectMemberRole, "OWNER">;
+  role: ProjectMemberRole;
 }
 
 export interface User {

@@ -112,7 +112,7 @@ def test_owner_can_list_project_members(db):
     ]
 
 
-def test_non_owner_cannot_list_project_members(db):
+def test_non_member_cannot_list_project_members(db):
     requester = _create_user(
         db,
         name="Requesting User",
@@ -430,7 +430,7 @@ def test_authenticated_user_can_list_users(db):
     ]
 
 
-def test_project_membership_does_not_grant_project_access(db):
+def test_project_membership_grants_project_access(db):
     owner = _create_user(
         db,
         name="Project Owner",
@@ -454,5 +454,5 @@ def test_project_membership_does_not_grant_project_access(db):
         headers=_headers(member),
     )
 
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Project not found."}
+    assert response.status_code == 200
+    assert response.json()["name"] == "Owner-only Project"

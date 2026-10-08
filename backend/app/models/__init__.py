@@ -23,9 +23,11 @@ __all__ = [
     "PullRequest",
     "Commit",
     "Notification",
+    "Document",
 ]
 
 from .sprint import Sprint
 from .goal import Goal
 from .milestone import Milestone
 from .notification import Notification
+from .document import Document

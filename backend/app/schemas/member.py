@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 
 ProjectMemberRole = Literal[
+    "OWNER",
     "ENGINEER",
     "DESIGNER",
     "PRODUCT",
