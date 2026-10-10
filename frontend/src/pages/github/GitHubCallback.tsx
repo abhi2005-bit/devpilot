@@ -30,7 +30,7 @@ export default function GitHubCallback() {
   
   return (
     <div className="flex items-center justify-center min-h-screen bg-surface p-xl">
-      <div className="bg-surface-container p-xl rounded-xl border border-outline-variant/30 text-center max-w-sm w-full shadow-lg">
+      <div className="bg-surface-container p-xl rounded-xl border border-outline-variant/30 text-center max-w-[400px] w-full shadow-lg">
         <span className="material-symbols-outlined text-[48px] text-primary mb-md animate-pulse">
           sync
         </span>

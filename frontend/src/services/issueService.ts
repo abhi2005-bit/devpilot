@@ -4,7 +4,7 @@
   IssueStatus,
 } from "../types/issue";
 import API_URL_BASE from "../config/api";
-import { authenticatedFetch } from "./apiClient";
+import { authenticatedFetch, responseError } from "./apiClient";
 
 
 const API_URL =
@@ -92,7 +92,7 @@ export const issueService = {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to load issues");
+      throw await responseError(response, "Failed to load issues");
     }
 
     const data: BackendIssue[] =
@@ -112,9 +112,7 @@ export const issueService = {
     );
 
     if (!response.ok) {
-      throw new Error(
-        "Failed to load project issues",
-      );
+      throw await responseError(response, "Failed to load project issues");
     }
 
     const data: BackendIssue[] =
@@ -136,7 +134,7 @@ export const issueService = {
     }
 
     if (!response.ok) {
-      throw new Error("Failed to load issue");
+      throw await responseError(response, "Failed to load issue");
     }
 
     const data: BackendIssue =
@@ -174,7 +172,7 @@ export const issueService = {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to create issue");
+      throw await responseError(response, "Failed to create issue");
     }
 
     const data: BackendIssue =
@@ -238,7 +236,7 @@ export const issueService = {
     }
 
     if (!response.ok) {
-      throw new Error("Failed to update issue");
+      throw await responseError(response, "Failed to update issue");
     }
 
     const data: BackendIssue =
@@ -286,7 +284,7 @@ export const issueService = {
     }
 
     if (!response.ok) {
-      throw new Error("Failed to delete issue");
+      throw await responseError(response, "Failed to delete issue");
     }
 
     return true;

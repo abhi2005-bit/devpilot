@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 
 import { projectService } from "../../../services/projectService";
 import { issueService } from "../../../services/issueService";
+import { errorMessage } from "../../../services/apiClient";
 
 import type { Project } from "../../../types/project";
 import type {
@@ -57,6 +58,7 @@ function Analytics() {
     useState(true);
 
   const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   /*
    * ============================================
@@ -83,11 +85,13 @@ function Analytics() {
           loadedProject,
           loadedIssues,
         ] = await Promise.all([
-          Promise.resolve(
-            projectService.getById(projectId),
-          ),
+          projectService.getById(projectId),
           issueService.getByProject(projectId),
         ]);
+
+        if (!loadedProject) {
+          throw new Error("Project not found (HTTP 404).");
+        }
 
         if (cancelled) {
           return;
@@ -95,11 +99,9 @@ function Analytics() {
 
         setProject(loadedProject);
         setProjectIssues(loadedIssues);
-      } catch {
+      } catch (loadError) {
         if (!cancelled) {
-          setError(
-            "Unable to load analytics for this project.",
-          );
+          setError(errorMessage(loadError, "Unable to load analytics for this project."));
         }
       } finally {
         if (!cancelled) {
@@ -113,7 +115,7 @@ function Analytics() {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, reloadKey]);
 
   /*
    * ============================================
@@ -390,8 +392,8 @@ function Analytics() {
 
   if (error) {
     return (
-      <div className="flex min-h-64 items-center justify-center rounded-xl border border-error/30 bg-error-container">
-        <div className="text-center">
+      <div role="alert" className="flex min-h-64 items-center justify-center rounded-xl border border-error/30 bg-error-container p-lg">
+        <div className="w-full max-w-xl text-center">
           <span className="material-symbols-outlined text-4xl text-error">
             error
           </span>
@@ -399,6 +401,7 @@ function Analytics() {
           <p className="mt-md text-body-sm text-error">
             {error}
           </p>
+          <button type="button" onClick={() => setReloadKey((key) => key + 1)} className="mt-md min-h-10 rounded-lg bg-primary px-md py-sm text-body-sm font-bold text-on-primary">Retry</button>
         </div>
       </div>
     );

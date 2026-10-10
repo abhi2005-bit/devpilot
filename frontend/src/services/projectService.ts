@@ -2,7 +2,7 @@ import type { Project } from "../types/project";
 import type { EngineeringHealth } from "../types/health";
 
 import API_URL_BASE from "../config/api";
-import { authenticatedFetch } from "./apiClient";
+import { authenticatedFetch, responseError } from "./apiClient";
 
 const API_URL = `${API_URL_BASE}/projects`;
 
@@ -11,7 +11,7 @@ export const projectService = {
     const response = await authenticatedFetch(API_URL);
 
     if (!response.ok) {
-      throw new Error("Failed to load projects");
+      throw await responseError(response, "Failed to load projects");
     }
 
     return response.json();
@@ -29,7 +29,7 @@ export const projectService = {
     }
 
     if (!response.ok) {
-      throw new Error("Failed to load project");
+      throw await responseError(response, "Failed to load project");
     }
 
     return response.json();
@@ -43,13 +43,11 @@ export const projectService = {
     );
 
     if (response.status === 404) {
-      throw new Error("Project not found");
+      throw await responseError(response, "Project not found");
     }
 
     if (!response.ok) {
-      throw new Error(
-        "Failed to load engineering health",
-      );
+      throw await responseError(response, "Failed to load engineering health");
     }
 
     return response.json();
@@ -77,7 +75,7 @@ export const projectService = {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to create project");
+      throw await responseError(response, "Failed to create project");
     }
 
     return response.json();
@@ -105,7 +103,7 @@ export const projectService = {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to update project");
+      throw await responseError(response, "Failed to update project");
     }
 
     return response.json();
@@ -122,7 +120,7 @@ export const projectService = {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to delete project");
+      throw await responseError(response, "Failed to delete project");
     }
   },
 };

@@ -8,11 +8,10 @@ import { useEffect, useState } from "react";
 
 import { projectService } from "../../services/projectService";
 import { healthService } from "../../services/healthService";
-import { githubService } from "../../services/githubService";
+import { errorMessage } from "../../services/apiClient";
 
 import type { Project } from "../../types/project";
 import type { EngineeringHealth } from "../../types/health";
-import type { ProjectGitHub } from "../../types/github";
 
 function ProjectOverview() {
   const { projectId } = useParams<{
@@ -25,8 +24,9 @@ function ProjectOverview() {
   const [health, setHealth] =
     useState<EngineeringHealth | undefined>();
 
-  const [github, setGithub] =
-    useState<ProjectGitHub | undefined>();
+  const [projectError, setProjectError] = useState("");
+  const [healthError, setHealthError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   const [isLoading, setIsLoading] =
     useState(true);
@@ -34,11 +34,7 @@ function ProjectOverview() {
   const [isHealthLoading, setIsHealthLoading] =
     useState(true);
 
-  const [isGithubLoading, setIsGithubLoading] =
-    useState(true);
 
-  const [githubError, setGithubError] =
-    useState<string | undefined>();
 
   /*
    * Load project
@@ -49,11 +45,14 @@ function ProjectOverview() {
     async function loadProject() {
       if (!projectId) {
         setProject(undefined);
+        setProjectError("");
         setIsLoading(false);
         return;
       }
 
       setIsLoading(true);
+      setProject(undefined);
+      setProjectError("");
 
       try {
         const loadedProject =
@@ -62,9 +61,10 @@ function ProjectOverview() {
         if (!cancelled) {
           setProject(loadedProject);
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
           setProject(undefined);
+          setProjectError(errorMessage(error, "Unable to load this project."));
         }
       } finally {
         if (!cancelled) {
@@ -78,7 +78,7 @@ function ProjectOverview() {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, reloadKey]);
 
   /*
    * Load real engineering health
@@ -89,11 +89,14 @@ function ProjectOverview() {
     async function loadHealth() {
       if (!projectId) {
         setHealth(undefined);
+        setHealthError("");
         setIsHealthLoading(false);
         return;
       }
 
       setIsHealthLoading(true);
+      setHealth(undefined);
+      setHealthError("");
 
       try {
         const loadedHealth =
@@ -104,9 +107,10 @@ function ProjectOverview() {
         if (!cancelled) {
           setHealth(loadedHealth);
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
           setHealth(undefined);
+          setHealthError(errorMessage(error, "Unable to load engineering health."));
         }
       } finally {
         if (!cancelled) {
@@ -120,75 +124,8 @@ function ProjectOverview() {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, reloadKey]);
 
-  /*
-   * Load GitHub data
-   */
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadGithub() {
-      if (!projectId) {
-        setGithub(undefined);
-        setGithubError(undefined);
-        setIsGithubLoading(false);
-        return;
-      }
-
-      if (
-        isLoading ||
-        !project ||
-        project.id !== projectId
-      ) {
-        setGithub(undefined);
-        setGithubError(undefined);
-        setIsGithubLoading(true);
-        return;
-      }
-
-      if (
-        !project.github_owner?.trim() ||
-        !project.github_repo?.trim()
-      ) {
-        setGithub(undefined);
-        setGithubError(undefined);
-        setIsGithubLoading(false);
-        return;
-      }
-
-      setIsGithubLoading(true);
-      setGithubError(undefined);
-
-      try {
-        const loadedGithub =
-          await githubService.getProjectGitHub(
-            projectId,
-          );
-
-        if (!cancelled) {
-          setGithub(loadedGithub);
-        }
-      } catch {
-        if (!cancelled) {
-          setGithub(undefined);
-          setGithubError(
-            "Unable to load GitHub data.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsGithubLoading(false);
-        }
-      }
-    }
-
-    loadGithub();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoading, project, projectId]);
 
   /*
    * Loading project
@@ -212,6 +149,24 @@ function ProjectOverview() {
   /*
    * Project not found
    */
+  if (!project && projectError) {
+    return (
+      <main role="alert" className="flex min-h-full items-center justify-center px-margin py-margin">
+        <div className="max-w-xl text-center">
+          <h1 className="text-title-lg font-semibold text-on-surface">Project could not be loaded</h1>
+          <p className="mt-sm break-words text-body-md text-on-surface-variant">{projectError}</p>
+          <button
+            type="button"
+            onClick={() => setReloadKey((key) => key + 1)}
+            className="mt-lg rounded-lg bg-primary px-md py-sm text-body-sm font-bold text-on-primary"
+          >
+            Retry
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   if (!project) {
     return (
       <main className="flex min-h-full items-center justify-center px-margin py-margin">
@@ -249,7 +204,7 @@ function ProjectOverview() {
    * The new health model gives us an overall score
    * and four engineering-health components.
    */
-  const healthScore = health?.score ?? 0;
+  const healthScore = health?.score;
 
   const healthStatus =
     health?.status ?? "unknown";
@@ -413,7 +368,9 @@ function ProjectOverview() {
                 <span className="text-body-md font-bold text-on-surface">
                   {isHealthLoading
                     ? "..."
-                    : `${healthScore.toFixed(1)}/100`}
+                    : health
+                      ? `${healthScore!.toFixed(1)}/100`
+                      : "—"}
                 </span>
               </div>
 
@@ -422,7 +379,7 @@ function ProjectOverview() {
                   className="h-full rounded-full bg-primary transition-all"
                   style={{
                     width: `${Math.min(
-                      Math.max(healthScore, 0),
+                      Math.max(healthScore ?? 0, 0),
                       100,
                     )}%`,
                   }}
@@ -446,7 +403,9 @@ function ProjectOverview() {
                   <p className="mt-xs text-title-lg font-bold text-on-surface">
                     {isHealthLoading
                       ? "..."
-                      : `${health?.cicd_reliability.score.toFixed(1) ?? "0.0"}`}
+                      : health
+                        ? health.cicd_reliability.score.toFixed(1)
+                        : "—"}
                   </p>
                 </div>
 
@@ -472,7 +431,9 @@ function ProjectOverview() {
                   <p className="mt-xs text-title-lg font-bold text-on-surface">
                     {isHealthLoading
                       ? "..."
-                      : `${health?.github_activity.score.toFixed(1) ?? "0.0"}`}
+                      : health
+                        ? health.github_activity.score.toFixed(1)
+                        : "—"}
                   </p>
                 </div>
 
@@ -486,6 +447,18 @@ function ProjectOverview() {
               </p>
             </div>
           </div>
+          {healthError && (
+            <div role="alert" className="mt-md flex flex-wrap items-center justify-between gap-sm rounded-lg border border-error/30 bg-error-container px-md py-sm text-body-sm text-error">
+              <span className="min-w-0 break-words">Engineering health unavailable: {healthError}</span>
+              <button
+                type="button"
+                onClick={() => setReloadKey((key) => key + 1)}
+                className="shrink-0 rounded-md border border-error/30 px-sm py-xs font-semibold hover:bg-error/10"
+              >
+                Retry
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Navigation Tabs */}
@@ -519,307 +492,7 @@ function ProjectOverview() {
       {/* Main Content */}
 
       <section className="px-margin py-lg">
-        {/* GitHub Integration */}
-
-        <section className="mb-xl">
-          <div className="mb-md flex items-center justify-between">
-            <div>
-              <h2 className="text-title-lg font-bold text-on-surface">
-                GitHub
-              </h2>
-
-              <p className="mt-xs text-body-sm text-on-surface-variant">
-                Repository activity and development progress
-              </p>
-            </div>
-
-            {github?.repository.url && (
-              <a
-                href={github.repository.url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-sm rounded-lg border border-outline-variant bg-surface-container-high px-md py-sm text-body-sm font-medium text-on-surface transition-colors hover:bg-surface-container-highest"
-              >
-                <span className="material-symbols-outlined text-body-md">
-                  open_in_new
-                </span>
-
-                Open GitHub
-              </a>
-            )}
-          </div>
-
-          {isGithubLoading && (
-            <div className="flex items-center justify-center rounded-xl border border-outline-variant bg-surface-container-low p-xl">
-              <div className="text-center">
-                <span className="material-symbols-outlined animate-spin text-4xl text-primary">
-                  progress_activity
-                </span>
-
-                <p className="mt-sm text-body-sm text-on-surface-variant">
-                  Loading GitHub data...
-                </p>
-              </div>
-            </div>
-          )}
-
-          {!isGithubLoading && githubError && (
-            <div className="rounded-xl border border-outline-variant bg-surface-container-low p-lg">
-              <div className="flex items-start gap-md">
-                <span className="material-symbols-outlined text-error">
-                  error
-                </span>
-
-                <div>
-                  <p className="text-body-md font-semibold text-on-surface">
-                    GitHub data unavailable
-                  </p>
-
-                  <p className="mt-xs text-body-sm text-on-surface-variant">
-                    {githubError}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!isGithubLoading && !githubError && !github && (
-            <div className="rounded-xl border border-outline-variant bg-surface-container-low p-lg">
-              <div className="flex items-start gap-md">
-                <span className="material-symbols-outlined text-on-surface-variant">
-                  code
-                </span>
-
-                <div>
-                  <p className="text-body-md font-semibold text-on-surface">
-                    No GitHub repository connected
-                  </p>
-
-                  <p className="mt-xs text-body-sm text-on-surface-variant">
-                    A project owner can connect a public repository from the project edit form.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!isGithubLoading && !githubError && github && (
-            <div className="space-y-lg">
-              {/* Repository */}
-
-              <div className="rounded-xl border border-outline-variant bg-surface-container-low p-lg">
-                <div className="flex flex-col gap-lg lg:flex-row lg:items-start lg:justify-between">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-sm">
-                      <span className="material-symbols-outlined text-on-surface">
-                        code
-                      </span>
-
-                      <h3 className="text-title-md font-bold text-on-surface">
-                        {github.repository.full_name}
-                      </h3>
-                    </div>
-
-                    <p className="mt-sm max-w-3xl text-body-sm text-on-surface-variant">
-                      {github.repository.description ||
-                        "No repository description available."}
-                    </p>
-                  </div>
-
-                  <span className="shrink-0 rounded-full bg-secondary-container px-sm py-xs text-caption font-semibold text-on-secondary">
-                    {github.repository.default_branch}
-                  </span>
-                </div>
-
-                {/* Repository stats */}
-
-                <div className="mt-lg grid grid-cols-1 gap-md sm:grid-cols-3">
-                  <div className="rounded-lg bg-surface-container-high p-md">
-                    <div className="flex items-center gap-sm">
-                      <span className="material-symbols-outlined text-tertiary">
-                        star
-                      </span>
-
-                      <span className="text-caption text-on-surface-variant">
-                        Stars
-                      </span>
-                    </div>
-
-                    <p className="mt-sm text-title-lg font-bold text-on-surface">
-                      {github.repository.stars.toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-surface-container-high p-md">
-                    <div className="flex items-center gap-sm">
-                      <span className="material-symbols-outlined text-primary">
-                        call_split
-                      </span>
-
-                      <span className="text-caption text-on-surface-variant">
-                        Forks
-                      </span>
-                    </div>
-
-                    <p className="mt-sm text-title-lg font-bold text-on-surface">
-                      {github.repository.forks.toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg bg-surface-container-high p-md">
-                    <div className="flex items-center gap-sm">
-                      <span className="material-symbols-outlined text-error">
-                        bug_report
-                      </span>
-
-                      <span className="text-caption text-on-surface-variant">
-                        GitHub Issues
-                      </span>
-                    </div>
-
-                    <p className="mt-sm text-title-lg font-bold text-on-surface">
-                      {github.repository.open_issues.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Activity */}
-
-              <div className="grid grid-cols-1 gap-lg xl:grid-cols-2">
-                {/* Commits */}
-
-                <div className="rounded-xl border border-outline-variant bg-surface-container-low p-lg">
-                  <div className="mb-lg flex items-center justify-between">
-                    <div className="flex items-center gap-sm">
-                      <span className="material-symbols-outlined text-primary">
-                        commit
-                      </span>
-
-                      <h3 className="text-title-md font-bold text-on-surface">
-                        Recent Commits
-                      </h3>
-                    </div>
-
-                    <span className="text-caption text-on-surface-variant">
-                      {github.commits.length}
-                    </span>
-                  </div>
-
-                  {github.commits.length === 0 ? (
-                    <p className="text-body-sm text-on-surface-variant">
-                      No recent commits found.
-                    </p>
-                  ) : (
-                    <div className="space-y-sm">
-                      {github.commits
-                        .slice(0, 5)
-                        .map((commit) => (
-                          <a
-                            key={commit.sha}
-                            href={commit.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="block rounded-lg border border-outline-variant bg-surface-container-high p-md transition-colors hover:bg-surface-container-highest"
-                          >
-                            <p className="line-clamp-2 text-body-sm font-medium text-on-surface">
-                              {commit.message.split("\n")[0]}
-                            </p>
-
-                            <div className="mt-sm flex items-center justify-between gap-sm">
-                              <span className="truncate text-caption text-on-surface-variant">
-                                {commit.author ||
-                                  "Unknown author"}
-                              </span>
-
-                              <span className="shrink-0 font-mono text-caption text-on-surface-variant">
-                                {commit.sha.slice(0, 7)}
-                              </span>
-                            </div>
-                          </a>
-                        ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Pull Requests */}
-
-                <div className="rounded-xl border border-outline-variant bg-surface-container-low p-lg">
-                  <div className="mb-lg flex items-center justify-between">
-                    <div className="flex items-center gap-sm">
-                      <span className="material-symbols-outlined text-secondary">
-                        merge
-                      </span>
-
-                      <h3 className="text-title-md font-bold text-on-surface">
-                        Recent Pull Requests
-                      </h3>
-                    </div>
-
-                    <span className="text-caption text-on-surface-variant">
-                      {github.pull_requests.length}
-                    </span>
-                  </div>
-
-                  {github.pull_requests.length === 0 ? (
-                    <p className="text-body-sm text-on-surface-variant">
-                      No recent pull requests found.
-                    </p>
-                  ) : (
-                    <div className="space-y-sm">
-                      {github.pull_requests
-                        .slice(0, 5)
-                        .map((pullRequest) => (
-                          <a
-                            key={pullRequest.number}
-                            href={pullRequest.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="block rounded-lg border border-outline-variant bg-surface-container-high p-md transition-colors hover:bg-surface-container-highest"
-                          >
-                            <div className="flex items-start justify-between gap-md">
-                              <p className="line-clamp-2 text-body-sm font-medium text-on-surface">
-                                #{pullRequest.number}{" "}
-                                {pullRequest.title}
-                              </p>
-
-                              <span
-                                className={`shrink-0 rounded-full px-sm py-xs text-caption font-semibold ${
-                                  pullRequest.merged
-                                    ? "bg-secondary-container text-on-secondary"
-                                    : pullRequest.state ===
-                                        "open"
-                                      ? "bg-tertiary-container text-on-tertiary"
-                                      : "bg-surface-container-highest text-on-surface-variant"
-                                }`}
-                              >
-                                {pullRequest.merged
-                                  ? "MERGED"
-                                  : pullRequest.state.toUpperCase()}
-                              </span>
-                            </div>
-
-                            <div className="mt-sm flex items-center justify-between gap-sm">
-                              <span className="truncate text-caption text-on-surface-variant">
-                                {pullRequest.author ||
-                                  "Unknown author"}
-                              </span>
-
-                              <span className="shrink-0 text-caption text-on-surface-variant">
-                                #{pullRequest.number}
-                              </span>
-                            </div>
-                          </a>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Nested Route Content */}
+{/* Nested Route Content */}
 
         <Outlet />
       </section>

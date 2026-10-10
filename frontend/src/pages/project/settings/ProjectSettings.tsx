@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { projectService } from "../../../services/projectService";
+import { errorMessage } from "../../../services/apiClient";
 import EditProjectForm from "../../../components/projects/EditProjectForm";
 import type { Project } from "../../../types/project";
 
@@ -11,6 +12,7 @@ function ProjectSettings() {
   const [project, setProject] = useState<Project | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const [success, setSuccess] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -20,14 +22,17 @@ function ProjectSettings() {
     async function loadProject() {
       if (!projectId) return;
       setIsLoading(true);
+      setError("");
+      setProject(undefined);
       try {
         const loadedProject = await projectService.getById(projectId);
         if (!cancelled) {
           setProject(loadedProject);
+          if (!loadedProject) setError("Project not found (HTTP 404).");
         }
-      } catch {
+      } catch (loadError) {
         if (!cancelled) {
-          setError("Unable to load project settings.");
+          setError(errorMessage(loadError, "Unable to load project settings."));
         }
       } finally {
         if (!cancelled) {
@@ -41,7 +46,7 @@ function ProjectSettings() {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, reloadKey]);
 
   const handleEditProject = async (updatedProject: Project) => {
     try {
@@ -53,8 +58,8 @@ function ProjectSettings() {
       
       // Auto-hide success message after 3 seconds
       setTimeout(() => setSuccess(""), 3000);
-    } catch {
-      setError("Unable to update project.");
+    } catch (updateError) {
+      setError(errorMessage(updateError, "Unable to update project."));
     }
   };
 
@@ -98,13 +103,16 @@ function ProjectSettings() {
 
   if (error && !project) {
     return (
-      <div className="rounded-xl border border-error/30 bg-error-container p-md text-error">
-        {error || "Project not found."}
+      <div role="alert" className="flex flex-col gap-md rounded-xl border border-error/30 bg-error-container p-md text-error sm:flex-row sm:items-center sm:justify-between">
+        <p className="min-w-0 break-words">{error}</p>
+        <button type="button" onClick={() => setReloadKey((key) => key + 1)} className="w-fit shrink-0 rounded-lg border border-error/30 px-md py-sm font-semibold hover:bg-error/10">Retry</button>
       </div>
     );
   }
 
-  if (!project) return null;
+  if (!project) {
+    return <div className="rounded-xl border border-outline-variant bg-surface-container p-md text-on-surface-variant">Project not found.</div>;
+  }
 
   return (
     <div className="space-y-lg max-w-2xl">

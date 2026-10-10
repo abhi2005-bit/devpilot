@@ -4,6 +4,7 @@ import Modal from "../../components/common/Modal";
 import CreateDocumentForm from "../../components/documents/CreateDocumentForm";
 import DocumentCard from "../../components/documents/DocumentCard";
 import { documentService, type DocumentItem, type DocumentCreate } from "../../services/documentService";
+import { errorMessage } from "../../services/apiClient";
 
 const CATEGORIES = ["All Docs", "Architecture", "API Docs", "Guides", "Meeting Notes"];
 
@@ -12,6 +13,7 @@ export default function Documents() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All Docs");
@@ -28,9 +30,9 @@ export default function Documents() {
           setDocuments(docs);
           setError("");
         }
-      } catch {
+      } catch (loadError) {
         if (!cancelled) {
-          setError("Failed to load documents.");
+          setError(errorMessage(loadError, "Failed to load documents."));
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -38,7 +40,7 @@ export default function Documents() {
     }
     loadDocuments();
     return () => { cancelled = true; };
-  }, [projectId]);
+  }, [projectId, reloadKey]);
 
   const displayedDocuments = useMemo(() => {
     return documents.filter(doc => {
@@ -59,8 +61,8 @@ export default function Documents() {
       const newDoc = await documentService.createDocument(projectId, data);
       setDocuments(prev => [newDoc, ...prev]);
       setIsCreateModalOpen(false);
-    } catch {
-      alert("Failed to create document.");
+    } catch (createError) {
+      setError(errorMessage(createError, "Failed to create document."));
     }
   };
 
@@ -73,7 +75,7 @@ export default function Documents() {
   }
 
   return (
-    <div className="max-w-[1400px] w-full mx-auto space-y-lg">
+    <div className="mx-auto w-full min-w-0 max-w-[1400px] space-y-lg">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md">
         <h2 className="font-display-lg text-display-lg text-on-surface">Documentation</h2>
         <div className="flex items-center gap-sm">
@@ -97,7 +99,18 @@ export default function Documents() {
         </div>
       </div>
 
-      {error && <div className="text-error">{error}</div>}
+      {error && (
+        <div role="alert" className="flex flex-col gap-md rounded-lg border border-error/30 bg-error-container p-md text-error sm:flex-row sm:items-center sm:justify-between">
+          <p className="min-w-0 break-words text-body-sm">{error}</p>
+          <button
+            type="button"
+            onClick={() => setReloadKey((key) => key + 1)}
+            className="w-fit shrink-0 rounded-lg border border-error/30 px-md py-sm text-body-sm font-semibold hover:bg-error/10"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center gap-sm border-b border-outline-variant pb-xs overflow-x-auto hide-scrollbar">
         {CATEGORIES.map(cat => (
@@ -115,19 +128,19 @@ export default function Documents() {
         ))}
       </div>
 
-      {displayedDocuments.length === 0 ? (
-        <div className="flex min-h-[300px] items-center justify-center rounded-xl border border-dashed border-outline-variant bg-surface-container-low">
-          <div className="text-center max-w-sm">
+      {!error && (displayedDocuments.length === 0 ? (
+        <div className="flex min-h-[300px] w-full min-w-0 items-center justify-center rounded-xl border border-dashed border-outline-variant bg-surface-container-low p-lg sm:p-xl">
+          <div className="flex w-full min-w-0 flex-col items-center text-center">
             <span className="material-symbols-outlined text-4xl text-on-surface-variant mb-md">description</span>
             {documents.length === 0 ? (
               <>
                 <h2 className="text-title-md font-semibold text-on-surface">No documents yet</h2>
-                <p className="mt-sm text-body-sm text-on-surface-variant mb-lg">
+                <p className="mb-lg mt-sm w-full max-w-2xl text-pretty text-body-sm text-on-surface-variant">
                   Create your first project document to capture architecture, APIs, guides, and team knowledge.
                 </p>
                 <button 
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="bg-primary-container text-on-primary-container rounded px-md py-sm font-medium"
+                  className="min-h-10 shrink-0 rounded-lg bg-primary-container px-md py-sm font-medium text-on-primary-container"
                 >
                   New Document
                 </button>
@@ -135,7 +148,7 @@ export default function Documents() {
             ) : (
               <>
                 <h2 className="text-title-md font-semibold text-on-surface">No results</h2>
-                <p className="mt-sm text-body-sm text-on-surface-variant">
+                <p className="mt-sm w-full max-w-2xl text-pretty text-body-sm text-on-surface-variant">
                   No {activeCategory !== "All Docs" ? activeCategory : ""} documents match your search.
                 </p>
               </>
@@ -143,12 +156,12 @@ export default function Documents() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md">
+        <div className="grid w-full min-w-0 grid-cols-1 gap-md md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {displayedDocuments.map(doc => (
             <DocumentCard key={doc.id} document={doc} projectId={projectId!} />
           ))}
         </div>
-      )}
+      ))}
 
       <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create Document">
         <CreateDocumentForm onSubmit={handleCreateDocument} onCancel={() => setIsCreateModalOpen(false)} />

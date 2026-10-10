@@ -21,6 +21,7 @@ import type { CICDRun } from "../../types/cicd";
 
 import { goalService } from "../../services/goalService";
 import type { GoalWithMilestones } from "../../types/goal";
+import { errorMessage } from "../../services/apiClient";
 
 
 function getSignalIcon(signal: EngineeringSignal) {
@@ -98,6 +99,7 @@ function ProjectHome() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
+  const [dataErrors, setDataErrors] = useState<Record<string, string>>({});
   const [intelligenceRefreshKey, setIntelligenceRefreshKey] = useState(0);
 
   
@@ -142,6 +144,16 @@ function ProjectHome() {
       }
 
       setIsLoading(true);
+      setError(undefined);
+      setDataErrors({});
+      setContext(undefined);
+      setIssues([]);
+      setSprints([]);
+      setActiveSprint(null);
+      setEngineeringProgress(null);
+      setGoals([]);
+      setGithubData(undefined);
+      setCicdRuns([]);
 
       try {
         const loadedProject = await projectService.getById(projectId);
@@ -156,7 +168,7 @@ function ProjectHome() {
             cicdService.getRuns(projectId, 20),
             sprintService.getSprints(projectId),
             goalService.getGoals(projectId),
-            traceabilityService.getProjectEngineeringProgress(projectId).catch(() => null)
+            traceabilityService.getProjectEngineeringProgress(projectId)
           ]);
 
           if (cancelled) return;
@@ -171,11 +183,28 @@ function ProjectHome() {
             setSprints(sprintsRes.value);
           }
           if (goalsRes.status === "fulfilled") setGoals(goalsRes.value);
-          if (progressRes && progressRes.status === "fulfilled" && progressRes.value) setEngineeringProgress(progressRes.value);
+          if (progressRes.status === "fulfilled") setEngineeringProgress(progressRes.value);
+
+          const failedSources: Record<string, string> = {};
+          const results = [
+            ["Engineering intelligence", contextRes],
+            ["Issues", issuesRes],
+            ["GitHub activity", githubRes],
+            ["CI/CD runs", cicdRes],
+            ["Sprints", sprintsRes],
+            ["Goals", goalsRes],
+            ["Engineering progress", progressRes],
+          ] as const;
+          for (const [label, result] of results) {
+            if (result.status === "rejected") {
+              failedSources[label] = errorMessage(result.reason, `${label} could not be loaded.`);
+            }
+          }
+          setDataErrors(failedSources);
         }
       } catch (err) {
         if (!cancelled) {
-          setError("Failed to load project workspace.");
+          setError(errorMessage(err, "Failed to load project workspace."));
         }
       } finally {
         if (!cancelled) {
@@ -352,6 +381,28 @@ function ProjectHome() {
   return (
     <div className="space-y-lg">
       {/* GitHub Connection State */}
+      {Object.keys(dataErrors).length > 0 && (
+        <div role="alert" className="rounded-xl border border-error/30 bg-error-container/20 p-md text-body-sm text-error">
+          <div className="flex flex-col gap-sm sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="font-semibold">Some project data could not be loaded.</p>
+              <ul className="mt-xs list-disc space-y-xs pl-lg">
+                {Object.entries(dataErrors).map(([source, message]) => (
+                  <li key={source}><span className="font-medium">{source}:</span> {message}</li>
+                ))}
+              </ul>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIntelligenceRefreshKey(key => key + 1)}
+              className="shrink-0 rounded-full border border-error/40 px-md py-xs font-medium hover:bg-error-container/40"
+            >
+              Retry loading
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-surface-container rounded-xl p-md border border-outline-variant/30 flex items-center justify-between">
         <div>
           <h2 className="text-title-md font-bold text-on-surface flex items-center gap-sm">
@@ -445,10 +496,16 @@ function ProjectHome() {
         
         {goals.length === 0 ? (
           <div className="text-center py-md bg-surface-variant rounded-lg">
-            <p className="text-body-sm text-on-surface-variant">No project goals defined yet.</p>
-            <Link to={`/projects/${projectId}/goals`} className="text-primary text-body-sm font-medium mt-xs inline-block hover:underline">
-              Create First Goal
-            </Link>
+            {dataErrors.Goals ? (
+              <p className="text-body-sm text-error">Project goals are unavailable because the goals request failed.</p>
+            ) : (
+              <>
+                <p className="text-body-sm text-on-surface-variant">No project goals defined yet.</p>
+                <Link to={`/projects/${projectId}/goals`} className="text-primary text-body-sm font-medium mt-xs inline-block hover:underline">
+                  Create First Goal
+                </Link>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
@@ -633,8 +690,19 @@ function ProjectHome() {
             </div>
             <div className="rounded-xl border border-outline-variant bg-surface-container p-md">
               <p className="text-caption text-on-surface-variant">Open PRs</p>
-              <p className="mt-xs text-title-lg font-bold text-on-surface">{context.metrics.github.open_pull_requests}</p>
-              <p className="mt-xs text-caption text-on-surface-variant">{context.metrics.github.merged_pull_requests} merged</p>
+              {context.metrics.github.fetched ? (
+                <>
+                  <p className="mt-xs text-title-lg font-bold text-on-surface">{context.metrics.github.open_pull_requests}</p>
+                  <p className="mt-xs text-caption text-on-surface-variant">{context.metrics.github.merged_pull_requests} merged</p>
+                </>
+              ) : (
+                <>
+                  <p className="mt-xs text-title-lg font-bold text-on-surface-variant">—</p>
+                  <p className="mt-xs text-caption text-on-surface-variant">
+                    {context.metrics.github.error || (context.metrics.github.connected ? "GitHub data unavailable" : "GitHub not connected")}
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </section>
@@ -649,7 +717,11 @@ function ProjectHome() {
         
         {needsAttentionItems.length === 0 ? (
           <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
-            <p className="text-body-sm text-on-surface-variant">No critical items requiring immediate attention.</p>
+            <p className="text-body-sm text-on-surface-variant">
+              {dataErrors["Engineering intelligence"] || dataErrors.Issues || dataErrors["CI/CD runs"]
+                ? "Attention status is incomplete because one or more data sources failed to load."
+                : "No critical items requiring immediate attention."}
+            </p>
           </div>
         ) : (
           <div className="space-y-sm">
@@ -723,7 +795,11 @@ function ProjectHome() {
         <h2 className="text-title-md font-semibold text-on-surface mb-md">Recent Engineering Activity</h2>
         {timelineEvents.length === 0 ? (
           <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
-            <p className="text-body-sm text-on-surface-variant">No recent activity found.</p>
+            <p className="text-body-sm text-on-surface-variant">
+              {dataErrors.Issues || dataErrors["GitHub activity"] || dataErrors["CI/CD runs"]
+                ? "Recent activity is unavailable or incomplete because one or more activity requests failed."
+                : "No recent activity found."}
+            </p>
           </div>
         ) : (
           <div className="space-y-sm">
@@ -763,7 +839,11 @@ function ProjectHome() {
         <h2 className="text-title-md font-semibold text-on-surface mb-md">Engineering Signals</h2>
         {!context || context.signals.signals.length === 0 ? (
           <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md">
-            <p className="text-body-sm text-on-surface-variant">No significant engineering signals detected.</p>
+            <p className="text-body-sm text-on-surface-variant">
+              {dataErrors["Engineering intelligence"]
+                ? "Engineering signals are unavailable because the intelligence request failed."
+                : "No significant engineering signals detected."}
+            </p>
           </div>
         ) : (
           <div className="space-y-md">

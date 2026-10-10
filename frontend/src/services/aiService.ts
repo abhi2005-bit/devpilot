@@ -1,5 +1,5 @@
 import API_URL_BASE from "../config/api";
-import { authenticatedFetch } from "./apiClient";
+import { authenticatedFetch, responseError } from "./apiClient";
 
 const API_URL = `${API_URL_BASE}/projects`;
 
@@ -41,19 +41,7 @@ export const aiService = {
     );
 
     if (!response.ok) {
-      let message = "Failed to generate AI analysis.";
-
-      try {
-        const errorData = await response.json();
-
-        if (typeof errorData.detail === "string") {
-          message = errorData.detail;
-        }
-      } catch {
-        // Keep the default error message.
-      }
-
-      throw new Error(message);
+      throw await responseError(response, "Failed to generate AI analysis");
     }
 
     return response.json();

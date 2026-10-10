@@ -11,6 +11,7 @@ import SprintSelector from "./SprintSelector";
 import SprintManagerModal from "./SprintManagerModal";
 import { issueService } from "../../../services/issueService";
 import { traceabilityService } from "../../../services/traceabilityService";
+import { errorMessage } from "../../../services/apiClient";
 import type { TraceabilityContext } from "../../../services/traceabilityService";
 
 import type {
@@ -96,6 +97,9 @@ function Issues() {
 
   const [error, setError] =
     useState("");
+  const [loadError, setLoadError] = useState("");
+  const [traceabilityError, setTraceabilityError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   const [search, setSearch] =
     useState("");
@@ -154,26 +158,32 @@ function Issues() {
 
       setIsLoading(true);
       setError("");
+      setLoadError("");
+      setTraceabilityError("");
 
       try {
         const [loadedIssuesRes, traceMatrixRes] = await Promise.allSettled([
           issueService.getByProject(projectId),
-          traceabilityService.getProjectTraceabilityMatrix(projectId).catch(() => ({}))
+          traceabilityService.getProjectTraceabilityMatrix(projectId),
         ]);
 
         if (!cancelled) {
           if (loadedIssuesRes.status === "fulfilled") {
             setProjectIssues(loadedIssuesRes.value);
+          } else {
+            setProjectIssues([]);
+            setLoadError(errorMessage(loadedIssuesRes.reason, "Unable to load project issues."));
           }
-          if (traceMatrixRes.status === "fulfilled" && traceMatrixRes.value) {
+          if (traceMatrixRes.status === "fulfilled") {
             setTraceabilityMatrix(traceMatrixRes.value);
+          } else {
+            setTraceabilityError(errorMessage(traceMatrixRes.reason, "Unable to load issue traceability."));
           }
         }
-      } catch {
+      } catch (loadError) {
         if (!cancelled) {
-          setError(
-            "Unable to load project issues.",
-          );
+          setProjectIssues([]);
+          setLoadError(errorMessage(loadError, "Unable to load project issues."));
         }
       } finally {
         if (!cancelled) {
@@ -187,7 +197,7 @@ function Issues() {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, reloadKey]);
 
     const filteredIssues = useMemo(() => {
     return projectIssues.filter((issue) => {
@@ -563,10 +573,16 @@ function Issues() {
             error
           </span>
 
-          <p className="text-body-sm">
+          <p role="alert" className="min-w-0 flex-1 break-words text-body-sm">
             {error}
           </p>
         </div>
+      )}
+
+      {traceabilityError && !loadError && (
+        <p role="status" className="rounded-lg border border-outline-variant bg-surface-container-low px-md py-sm text-caption text-on-surface-variant">
+          Issue traceability unavailable: {traceabilityError}
+        </p>
       )}
 
       {/* Toolbar */}
@@ -693,6 +709,15 @@ function Issues() {
             <p className="mt-md text-body-sm text-on-surface-variant">
               Loading issues...
             </p>
+          </div>
+        </section>
+      ) : loadError ? (
+        <section className="flex min-h-72 w-full min-w-0 items-center justify-center rounded-xl border border-error/30 bg-error-container p-lg">
+          <div className="w-full max-w-xl text-center">
+            <span className="material-symbols-outlined text-4xl text-error">error</span>
+            <h3 className="mt-md text-title-sm font-semibold text-on-surface">Issues could not be loaded</h3>
+            <p className="mt-xs break-words text-body-sm text-on-surface-variant">{loadError}</p>
+            <button type="button" onClick={() => setReloadKey((key) => key + 1)} className="mt-md min-h-10 rounded-lg bg-primary px-md py-sm text-body-sm font-bold text-on-primary">Retry</button>
           </div>
         </section>
       ) : (
@@ -1239,27 +1264,28 @@ function Issues() {
                   )}
                 </section>
               ) : (
-                <section className="flex min-h-72 items-center justify-center rounded-xl border border-dashed border-outline-variant bg-surface-container-low">
-                  <div className="max-w-md px-lg text-center">
+                <section className="flex min-h-72 w-full min-w-0 items-center justify-center rounded-xl border border-dashed border-outline-variant bg-surface-container-low p-lg sm:p-xl">
+                  <div className="flex w-full min-w-0 flex-col items-center text-center">
                     <span className="material-symbols-outlined text-5xl text-on-surface-variant">
                       search_off
                     </span>
 
                     <h3 className="mt-md text-title-sm font-semibold text-on-surface">
-                      No issues found
+                      {projectIssues.length === 0 && !hasFilters ? "No issues yet" : "No issues found"}
                     </h3>
 
-                    <p className="mt-xs text-body-sm text-on-surface-variant">
-                      Try changing your search
-                      or filters.
+                    <p className="mt-xs w-full max-w-xl text-pretty text-body-sm text-on-surface-variant">
+                      {projectIssues.length === 0 && !hasFilters
+                        ? "Create the first issue to start tracking work in this project."
+                        : "Try changing your search or filters."}
                     </p>
 
                     <button
                       type="button"
-                      onClick={clearFilters}
-                      className="mt-md rounded-lg bg-primary px-md py-sm text-body-sm font-bold text-on-primary"
+                      onClick={() => projectIssues.length === 0 && !hasFilters ? setIsCreateModalOpen(true) : clearFilters()}
+                      className="mt-md min-h-10 shrink-0 rounded-lg bg-primary px-md py-sm text-body-sm font-bold text-on-primary"
                     >
-                      Clear Filters
+                      {projectIssues.length === 0 && !hasFilters ? "Create Issue" : "Clear Filters"}
                     </button>
                   </div>
                 </section>

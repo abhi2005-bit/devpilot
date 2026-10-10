@@ -1,6 +1,6 @@
 import type { EngineeringHealth } from "../types/health";
 import API_URL_BASE from "../config/api";
-import { authenticatedFetch } from "./apiClient";
+import { authenticatedFetch, responseError } from "./apiClient";
 
 const API_URL = API_URL_BASE;
 
@@ -13,9 +13,7 @@ export const healthService = {
     );
 
     if (!response.ok) {
-      throw new Error(
-        "Failed to load engineering health",
-      );
+      throw await responseError(response, "Failed to load engineering health");
     }
 
     return response.json();

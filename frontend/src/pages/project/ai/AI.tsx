@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 
 import { projectService } from "../../../services/projectService";
 import { issueService } from "../../../services/issueService";
+import { errorMessage } from "../../../services/apiClient";
 import {
   aiService,
   type AIAnalysisType,
@@ -33,6 +34,7 @@ function AI() {
     useState(true);
 
   const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   const [activeAnalysis, setActiveAnalysis] =
     useState<AnalysisResult | null>(null);
@@ -62,11 +64,13 @@ function AI() {
           loadedProject,
           loadedIssues,
         ] = await Promise.all([
-          Promise.resolve(
-            projectService.getById(projectId),
-          ),
+          projectService.getById(projectId),
           issueService.getByProject(projectId),
         ]);
+
+        if (!loadedProject) {
+          throw new Error("Project not found (HTTP 404).");
+        }
 
         if (cancelled) {
           return;
@@ -74,11 +78,9 @@ function AI() {
 
         setProject(loadedProject);
         setProjectIssues(loadedIssues);
-      } catch {
+      } catch (loadError) {
         if (!cancelled) {
-          setError(
-            "Unable to load AI engineering intelligence.",
-          );
+          setError(errorMessage(loadError, "Unable to load AI engineering intelligence."));
         }
       } finally {
         if (!cancelled) {
@@ -92,7 +94,7 @@ function AI() {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, reloadKey]);
 
   const metrics = useMemo(() => {
     const total = projectIssues.length;
@@ -392,8 +394,8 @@ function AI() {
 
   if (error) {
     return (
-      <div className="flex min-h-64 items-center justify-center rounded-xl border border-error/30 bg-error-container">
-        <div className="text-center">
+      <div role="alert" className="flex min-h-64 items-center justify-center rounded-xl border border-error/30 bg-error-container p-lg">
+        <div className="w-full max-w-xl text-center">
           <span className="material-symbols-outlined text-4xl text-error">
             error
           </span>
@@ -401,6 +403,7 @@ function AI() {
           <p className="mt-md text-body-sm text-error">
             {error}
           </p>
+          <button type="button" onClick={() => setReloadKey((key) => key + 1)} className="mt-md min-h-10 rounded-lg bg-primary px-md py-sm text-body-sm font-bold text-on-primary">Retry</button>
         </div>
       </div>
     );

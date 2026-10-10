@@ -1,4 +1,4 @@
-import { authenticatedFetch } from "./apiClient";
+import { authenticatedFetch, responseError } from "./apiClient";
 import API_URL_BASE from "../config/api";
 
 export interface DocumentItem {
@@ -30,13 +30,13 @@ export interface DocumentUpdate {
 export const documentService = {
   getProjectDocuments: async (projectId: string | number): Promise<DocumentItem[]> => {
     const response = await authenticatedFetch(`${API_URL_BASE}/projects/${projectId}/documents`);
-    if (!response.ok) throw new Error("Failed to get project documents");
+    if (!response.ok) throw await responseError(response, "Failed to load project documents");
     return response.json();
   },
 
   getDocument: async (projectId: string | number, documentId: string | number): Promise<DocumentItem> => {
     const response = await authenticatedFetch(`${API_URL_BASE}/projects/${projectId}/documents/${documentId}`);
-    if (!response.ok) throw new Error("Failed to get document");
+    if (!response.ok) throw await responseError(response, "Failed to load document");
     return response.json();
   },
 
@@ -46,7 +46,7 @@ export const documentService = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Failed to create document");
+    if (!response.ok) throw await responseError(response, "Failed to create document");
     return response.json();
   },
 
@@ -56,7 +56,7 @@ export const documentService = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Failed to update document");
+    if (!response.ok) throw await responseError(response, "Failed to update document");
     return response.json();
   },
 
@@ -64,6 +64,6 @@ export const documentService = {
     const response = await authenticatedFetch(`${API_URL_BASE}/projects/${projectId}/documents/${documentId}`, {
       method: "DELETE",
     });
-    if (!response.ok) throw new Error("Failed to delete document");
+    if (!response.ok) throw await responseError(response, "Failed to delete document");
   }
 };
