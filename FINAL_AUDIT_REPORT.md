@@ -64,9 +64,18 @@ However, the primary vulnerability lies within the GitHub/CI integration. The un
 *   **Warnings**: `(!) Some chunks are larger than 500 kB after minification.` Code-splitting is recommended for production performance.
 *   **Dead Routes/Navigation**: None detected. Modals (Search, Help) and Drawers (Notifications) integrate seamlessly into the `Navbar.tsx` layout.
 
-## Deployment Readiness
+## Deployment Status
 
-The application is structurally ready for Render/Netlify deployment, provided the environment variables (`DATABASE_URL`, `GROQ_API_KEY`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`) are explicitly configured. However, the presence of mock bypass code in the API router presents a potential production risk.
+The Render-hosted backend is retired. The checked-in Netlify configuration
+builds and serves the frontend only; this repository does not identify an
+available production backend or database. Local development uses FastAPI and
+the local API URL configured in `frontend/src/config/api.ts`. A future deployed
+backend must be configured through `VITE_API_URL` in the frontend build
+environment. Netlify's live environment setting must be checked separately.
+
+The historical audit also identified the mock GitHub-token behavior described
+below as a production risk; this deployment note does not claim that the
+application is currently deployment-ready.
 
 ## P0 Issues
 

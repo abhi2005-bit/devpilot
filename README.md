@@ -1268,3 +1268,19 @@ DevPilot is therefore intended to become more than a project-management applicat
 It is a developer-focused engineering intelligence and decision-support platform.
 Product Link:https://devpilot33.netlify.app/dashboard
 
+## Current Backend and Deployment Status
+
+The previously used Render-hosted backend is retired. The repository does not
+identify a replacement production backend or database, so no production API
+endpoint is configured here.
+
+For local development, configure and start the FastAPI backend from `backend`
+using the local settings in `backend/.env.example`, then start the frontend
+from `frontend` with `npm run dev`. The frontend API base URL defaults to
+`http://127.0.0.1:8000/api/v1` in `frontend/src/config/api.ts`.
+
+To use a future backend, set `VITE_API_URL` to its API base URL in the frontend
+build environment. `netlify.toml` configures the Netlify frontend build and SPA
+routing only; any production API setting must be checked in Netlify's site
+environment and point to an available backend.
+
