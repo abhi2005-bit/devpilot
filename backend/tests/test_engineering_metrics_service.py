@@ -55,7 +55,7 @@ def _issue(
     title: str,
     status: str,
     priority: str = "MEDIUM",
-    assignee_id: int | None = 1,
+    assignee_id: int | None = None,
     age_days: int = 1,
 ) -> Issue:
     return Issue(
@@ -128,7 +128,7 @@ def test_engineering_metrics_calculate_from_database(db):
                 project.id,
                 title="Todo",
                 status="TODO",
-                assignee_id=None,
+                assignee_id=project.owner_id,
                 age_days=20,
             ),
             _issue(
@@ -136,12 +136,14 @@ def test_engineering_metrics_calculate_from_database(db):
                 title="Progress",
                 status="IN_PROGRESS",
                 priority="HIGH",
+                assignee_id=project.owner_id,
             ),
             _issue(
                 project.id,
                 title="Review",
                 status="IN_REVIEW",
                 priority="CRITICAL",
+                assignee_id=project.owner_id,
             ),
             _issue(
                 project.id,
@@ -217,53 +219,48 @@ def test_engineering_metrics_calculate_from_database(db):
     assert metrics.activity.blocked_or_review_work == 3
 
 
-def test_engineering_metrics_fetch_github_when_explicit(db, monkeypatch):
+def test_engineering_metrics_fetch_github_when_explicit(db):
+    from app.models.commit import Commit
+    from app.models.pull_request import PullRequest
     project = _create_project(db)
     service = EngineeringMetricsService()
 
-    async def get_commits(owner, repo, limit=25):
-        return [
-            GitHubCommit(
-                sha="abc123",
-                message="Add metrics",
-                author="octocat",
-                date="2026-09-03T10:00:00Z",
-                url="https://github.com/octo-org/devpilot/commit/abc123",
-            )
-        ]
-
-    async def get_pull_requests(owner, repo, limit=25):
-        return [
-            GitHubPullRequest(
-                number=1,
-                title="Open PR",
-                state="open",
-                author="octocat",
-                created_at="2026-09-03T10:00:00Z",
-                updated_at="2026-09-03T11:00:00Z",
-                merged=False,
-                url="https://github.com/octo-org/devpilot/pull/1",
-            ),
-            GitHubPullRequest(
-                number=2,
-                title="Merged PR",
-                state="closed",
-                author="octocat",
-                created_at="2026-09-02T10:00:00Z",
-                updated_at="2026-09-02T11:00:00Z",
-                merged=True,
-                url="https://github.com/octo-org/devpilot/pull/2",
-            ),
-        ]
-
-    monkeypatch.setattr(
-        "app.services.engineering_metrics_service.github_service.get_commits",
-        get_commits,
+    db.add(
+        Commit(
+            project_id=project.id,
+            sha="abc123",
+            message="Add metrics",
+            author="octocat",
+            date=datetime.fromisoformat("2026-09-03T10:00:00+00:00"),
+            url="https://github.com/octo-org/devpilot/commit/abc123",
+        )
     )
-    monkeypatch.setattr(
-        "app.services.engineering_metrics_service.github_service.get_pull_requests",
-        get_pull_requests,
-    )
+
+    db.add_all([
+        PullRequest(
+            project_id=project.id,
+            number=1,
+            title="Open PR",
+            state="open",
+            author="octocat",
+            created_at=datetime.fromisoformat("2026-09-03T10:00:00+00:00"),
+            updated_at=datetime.fromisoformat("2026-09-03T11:00:00+00:00"),
+            merged=False,
+            url="https://github.com/octo-org/devpilot/pull/1",
+        ),
+        PullRequest(
+            project_id=project.id,
+            number=2,
+            title="Merged PR",
+            state="closed",
+            author="octocat",
+            created_at=datetime.fromisoformat("2026-09-02T10:00:00+00:00"),
+            updated_at=datetime.fromisoformat("2026-09-02T11:00:00+00:00"),
+            merged=True,
+            url="https://github.com/octo-org/devpilot/pull/2",
+        )
+    ])
+    db.commit()
 
     metrics = asyncio.run(
         service.get_project_metrics(

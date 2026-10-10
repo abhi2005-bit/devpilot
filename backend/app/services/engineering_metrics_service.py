@@ -9,6 +9,8 @@ from app.models.cicd_run import (
     CICDRun as CICDRunModel,
 )
 from app.models.issue import Issue as IssueModel
+from app.models.commit import Commit
+from app.models.pull_request import PullRequest
 from app.schemas.github import GitHubCommit, GitHubPullRequest
 from app.schemas.metrics import (
     ActivityEngineeringMetrics,
@@ -181,6 +183,8 @@ class EngineeringMetricsService:
     async def _build_github_metrics(
         self,
         *,
+        db: Session,
+        project_id: int,
         owner: str | None,
         repo: str | None,
         include_github: bool,
@@ -219,24 +223,50 @@ class EngineeringMetricsService:
             )
 
         try:
-            commits = await github_service.get_commits(
-                owner,
-                repo,
-                github_limit,
-            )
-            pull_requests = await github_service.get_pull_requests(
-                owner,
-                repo,
-                github_limit,
-            )
-        except (GitHubAPIError, InvalidGitHubResponseError) as exc:
+            commits = db.scalars(
+                select(Commit).where(
+                    Commit.project_id == project_id
+                ).order_by(Commit.date.desc()).limit(github_limit)
+            ).all()
+            
+            pull_requests = db.scalars(
+                select(PullRequest).where(
+                    PullRequest.project_id == project_id
+                ).order_by(PullRequest.updated_at.desc()).limit(github_limit)
+            ).all()
+            
+            # Map DB models back to GitHub models for the summary
+            github_commits = [
+                GitHubCommit(
+                    sha=c.sha,
+                    message=c.message,
+                    author=c.author,
+                    date=c.date.isoformat() if c.date else "",
+                    url=c.url
+                ) for c in commits
+            ]
+            
+            github_prs = [
+                GitHubPullRequest(
+                    number=pr.number,
+                    title=pr.title,
+                    state=pr.state,
+                    author=pr.author,
+                    created_at=pr.created_at.isoformat() if pr.created_at else "",
+                    updated_at=pr.updated_at.isoformat() if pr.updated_at else "",
+                    merged=pr.merged,
+                    url=pr.url
+                ) for pr in pull_requests
+            ]
+            
+        except Exception as exc:
             return self._unavailable_github_metrics(
                 error=exc.__class__.__name__,
             )
 
         return self._summarize_github(
-            commits,
-            pull_requests,
+            github_commits,
+            github_prs,
             github_limit,
         )
 
@@ -340,6 +370,8 @@ class EngineeringMetricsService:
             recent_cutoff,
         )
         github_metrics = await self._build_github_metrics(
+            db=db,
+            project_id=project.id,
             owner=project.github_owner,
             repo=project.github_repo,
             include_github=include_github,

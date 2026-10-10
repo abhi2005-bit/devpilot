@@ -9,6 +9,7 @@ from app.core.exceptions import (
 )
 from app.models.issue import Issue as IssueModel
 from app.models.project import Project as ProjectModel
+from app.models.user import User as UserModel
 from app.schemas.issue import (
     Issue,
     IssueCreate,
@@ -17,6 +18,13 @@ from app.schemas.issue import (
 
 
 class IssueService:
+
+    @staticmethod
+    def _has_project_access(current_user_id: int):
+        return (
+            (ProjectModel.owner_id == current_user_id)
+            | ProjectModel.members.any(UserModel.id == current_user_id)
+        )
 
     def _to_schema(
         self,
@@ -41,7 +49,7 @@ class IssueService:
     ) -> ProjectModel:
         statement = select(ProjectModel).where(
             ProjectModel.id == project_id,
-            ProjectModel.owner_id == current_user_id,
+            self._has_project_access(current_user_id),
         )
 
         project = db.scalar(statement)
@@ -65,7 +73,7 @@ class IssueService:
             )
             .where(
                 IssueModel.id == issue_id,
-                ProjectModel.owner_id == current_user_id,
+                self._has_project_access(current_user_id),
             )
         )
 
@@ -90,7 +98,7 @@ class IssueService:
                 IssueModel.project_id == ProjectModel.id,
             )
             .where(
-                ProjectModel.owner_id == current_user_id,
+                self._has_project_access(current_user_id),
             )
             .order_by(IssueModel.id)
         )

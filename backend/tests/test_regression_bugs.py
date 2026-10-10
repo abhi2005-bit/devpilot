@@ -64,8 +64,7 @@ def test_create_project_normalizes_github_url(db):
     assert data["github_repo"] == "devpilot"
     assert data["github_url"] == "https://github.com/abhi2005-bit/devpilot"
 
-@pytest.mark.asyncio
-async def test_delete_project_prevents_health_snapshot_race(db):
+def test_delete_project_prevents_health_snapshot_race(db):
     user = User(
         name="Test Owner 3",
         email="test_owner3@example.com",
@@ -89,10 +88,13 @@ async def test_delete_project_prevents_health_snapshot_race(db):
     db.commit()
 
     # Attempt to persist health snapshot
-    await engineering_health_service.get_project_health(
-        db,
-        str(project_id),
-        persist_snapshot=True
+    import asyncio
+    asyncio.run(
+        engineering_health_service.get_project_health(
+            db,
+            str(project_id),
+            persist_snapshot=True
+        )
     )
     
     # Verify no snapshot was created and no error was raised

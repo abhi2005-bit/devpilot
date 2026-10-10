@@ -41,10 +41,10 @@ async def get_project_traceability_matrix(project_id: int, db: Session = Depends
     project = project_service.get_project(db, project_id, current_user.id)
     # returns mapping of issue_id -> traceability
     matrix = {}
-    prs, commits = await traceability_service._get_project_github_data(project)
+    prs, commits = traceability_service._get_project_github_data(db, project)
     ci_runs = traceability_service._get_project_ci_runs(db, project_id)
     for issue in project.issues:
-        matrix[issue.id] = traceability_service._match_issue(issue.id, prs, commits, ci_runs)
+        matrix[issue.id] = traceability_service._match_issue(issue, prs, commits, ci_runs)
     return matrix
 
 @router.get("/projects/{project_id}/planning-traceability")

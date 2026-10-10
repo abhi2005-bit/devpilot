@@ -35,7 +35,7 @@ async def read_project_engineering_health(
     db: Session = Depends(get_db),
     _project: object = Depends(get_current_user_project),
 ):
-    return await engineering_health_service.get_project_health(
+    health = await engineering_health_service.get_project_health(
         db,
         project_id,
         include_github=include_github,
@@ -43,3 +43,7 @@ async def read_project_engineering_health(
         github_limit=github_limit,
         persist_snapshot=True,
     )
+    if health is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Project not found")
+    return health

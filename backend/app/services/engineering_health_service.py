@@ -43,14 +43,20 @@ class EngineeringHealthService:
         lookback_days: int = 14,
         github_limit: int = 25,
         persist_snapshot: bool = False,
-    ) -> EngineeringHealth:
-        metrics = await engineering_metrics_service.get_project_metrics(
-            db,
-            project_id,
-            include_github=include_github,
-            lookback_days=lookback_days,
-            github_limit=github_limit,
-        )
+    ) -> EngineeringHealth | None:
+        from app.core.exceptions import ProjectNotFoundError
+
+        try:
+            metrics = await engineering_metrics_service.get_project_metrics(
+                db,
+                project_id,
+                include_github=include_github,
+                lookback_days=lookback_days,
+                github_limit=github_limit,
+            )
+        except ProjectNotFoundError:
+            return None
+
 
         issue_score, issue_basis, issue_evidence = (
             self._calculate_issue_health(metrics)

@@ -9,6 +9,8 @@ from app.models.milestone import Milestone
 from app.models.goal import Goal
 from app.models.project import Project
 from app.models.cicd_run import CICDRun
+from app.models.pull_request import PullRequest
+from app.models.commit import Commit
 from app.services.github_service import github_service
 from app.schemas.github import GitHubPullRequest, GitHubCommit
 
@@ -21,13 +23,28 @@ def extract_issue_ids(text: str) -> Set[int]:
     return {int(m) for m in matches}
 
 class TraceabilityService:
-    async def _get_project_github_data(self, project: Project):
+    def _get_project_github_data(self, db: Session, project: Project):
         if not project.github_owner or not project.github_repo:
             return [], []
         try:
-            prs = await github_service.get_pull_requests(project.github_owner, project.github_repo, limit=100)
-            commits = await github_service.get_commits(project.github_owner, project.github_repo, limit=100)
-            return prs, commits
+            prs = db.scalars(
+                select(PullRequest)
+                .where(PullRequest.project_id == project.id)
+                .order_by(PullRequest.updated_at.desc())
+                .limit(100)
+            ).all()
+            
+            commits = db.scalars(
+                select(Commit)
+                .where(Commit.project_id == project.id)
+                .order_by(Commit.date.desc())
+                .limit(100)
+            ).all()
+            
+            # Note: _match_issue in this file expects GitHubPullRequest and GitHubCommit schemas,
+            # or objects with the same properties. Since we are using the DB models, they have
+            # the same attribute names (number, sha, message, etc.) so we can just return them.
+            return list(prs), list(commits)
         except Exception:
             return [], []
 
@@ -40,17 +57,23 @@ class TraceabilityService:
         ).all()
         return list(runs)
         
-    def _match_issue(self, issue_id: int, prs: List[GitHubPullRequest], commits: List[GitHubCommit], ci_runs: List[CICDRun]) -> Dict[str, Any]:
+    def _match_issue(self, issue: Issue, prs: List[GitHubPullRequest], commits: List[GitHubCommit], ci_runs: List[CICDRun]) -> Dict[str, Any]:
         issue_prs = []
         issue_commits = []
         issue_ci_runs = []
 
+        ids_to_match = {issue.id}
+        if getattr(issue, "github_number", None) is not None:
+            ids_to_match.add(issue.github_number)
+
         for pr in prs:
-            if issue_id in extract_issue_ids(pr.title):
+            extracted = extract_issue_ids(pr.title)
+            if any(i in extracted for i in ids_to_match):
                 issue_prs.append(pr)
 
         for commit in commits:
-            if issue_id in extract_issue_ids(commit.message):
+            extracted = extract_issue_ids(commit.message)
+            if any(i in extracted for i in ids_to_match):
                 issue_commits.append(commit)
 
         commit_shas = {c.sha for c in issue_commits}
@@ -58,9 +81,11 @@ class TraceabilityService:
         for run in ci_runs:
             if run.commit_sha and run.commit_sha in commit_shas:
                 issue_ci_runs.append(run)
-            elif run.branch and issue_id in extract_issue_ids(run.branch):
-                if run not in issue_ci_runs:
-                    issue_ci_runs.append(run)
+            elif run.branch:
+                extracted = extract_issue_ids(run.branch)
+                if any(i in extracted for i in ids_to_match):
+                    if run not in issue_ci_runs:
+                        issue_ci_runs.append(run)
 
         return {
             "pull_requests": issue_prs,
@@ -70,14 +95,14 @@ class TraceabilityService:
 
     async def get_issue_traceability(self, db: Session, issue: Issue) -> Dict[str, Any]:
         project = issue.project
-        prs, commits = await self._get_project_github_data(project)
+        prs, commits = self._get_project_github_data(db, project)
         ci_runs = self._get_project_ci_runs(db, project.id)
 
-        return self._match_issue(issue.id, prs, commits, ci_runs)
+        return self._match_issue(issue, prs, commits, ci_runs)
 
     async def get_sprint_traceability(self, db: Session, sprint: Sprint) -> Dict[str, Any]:
         project = sprint.project
-        prs, commits = await self._get_project_github_data(project)
+        prs, commits = self._get_project_github_data(db, project)
         ci_runs = self._get_project_ci_runs(db, project.id)
         
         issues = sprint.issues
@@ -90,7 +115,7 @@ class TraceabilityService:
         all_ci_runs = set()
         
         for issue in issues:
-            res = self._match_issue(issue.id, prs, commits, ci_runs)
+            res = self._match_issue(issue, prs, commits, ci_runs)
             for pr in res["pull_requests"]:
                 all_prs.add(pr.number)
             for commit in res["commits"]:
@@ -117,7 +142,7 @@ class TraceabilityService:
         project = milestone.goal.project if milestone.goal else None
         if not project:
             return {}
-        prs, commits = await self._get_project_github_data(project)
+        prs, commits = self._get_project_github_data(db, project)
         ci_runs = self._get_project_ci_runs(db, project.id)
         
         issues = []
@@ -132,7 +157,7 @@ class TraceabilityService:
         all_ci_runs = set()
         
         for issue in issues:
-            res = self._match_issue(issue.id, prs, commits, ci_runs)
+            res = self._match_issue(issue, prs, commits, ci_runs)
             for pr in res["pull_requests"]:
                 all_prs.add(pr.number)
             for commit in res["commits"]:
@@ -156,7 +181,7 @@ class TraceabilityService:
         
     async def get_goal_traceability(self, db: Session, goal: Goal) -> Dict[str, Any]:
         project = goal.project
-        prs, commits = await self._get_project_github_data(project)
+        prs, commits = self._get_project_github_data(db, project)
         ci_runs = self._get_project_ci_runs(db, project.id)
         
         issues = []
@@ -175,7 +200,7 @@ class TraceabilityService:
         all_ci_runs = set()
         
         for issue in issues:
-            res = self._match_issue(issue.id, prs, commits, ci_runs)
+            res = self._match_issue(issue, prs, commits, ci_runs)
             for pr in res["pull_requests"]:
                 all_prs.add(pr.number)
             for run in res["ci_runs"]:
@@ -196,7 +221,7 @@ class TraceabilityService:
         }
         
     async def get_project_engineering_progress(self, db: Session, project: Project) -> Dict[str, Any]:
-        prs, commits = await self._get_project_github_data(project)
+        prs, commits = self._get_project_github_data(db, project)
         ci_runs = self._get_project_ci_runs(db, project.id)
         
         # We need "Current Goal", "Active Milestone", "Current Sprint"
@@ -214,7 +239,7 @@ class TraceabilityService:
         
         for issue in project.issues:
             if issue.status != "DONE":
-                res = self._match_issue(issue.id, prs, commits, ci_runs)
+                res = self._match_issue(issue, prs, commits, ci_runs)
                 for pr in res["pull_requests"]:
                     all_prs.add(pr.number)
                 for run in res["ci_runs"]:
@@ -234,7 +259,7 @@ class TraceabilityService:
         }
 
     async def get_project_planning_traceability(self, db: Session, project: Project) -> Dict[str, Any]:
-        prs, commits = await self._get_project_github_data(project)
+        prs, commits = self._get_project_github_data(db, project)
         ci_runs = self._get_project_ci_runs(db, project.id)
 
         result = {
@@ -260,7 +285,7 @@ class TraceabilityService:
         all_commits = set()
         all_ci_runs = set()
         for issue in issues:
-            res = self._match_issue(issue.id, prs, commits, ci_runs)
+            res = self._match_issue(issue, prs, commits, ci_runs)
             all_prs.update(pr.number for pr in res["pull_requests"])
             all_commits.update(commit.sha for commit in res["commits"])
             all_ci_runs.update(run.id for run in res["ci_runs"])
@@ -292,7 +317,7 @@ class TraceabilityService:
         all_commits = set()
         all_ci_runs = set()
         for issue in issues:
-            res = self._match_issue(issue.id, prs, commits, ci_runs)
+            res = self._match_issue(issue, prs, commits, ci_runs)
             all_prs.update(pr.number for pr in res["pull_requests"])
             all_commits.update(commit.sha for commit in res["commits"])
             all_ci_runs.update(run.id for run in res["ci_runs"])
@@ -327,7 +352,7 @@ class TraceabilityService:
         all_prs = set()
         all_ci_runs = set()
         for issue in issues:
-            res = self._match_issue(issue.id, prs, commits, ci_runs)
+            res = self._match_issue(issue, prs, commits, ci_runs)
             all_prs.update(pr.number for pr in res["pull_requests"])
             all_ci_runs.update(run.id for run in res["ci_runs"])
 

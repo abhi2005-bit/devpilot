@@ -256,21 +256,22 @@ class ProjectService:
         owner: str | None,
         repo: str | None,
     ) -> tuple[str | None, str | None]:
-        if not repo:
-            return owner, repo
+        # Combine them to see if one contains the full path
+        full_str = f"{owner or ''}/{repo or ''}"
+        
+        # Strip .git and URLs
+        full_str = full_str.replace(".git", "")
+        if "github.com/" in full_str:
+            full_str = full_str.split("github.com/")[-1]
             
-        repo = repo.replace(".git", "")
-        if "github.com/" in repo:
-            parts = repo.split("github.com/")[-1].split("/")
-            if len(parts) >= 2:
-                owner = parts[0]
-                repo = parts[1]
-        elif "/" in repo:
-            parts = repo.split("/")
-            if len(parts) >= 2:
-                owner = parts[0]
-                repo = parts[1]
-                
+        # Now we should have something like 'owner/repo' or 'owner//repo' or '/repo'
+        parts = [p for p in full_str.split("/") if p]
+        
+        if len(parts) >= 2:
+            return parts[-2], parts[-1]
+        elif len(parts) == 1:
+            return owner, parts[0]
+            
         return owner, repo
 
     def create_project(

@@ -22,6 +22,8 @@ class MockResponse:
             raise httpx.HTTPStatusError("Error", request=MagicMock(), response=self)
 
 class MockAsyncClient:
+    def __init__(self, **kwargs):
+        pass
     async def __aenter__(self):
         return self
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -31,6 +33,10 @@ class MockAsyncClient:
             if headers and headers.get("Authorization") == "Bearer real_test_token":
                 return MockResponse([{"owner": {"login": "openai"}, "name": "openai-python", "full_name": "openai/openai-python", "html_url": "https://github.com/openai/openai-python", "default_branch": "main", "stargazers_count": 0, "forks_count": 0, "open_issues_count": 0}], 200)
             return MockResponse({}, 401)
+        if "/actions/runs" in url:
+            return MockResponse({"workflow_runs": []}, 200)
+        if "/pulls" in url or "/commits" in url or "/issues" in url:
+            return MockResponse([], 200)
         if "/repos/" in url:
             if headers and headers.get("Authorization") == "Bearer real_test_token":
                 return MockResponse({"html_url": "https://github.com/openai/openai-python", "owner": {"login": "openai"}, "name": "openai-python", "full_name": "openai/openai-python", "default_branch": "main", "stargazers_count": 0, "forks_count": 0, "open_issues_count": 0}, 200)

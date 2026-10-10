@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.models.document import Document as DocumentModel
 from app.models.project import Project as ProjectModel
+from app.models.user import User as UserModel
 from app.schemas.document import Document, DocumentCreate, DocumentUpdate
 from app.core.exceptions import ProjectNotFoundError
 
@@ -10,6 +11,16 @@ class DocumentNotFoundError(Exception):
     pass
 
 class DocumentService:
+    @staticmethod
+    def _has_project_access(project_id: int, user_id: int):
+        return (
+            (ProjectModel.id == project_id)
+            & (
+                (ProjectModel.owner_id == user_id)
+                | ProjectModel.members.any(UserModel.id == user_id)
+            )
+        )
+
     def _to_schema(self, document: DocumentModel) -> Document:
         return Document(
             id=document.id,
@@ -25,10 +36,12 @@ class DocumentService:
 
     def get_by_project(self, db: Session, project_id: int, user_id: int) -> list[Document]:
         project = db.execute(
-            select(ProjectModel).where(ProjectModel.id == project_id)
+            select(ProjectModel).where(
+                self._has_project_access(project_id, user_id)
+            )
         ).scalar_one_or_none()
-        
-        if not project or project.owner_id != user_id:
+
+        if not project:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
         documents = db.execute(
@@ -41,10 +54,12 @@ class DocumentService:
 
     def get_by_id(self, db: Session, project_id: int, document_id: int, user_id: int) -> Document:
         project = db.execute(
-            select(ProjectModel).where(ProjectModel.id == project_id)
+            select(ProjectModel).where(
+                self._has_project_access(project_id, user_id)
+            )
         ).scalar_one_or_none()
-        
-        if not project or project.owner_id != user_id:
+
+        if not project:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
         document = db.execute(
@@ -61,10 +76,12 @@ class DocumentService:
 
     def create(self, db: Session, project_id: int, user_id: int, data: DocumentCreate) -> Document:
         project = db.execute(
-            select(ProjectModel).where(ProjectModel.id == project_id)
+            select(ProjectModel).where(
+                self._has_project_access(project_id, user_id)
+            )
         ).scalar_one_or_none()
 
-        if not project or project.owner_id != user_id:
+        if not project:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
         now = datetime.now(timezone.utc)
@@ -87,10 +104,12 @@ class DocumentService:
 
     def update(self, db: Session, project_id: int, document_id: int, user_id: int, data: DocumentUpdate) -> Document:
         project = db.execute(
-            select(ProjectModel).where(ProjectModel.id == project_id)
+            select(ProjectModel).where(
+                self._has_project_access(project_id, user_id)
+            )
         ).scalar_one_or_none()
-        
-        if not project or project.owner_id != user_id:
+
+        if not project:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
         document = db.execute(
@@ -116,10 +135,12 @@ class DocumentService:
 
     def delete(self, db: Session, project_id: int, document_id: int, user_id: int) -> bool:
         project = db.execute(
-            select(ProjectModel).where(ProjectModel.id == project_id)
+            select(ProjectModel).where(
+                self._has_project_access(project_id, user_id)
+            )
         ).scalar_one_or_none()
-        
-        if not project or project.owner_id != user_id:
+
+        if not project:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
         document = db.execute(

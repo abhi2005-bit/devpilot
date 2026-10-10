@@ -196,6 +196,32 @@ class GitHubService:
 
         return results
 
+    async def get_issues(
+        self,
+        owner: str,
+        repo: str,
+        limit: int = 10,
+        token: str = None,
+    ) -> list[dict]:
+
+        data = await self._get_paginated(
+            f"/repos/{owner}/{repo}/issues?state=all",
+            token=token,
+            limit=limit,
+        )
+
+        results = []
+        try:
+            for issue in data:
+                # GitHub returns PRs in the issues endpoint, we must filter them out
+                if "pull_request" in issue:
+                    continue
+                results.append(issue)
+        except (KeyError, TypeError) as exc:
+            raise InvalidGitHubResponseError() from exc
+
+        return results
+
     async def get_workflow_runs(
         self,
         owner: str,

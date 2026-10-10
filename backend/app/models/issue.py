@@ -66,6 +66,16 @@ class Issue(Base):
         nullable=True,
     )
 
+    github_number: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+
+    github_url: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     status: Mapped[str] = mapped_column(
         String(30),
         nullable=False,
