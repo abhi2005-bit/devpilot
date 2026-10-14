@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import SearchModal from "./SearchModal";
 import NotificationsPanel from "./NotificationsPanel";
 import HelpModal from "./HelpModal";
+import { notificationService } from "../../services/notificationService";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -17,18 +18,18 @@ function Navbar() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (user) {
-      fetch("/api/v1/notifications", {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` }
+    if (!user) return;
+
+    let cancelled = false;
+    notificationService.list()
+      .then((data) => {
+        if (!cancelled) setUnreadCount(data.filter((notification) => !notification.is_read).length);
       })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setUnreadCount(data.filter((n: any) => !n.is_read).length);
-        }
-      })
-      .catch(console.error);
-    }
+      .catch(() => {
+        if (!cancelled) setUnreadCount(0);
+      });
+
+    return () => { cancelled = true; };
   }, [user, isNotificationsOpen]);
 
   const handleLogout = () => {

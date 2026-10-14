@@ -1,17 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-interface Notification {
-  id: number;
-  type: string;
-  title: string;
-  message: string;
-  project_id?: number;
-  entity_id?: string;
-  entity_type?: string;
-  is_read: boolean;
-  created_at: string;
-}
+import { notificationService, type Notification } from "../../services/notificationService";
+import { errorMessage } from "../../services/apiClient";
 
 interface NotificationsPanelProps {
   isOpen: boolean;
@@ -20,37 +10,48 @@ interface NotificationsPanelProps {
 
 export default function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [error, setError] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
   const navigate = useNavigate();
 
-  const fetchNotifications = () => {
-    fetch("/api/v1/notifications", {
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` }
-    })
-      .then(res => res.json())
-      .then(data => setNotifications(data))
-      .catch(err => console.error(err));
-  };
-
   useEffect(() => {
-    if (isOpen) {
-      fetchNotifications();
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
+
+    let cancelled = false;
+    notificationService.list()
+      .then((data) => {
+        if (cancelled) return;
+        setNotifications(data);
+        setError("");
+      })
+      .catch((loadError: unknown) => {
+        if (cancelled) return;
+        setError(errorMessage(loadError, "Failed to load notifications."));
+      });
+
+    return () => { cancelled = true; };
+  }, [isOpen, retryKey]);
 
   if (!isOpen) return null;
 
-  const handleMarkRead = (id: number) => {
-    fetch(`/api/v1/notifications/${id}/read`, {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` }
-    }).then(() => fetchNotifications());
+  const handleMarkRead = async (id: number) => {
+    try {
+      await notificationService.markRead(id);
+      setNotifications(await notificationService.list());
+      setError("");
+    } catch (readError) {
+      setError(errorMessage(readError, "Failed to mark notification as read."));
+    }
   };
 
-  const handleMarkAllRead = () => {
-    fetch("/api/v1/notifications/read-all", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${localStorage.getItem("token") || ""}` }
-    }).then(() => fetchNotifications());
+  const handleMarkAllRead = async () => {
+    try {
+      await notificationService.markAllRead();
+      setNotifications(await notificationService.list());
+      setError("");
+    } catch (readError) {
+      setError(errorMessage(readError, "Failed to mark notifications as read."));
+    }
   };
 
   const handleSelect = (n: Notification) => {
@@ -71,9 +72,18 @@ export default function NotificationsPanel({ isOpen, onClose }: NotificationsPan
         <h3 className="font-bold text-on-surface">Notifications</h3>
         <button onClick={handleMarkAllRead} className="text-xs text-primary hover:underline">Mark all read</button>
       </div>
+
+      {error && (
+        <div role="alert" className="mb-sm rounded-md border border-error/30 bg-error-container p-sm text-sm text-error">
+          <p>{error}</p>
+          <button type="button" onClick={() => setRetryKey((key) => key + 1)} className="mt-xs font-semibold underline">
+            Retry
+          </button>
+        </div>
+      )}
       
       <div className="flex flex-col gap-xs max-h-96 overflow-y-auto">
-        {notifications.length === 0 ? (
+        {!error && notifications.length === 0 ? (
           <div className="p-sm text-center text-on-surface-variant">No new notifications</div>
         ) : (
           notifications.map(n => (
