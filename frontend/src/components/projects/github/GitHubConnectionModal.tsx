@@ -44,6 +44,7 @@ export default function GitHubConnectionModal({ projectId, isOpen, onClose, onCo
     try {
       sessionStorage.setItem("github_redirect", `/projects/${projectId}`);
       const data = await githubService.getAuthUrl();
+      sessionStorage.setItem("github_oauth_state", data.state);
       window.location.href = data.url;
     } catch (err) {
       setError("Failed to initiate GitHub authorization.");

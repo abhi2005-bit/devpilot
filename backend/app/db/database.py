@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     github_client_id: str | None = None
     github_client_secret: str | None = None
+    github_redirect_uri: str | None = None
 
     dev_user_email: str = "devpilot@example.com"
     dev_user_name: str = "DevPilot User"

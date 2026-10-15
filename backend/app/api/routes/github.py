@@ -1,9 +1,11 @@
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from urllib.parse import urlencode
 
 from app.db.database import get_db, settings
 from app.api.dependencies import get_current_user, get_current_user_project
+from app.core.security import create_github_oauth_state, decode_github_oauth_state
 from app.models.user import User
 from app.services.project_service import project_service
 from app.services.github_service import github_service
@@ -21,11 +23,19 @@ router = APIRouter(
 async def get_github_auth_url(current_user: User = Depends(get_current_user)):
     """Returns the GitHub OAuth URL."""
     client_id = settings.github_client_id
-    if not client_id:
-        raise HTTPException(status_code=500, detail="GitHub Client ID not configured")
-    
-    url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope=repo,read:user"
-    return {"url": url}
+    if not client_id or not settings.github_client_secret:
+        raise HTTPException(status_code=500, detail="GitHub OAuth credentials not configured")
+
+    state = create_github_oauth_state(current_user.id)
+    params = {
+        "client_id": client_id,
+        "scope": "repo,read:user",
+        "state": state,
+    }
+    if settings.github_redirect_uri:
+        params["redirect_uri"] = settings.github_redirect_uri
+    url = "https://github.com/login/oauth/authorize?" + urlencode(params)
+    return {"url": url, "state": state}
 
 @router.post("/callback")
 async def github_callback(
@@ -34,8 +44,23 @@ async def github_callback(
     current_user: User = Depends(get_current_user)
 ):
     """Exchanges code for token and saves to user."""
+    state = data.get("state")
+    if not isinstance(state, str) or not state:
+        raise HTTPException(status_code=400, detail="Invalid or expired GitHub OAuth state.")
+
+    try:
+        state_user_id = decode_github_oauth_state(state)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired GitHub OAuth state.",
+        ) from exc
+
+    if state_user_id != current_user.id:
+        raise HTTPException(status_code=400, detail="GitHub OAuth state does not match the signed-in user.")
+
     code = data.get("code")
-    if not code:
+    if not isinstance(code, str) or not code:
         raise HTTPException(status_code=400, detail="Code is required")
         
     client_id = settings.github_client_id
@@ -44,28 +69,36 @@ async def github_callback(
     if not client_id or not client_secret:
         raise HTTPException(status_code=500, detail="GitHub credentials not configured")
 
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            "https://github.com/login/oauth/access_token",
-            data={
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "code": code,
-            },
-            headers={"Accept": "application/json"}
-        )
-        if resp.status_code != 200:
-            raise HTTPException(status_code=400, detail="Failed to fetch GitHub token")
-            
-        token_data = resp.json()
-        access_token = token_data.get("access_token")
-        
-        if not access_token:
-            raise HTTPException(status_code=400, detail="GitHub did not return access token")
-            
-        current_user.github_token = access_token
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                "https://github.com/login/oauth/access_token",
+                data={
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "code": code,
+                },
+                headers={"Accept": "application/json"},
+            )
+            if resp.status_code != 200:
+                raise HTTPException(status_code=502, detail="GitHub token exchange failed.")
+            token_data = resp.json()
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="GitHub token exchange failed.") from exc
+
+    access_token = token_data.get("access_token") if isinstance(token_data, dict) else None
+    if not isinstance(access_token, str) or not access_token:
+        raise HTTPException(status_code=502, detail="GitHub token exchange failed.")
+
+    current_user.github_token = access_token
+    try:
         db.commit()
-        
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="GitHub connection could not be saved.") from exc
+
     return {"status": "success"}
 
 @router.get("/repositories", response_model=list[GitHubRepository])

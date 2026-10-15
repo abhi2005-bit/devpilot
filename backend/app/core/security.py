@@ -1,4 +1,7 @@
 from datetime import datetime, timedelta, timezone
+import hashlib
+import hmac
+import secrets
 
 import jwt
 from pwdlib import PasswordHash
@@ -8,6 +11,15 @@ from app.db.database import settings
 
 
 password_hash = PasswordHash.recommended()
+GITHUB_OAUTH_STATE_ALGORITHM = "HS256"
+
+
+def _github_oauth_state_key() -> bytes:
+    return hmac.new(
+        settings.jwt_secret_key.encode("utf-8"),
+        b"devpilot:github-oauth-state:v1",
+        hashlib.sha256,
+    ).digest()
 
 
 def hash_password(password: str) -> str:
@@ -61,3 +73,44 @@ def decode_access_token(token: str) -> int:
         return int(subject)
     except (TypeError, ValueError) as exc:
         raise ValueError("Token contains an invalid user id.") from exc
+
+
+def create_github_oauth_state(
+    user_id: int,
+    expires_in_seconds: int = 600,
+) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": str(user_id),
+        "iat": now,
+        "exp": now + timedelta(seconds=expires_in_seconds),
+        "purpose": "github_oauth_state",
+        "nonce": secrets.token_urlsafe(32),
+    }
+    return jwt.encode(
+        payload,
+        _github_oauth_state_key(),
+        algorithm=GITHUB_OAUTH_STATE_ALGORITHM,
+    )
+
+
+def decode_github_oauth_state(state: str) -> int:
+    try:
+        payload = jwt.decode(
+            state,
+            _github_oauth_state_key(),
+            algorithms=[GITHUB_OAUTH_STATE_ALGORITHM],
+            options={
+                "require": ["sub", "iat", "exp", "purpose", "nonce"],
+            },
+        )
+    except jwt.PyJWTError as exc:
+        raise ValueError("Invalid or expired GitHub OAuth state.") from exc
+
+    if payload.get("purpose") != "github_oauth_state" or not payload.get("nonce"):
+        raise ValueError("Invalid or expired GitHub OAuth state.")
+
+    try:
+        return int(payload["sub"])
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Invalid or expired GitHub OAuth state.") from exc

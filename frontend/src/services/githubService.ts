@@ -21,17 +21,17 @@ export const githubService = {
     return response.json();
   },
 
-  async getAuthUrl(): Promise<{url: string}> {
+  async getAuthUrl(): Promise<{url: string; state: string}> {
     const res = await authenticatedFetch(`${API_URL}/github/authorize`);
     if (!res.ok) throw new Error("Failed to get authorization url");
     return res.json();
   },
 
-  async authorizeCallback(code: string): Promise<void> {
+  async authorizeCallback(code: string, state: string): Promise<void> {
     const res = await authenticatedFetch(`${API_URL}/github/callback`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, state }),
     });
     if (!res.ok) throw new Error("Failed to authorize GitHub");
   },

@@ -9,20 +9,22 @@ export default function GitHubCallback() {
   
   useEffect(() => {
     const code = searchParams.get("code");
+    const returnedState = searchParams.get("state");
+    const expectedState = sessionStorage.getItem("github_oauth_state");
     const redirectUrl = sessionStorage.getItem("github_redirect") || "/projects";
-    
-    if (!code) {
+    sessionStorage.removeItem("github_oauth_state");
+
+    if (!code || !returnedState || !expectedState || returnedState !== expectedState) {
       setStatus("error");
       return;
     }
-    
-    githubService.authorizeCallback(code)
+
+    githubService.authorizeCallback(code, returnedState)
       .then(() => {
         setStatus("success");
         setTimeout(() => navigate(redirectUrl, { replace: true }), 1000);
       })
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         setStatus("error");
       });
       
